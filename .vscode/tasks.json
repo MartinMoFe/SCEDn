@@ -4,7 +4,7 @@
     {
       "label": "Arkham SCE: Build",
       "type": "shell",
-      "command": "python",
+      "command": "C:\\Users\\marmo\\.conda\\envs\\image\\python.exe",
       "args": [
         "${workspaceFolder}/.vscode/build.py",
         "--action",

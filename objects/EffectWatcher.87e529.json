@@ -1,0 +1,52 @@
+{
+  "AltLookAngle": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "Autoraise": true,
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "CustomAssetbundle": {
+    "AssetbundleSecondaryURL": "",
+    "AssetbundleURL": "https://steamusercontent-a.akamaihd.net/ugc/931552412225871988/6F82627275B2EF83833777BB4ADEE538686153C4/",
+    "LoopingEffectIndex": 0,
+    "MaterialIndex": 0,
+    "TypeIndex": 1
+  },
+  "Description": "Searches for continous effects and warns",
+  "DragSelectable": true,
+  "GMNotes": "",
+  "GUID": "87e529",
+  "Grid": true,
+  "GridProjection": false,
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "IgnoreFoW": false,
+  "LayoutGroupSortIndex": 0,
+  "Locked": true,
+  "LuaScript": "require(\"playarea/EffectWatcher\")",
+  "LuaScriptState": "",
+  "MeasureMovement": false,
+  "Name": "Custom_Assetbundle",
+  "Nickname": "EffectWatcher",
+  "Snap": true,
+  "Sticky": true,
+  "Tooltip": true,
+  "Transform": {
+    "posX": 34.304,
+    "posY": 1.726,
+    "posZ": 82.015,
+    "rotX": 0,
+    "rotY": 270,
+    "rotZ": 0,
+    "scaleX": 4,
+    "scaleY": 4,
+    "scaleZ": 4
+  },
+  "Value": 0,
+  "XmlUI": ""
+}

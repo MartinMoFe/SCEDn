@@ -1,0 +1,108 @@
+TREACHERY_MESSAGE = {
+    ["01164"] = { ["2"] = 'Frozen in Fear has a test at the end of the investigator turn' },
+    ["02038"] = { ["2"] = 'Internal Injury deals damage at the end of the investigator turn' },
+    ["02039"] = { ["2"] = 'Chronofobia deals horror at the end of the investigator turn' },
+    ["02088"] = { ["2"] = 'Unhallowed Country test at end of the investigator turn' },
+    ["01165"] = { ["4"] = 'At the end of the round, discard Dissonant Voices' },
+    ["02089"] = { ["4"] = 'At the end of the round: Each investigator at attached location takes 1 horror.' },
+    ["03083"] = { ["4"] = 'At the end of the round: Discard Tough Crowd.' },
+    ["03262"] = { ["4"] = 'At the end of the round: Each investigator at attached location takes 3 damage. Discard The Pit Below.' },
+    ["04099"] = { ["4"] = 'At the end of the round: Discard Snakescourge.' },
+    ["04094"] = { ["4"] = 'At the end of the round: Discard 1 copy of Deep Dark from play. (Max once per round.)' },
+    ["03101"] = { ["4"] = 'At the end of the round: Discard Ooze and Filth.' },
+}
+
+local PlayermatApi = require("playermat/PlayermatApi")
+
+function getTreacheriesInThreatArea(matColor)
+    -- returns a table of objects
+    local treacheries = {}
+    local threats = PlayermatApi.getThreatAreaObjects(matColor)
+    for _, obj in ipairs(threats) do
+        if isVisibleTreachery(obj) then table.insert(treacheries, obj) end
+    end
+    return treacheries
+end
+
+function scanPlayArea()
+    -- Returns all objects in the PlayArea (the central zone)
+    local zoneGUID = "a2f932"
+    local zone = getObjectFromGUID(zoneGUID)
+
+    if not zone then
+        log("Zone not found (GUID " .. zoneGUID .. ")")
+        return
+    end
+
+    if zone.tag ~= "Scripting" then
+        log("Object is not a ScriptingTrigger zone. Tag: " .. zone.tag)
+        return
+    end
+
+    -- Obtener los objetos dentro de la zona
+    local objs = zone.getObjects()
+    return objs
+end
+
+function getTreacheriesInPlayArea(matColor)
+    -- returns a table of objects
+    -- Some treacheries may be in play area, like exploding spores
+    -- returns a table of objects
+  local treacheries = {}
+  local objs = scanPlayArea()
+  for _, obj in ipairs(objs) do
+    if isVisibleTreachery(obj) then
+      table.insert(treacheries, obj)
+    end
+  end
+  return treacheries
+end
+
+function isVisibleTreachery(obj)
+    -- Returns boolean
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local type = md['type'] or ''
+    if type == 'Treachery' and not obj.is_face_down then
+        return true
+    end
+    return false
+end
+
+function getTreacheryMessage(obj, phaseNumber)
+    -- Returns string or nil
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local messages =  TREACHERY_MESSAGE[id] or nil
+    if messages then
+        log('Hemos llegado a que messages existe, de hecho')
+        log(messages)
+        return messages["2"] or nil
+    end
+    return nil
+end
+
+-- General functions
+
+function onLoad(savedData)
+    -- Al cargar, testeamos
+    log(TREACHERY_MESSAGE['01164'])
+    log(TREACHERY_MESSAGE['01164']['2'])
+    showAllTreacheryInfo(2)
+end
+
+function showAllTreacheryInfo(phaseNumber)
+    -- Phase number is going to be 1 to 4, or maybe some object with more info
+    local COLORS = { White = Color.White, Orange = Color.Orange, Green = Color.Green, Red = Color.Red }
+    local matColors = Player.getAvailableColors()
+    for _, matColor in ipairs(matColors) do
+        log(matColor)
+        local printColor = COLORS[matColor] or { 1, 1, 1 }
+        local treacheries =  getTreacheriesInThreatArea(matColor)
+        for _, treachery in ipairs(treacheries) do
+            local msg = getTreacheryMessage(treachery, nil)
+            if msg then printToAll(msg, printColor) end
+        end
+    end
+end
