@@ -34,7 +34,7 @@
   "LayoutGroupSortIndex": 0,
   "Locked": true,
   "LuaScript": "require(\"playarea/ActiveInvestigatorCounter\")",
-  "LuaScriptState": "2",
+  "LuaScriptState": "1",
   "MeasureMovement": false,
   "Name": "Custom_Token",
   "Nickname": "Investigator Count",

@@ -87,6 +87,30 @@
     {
       "displayed": "i18n_XML",
       "normalized": "i18n_xml"
+    },
+    {
+      "displayed": "TarotDeckBag",
+      "normalized": "tarotdeckbag"
+    },
+    {
+      "displayed": "PlayermatExtension",
+      "normalized": "playermatextension"
+    },
+    {
+      "displayed": "White",
+      "normalized": "white"
+    },
+    {
+      "displayed": "Orange",
+      "normalized": "orange"
+    },
+    {
+      "displayed": "Green",
+      "normalized": "green"
+    },
+    {
+      "displayed": "Red",
+      "normalized": "red"
     }
   ]
 }
