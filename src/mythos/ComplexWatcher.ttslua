@@ -1,0 +1,632 @@
+local zones          = require("playermat/Zones")
+local SearchLib      = require("util/SearchLib")
+local DecalPlacerApi = require("mythos/DecalPlacerApi")
+
+
+-- █▀▀ █ █▄░█ █▀▄   █▀▀ █▄░█ █▀▀ █▀▄▀█ █ █▀▀ █▀
+-- █▀░ █ █░▀█ █▄▀   ██▄ █░▀█ ██▄ █░▀░█ █ ██▄ ▄█
+-- FIND ENEMIES: Cards that are enemies only only when face-down
+
+FaceDownEnemies             = { -- Some enemies are Agenda or Act cards that are Enemies in the metadata
+    ['04137a'] = true,          --Maria DeSilva
+    ['04122'] = true,           -- Harlan Earstone
+    ['04130a'] = true,          -- The other guy
+    ['04209'] = true,           -- The winged serpent
+}
+AgendaFacedownEnemies       = { -- Some enemies are Agenda or Act cards
+    ["03241"] = true,           -- Empire of the Dead
+    ['01121a'] = true,          --The Masked Hunter
+    ['50026a'] = true,          -- Nagorath
+    ['11537a'] = true,          -- Seafloor Leviathan
+}
+
+-- █▀▄▀█ █▀▀ █▀ █▀ ▄▀█ █▀▀ █▀▀ █▀
+-- █░▀░█ ██▄ ▄█ ▄█ █▀█ █▄█ ██▄ ▄█
+-- DISPLAY MESSAGES: Some cards have forced effects that trigger in some phase
+-- Here we list the card id, the timing, and the message
+
+-- Messages in treacheries and locations
+TreacheryMessage            = {
+    ["04009"] = {
+        ["2.1"] = 'Forced - At the beginning of your turn: Choose a location other than your location.',
+        ["2.9"] =
+        'When your turn ends, if you did not successfully investigate the chosen location this turn, take 2 horror and shuffle Call of the Unknown back into your deck.'
+    },
+    ["01164"] = { ["2.9"] = 'Forced - At the end of your turn: Test foot (3).' },
+    ["02038"] = { ["2.9"] = 'Forced - At the end of your turn: Take 1 direct damage.' },
+    ["02039"] = { ["2.9"] = 'Forced - At the end of your turn: Take 1 direct horror.' },
+    ["02088"] = { ["2.9"] = 'Forced - At the end of your turn: Test  (3).' },
+    ["03226"] = { ["2.9"] = 'Forced - At the end of your turn: Test  (3). If you succeed, discard Frozen in Fear.' },
+    ["03261"] = { ["2.9"] = 'Forced - At the end of your turn, if you did not perform the above  ability: You must either discard all of your resources or discard all cards in your hand. Then, discard The Shadow Behind You.' },
+    ["04077"] = { ["2.9"] = 'Forced - At the end of your turn, if you did not successfully explore this turn: Take 1 horror.' },
+    ["04081"] = { ["2.9"] = 'Forced - At the end of your turn: Discard Lost in the Wilds.' },
+    ["11534"] = { ["2.9"] = 'Forced - At the end of your turn: Test foot(3). If you succeed, discard "Look Out!"' },
+    ["02089"] = { ["4.9"] = 'Forced - At the end of the round: Each investigator at attached location takes 1 horror.' },
+    ["03262"] = { ["4.9"] = 'Forced - At the end of the round: Each investigator at attached location takes 3 damage. Discard The Pit Below.' },
+    ["03083"] = { ["4.9"] = 'Forced - At the end of the round: Discard Tough Crowd.' },
+    ["03101"] = { ["4.9"] = 'Forced - At the end of the round: Discard Ooze and Filth.' },
+    ["11665"] = { ["4.9"] = 'Forced - When the round ends: Each investigator at this location takes 1 damage. Attach St. Elmos Fire to an adjacent location (with investigators, if able).' },
+    ["01165"] = { ["4.9"] = 'Forced - At the end of the round, discard Dissonant Voices' },
+    ["04094"] = { ["4.9"] = 'Forced - At the end of the round: Discard 1 copy of Deep Dark from play. (Max once per round.)' },
+    ["04099"] = { ["4.9"] = 'Forced - At the end of the round: Discard Snakescourge.' },
+    ["04216"] = { ["4.9"] = 'Forced - At the end of the round: Each investigator at the attached location who is poisoned takes 2 horror. Each investigator at the attached location who is not poisoned must put a set-aside Poisoned weakness into play in his or her threat area, instead. Discard Poisonous Spores.' },
+    ["04299"] = { ["4.9"] = 'Forced - At the end of the round: Discard 1 copy of Children of Valusia from play. (Max once per round.)' },
+    ["04340"] = { ["4.9"] = 'Forced - At the end of the round: Each investigator here takes 1 damage and 1 horror. If there are no investigators in this location, discard it and move each enemy here to Nexus of Nkai.' },
+    ["10018"] = { ["4.9"] = 'Forced - At the end of the round: Hank Samson takes 1 direct horror.' },
+    ["60204"] = { ["2.1"] = 'Forced - When your turn begins: Discard 1 non-weakness card at random from your hand.' },
+}
+LocationMessage             = {
+    ["04063"] = { ["4.9"] = 'Forced - At the end of the round: Flip 1 of the clues on Ancient Hall to its doom side. Any investigator at Ancient Hall may spend 3 resources to cancel this effect.' },
+    ["04181"] = { ["4.9"] = 'Forced - At the end of the round: Discard 1 resource from Canals of Tenochtitlán.' },
+    ["04251"] = { ["4.9"] = 'Forced - At the end of the round, if there are fewer than 4 clues on Great Library: Add clues to Great Library until there are 4 clues on it.' },
+    ["11543"] = { ["2.9"] = 'Forced - After you end your turn at Drowned Acropolis: You must either increase the flood level of an adjacent location or take 1 damage.' },
+    ["11542"] = { ["2.9"] = 'Forced - After you end your turn at Drowned Acropolis: You must either increase its flood level or take 1 horror.' },
+}
+EnemyMessage                = {
+    ["02087"]  = { ["1.1"] = 'Forced - When the engaged investigator draws a Hex or Pact card: Wizard of Yog-Sothoth attacks that investigator.' },
+    ["01170"]  = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Wizard of the Order.' },
+    ["01157"]  = { ["2.9"] = 'Forced - At the end of each investigators turn: Ready Umôrdhoth.' },
+    ["02141"]  = { ["3.1"] = 'Forced - At the start of the enemy phase: Reveal a random token from the chaos bag. If the revealed token has a ? symbol, ready Hunting Horror.' },
+    ["02058"]  = { ["3.1"] = 'Forced - When the enemy phase begins: Ready The Experiment.' },
+    ["02329"]  = { ["3.1"] = 'Forced - When Interstellar Traveler enters a location: Flip 1 clue on that location to its doom side and place it on Interstellar Traveler, or place 1 doom on Interstellar Traveler if there are no clues on that location.' },
+    ["11537"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
+    ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: This enemy attacks the investigator with the lowest  at a connecting location. If no attack was made, Slitherer in Darkness moves to the flooded location nearest the Moving Platform.' },
+    ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: Increase the flood level of its location. If you cannot, place 1 doom on Medusa.' },
+    ["11637"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready and unengaged: It moves to its prey\'s location.' },
+    ["02294"]  = { ["3.9"] = 'Forced - At the end of the enemy phase, Devotee of the Key moves once toward Sentinel Peak. If Devotee of the Key is already at Sentinel Peak, discard it and add 2 doom to the current agenda, instead.' },
+    ["03060"]  = { ["3.9"] = 'Forced - At the end of the enemy phase: Each investigator at Royal Emissarys location or a connecting location takes 1 horror.' },
+    ["03221b"] = { ["3.9"] = 'Forced - At the end of the enemy phase: If The Organist is unengaged, move it 1 location away from the nearest investigator (to a location with no investigators, if possible). If it is engaged, disengage it instead.' },
+    ["07038"]  = { ["3.9"] = 'Forced - At the end of the enemy phase: Add 1 curse token to the chaos bag.' },
+    ["11635"]  = { ["3.9"] = 'Forced - When the enemy phase ends, if there are no investigators at Colossal Tyrant\'s location: Deal 1 direct horror to each card with sanity at each adjacent location.' },
+    ["11535"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on a player card at this enemy\'s location. Then, discard Hunting Parasite.' },
+    ["11721"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on another non-Elite enemy at this location. Then, discard Stowaway Drone.' },
+    ["01179"]  = { ["4.9"] = 'Forced - At the end of the round: Heal 2 damage from Relentless Dark Young.' },
+}
+
+-- ENEMY ATTRIBUTES
+-- This EffectWatcher is also the responsible to know what enemies are aloof, hunter or massive
+-- This info is used, by now, to place decals on them
+
+-- List of massive enemies
+
+MassiveEnemies              = {
+    ['01157'] = true,
+    ['02058'] = true,
+    ['02216'] = true,
+    ['02255'] = true,
+    ['02323'] = true,
+    ['03060'] = true,
+    ['03088'] = true,
+    ['03333'] = true,
+    ['03335'] = true,
+    ['04298'] = true,
+    ['04337'] = true,
+    ['04296'] = true,
+    ['11635'] = true,
+    ['11701'] = true,
+    ['11674'] = true,
+    ['11725'] = true,
+}
+MassiveEnemiesFlipped       = { -- This metadata says enemy
+    ['04209'] = true,           -- The winged serpent is massive only when flipped
+}
+AgendaMassiveEnemiesFlipped = {
+    ['11537a'] = true, -- The leviathan is only massive when flipped
+    ['07199'] = true,
+    ['11674'] = true,
+    ['07165'] = true
+}
+
+-- List of hunter enemies
+
+HunterEnemies               = {
+    ['01181'] = true,
+    ['01180'] = true,
+    ['01175'] = true,
+    ['01157'] = true,
+    ['01116'] = true,
+    ['01159'] = true,
+    ['01172'] = true,
+    ['02078'] = true,
+    ['02090'] = true,
+    ['03060'] = true,
+    ['04079'] = true,
+    ['04220'] = true,
+    ['50022'] = true,
+    ['11533'] = true,
+    ['11513'] = true,
+    ['11574'] = true,
+    ['11575'] = true,
+    ['11726'] = true,
+    ['11747'] = true,
+    ['11751'] = true,
+    ['11744'] = true,
+    ['11733'] = true,
+    ['11724'] = true,
+    ['11727'] = true,
+    ['11725'] = true,
+    ['11671'] = true,
+    ['11606'] = true,
+    ['11535'] = true,
+    ['11728'] = true,
+
+}
+HunterEnemiesFlipped        = { -- This metadata says enemy
+    ['04209'] = true
+}
+AgendaHunterEnemiesFlipped  = {
+    ['01121a'] = true, --The Masked Hunter
+    ['50026a'] = true, -- Nagorath
+    ["03241"] = true,  -- Empire of the Dead
+    ["06169a"] = true,
+}
+
+-- List of hunter enemies
+
+AloofEnemies                = {
+    ['02090'] = true,
+    ['03081'] = true,
+    ['03144'] = true,
+    ['03059'] = true,
+    ['03221b'] = true,
+    ['04086'] = true,
+    ['04257'] = true,
+    ['04258'] = true,
+    ['04220'] = true,
+    ['11551'] = true,
+    ['11728'] = true,
+    ['07038'] = true,
+    ['11721'] = true
+}
+
+-- █░░ █▀█ █▀▀ ▄▀█ ▀█▀ █ █▀█ █▄░█
+-- █▄▄ █▄█ █▄▄ █▀█ ░█░ █ █▄█ █░▀█
+-- LOCATION ATTRIBUTES
+-- This EffectWatcher is also the responsible to know what enemies are locations are blocked
+-- This info is used, by now, to place decals on them
+
+LocationsBlockedBack        = {
+    ['01115'] = true,
+    ['03172'] = true,
+    ['03176'] = true,
+    ['03177'] = true,
+    ['03296'] = true,
+    ['03297'] = true,
+    ['03298'] = true,
+    ['03299'] = true,
+    ['11595'] = true,
+    ["11522"] = true,
+    ["11521"] = true,
+    ["11523"] = true,
+    ["11524"] = true,
+    ["11525"] = true,
+    ["11526"] = true,
+    ["11527"] = true,
+    ["11528"] = true,
+    ["11529"] = true,
+    ["11530"] = true,
+    ["11532"] = true,
+    ["11579"] = true,
+    ["11593"] = true,
+}
+
+-- General functions
+
+function onLoad(savedData)
+    self.interactable = true
+    lastPhase = nil
+    newPhase = nil
+
+
+    timerID = Wait.time(scanGameChange, 2, -1)
+
+    self.addContextMenuItem("Destroy This", function(playerColor)
+        Wait.stop(timerID)
+        printToAll('This object: ' .. self.getName() .. ' was auto-destroyed.')
+        self.destruct()
+    end)
+end
+
+function scanGameChange()
+    local phaseTracker = getObjectByName('Phase Tracker')
+
+    if not phaseTracker then
+        log('Not phase tracker')
+        Wait.stop(timerID)
+        broadcastToAll('Destroyed complex watcher', 'Red')
+        self.destruct()
+    end
+
+    newPhase = phaseTracker.getVar('phaseId')
+
+    if newPhase == lastPhase then
+        return
+    end
+
+    lastPhase = newPhase
+
+    showAllCardsInfo(newPhase)
+end
+
+-- Show things, according to phase number
+
+function showAllCardsInfo(phaseNumber)
+    local colorPrint = { {}, {} }
+
+    if phaseNumber == 1 then
+        colorPrint[1] = { r = 0.902, g = 0.827, b = 0.298 }
+        colorPrint[2] = { r = 0.8, g = 0.2, b = 0.2 }
+        apair = { '3.9', '1.1' }
+    elseif phaseNumber == 2 then
+        colorPrint[1] = { r = 0.8, g = 0.2, b = 0.2 }
+        colorPrint[2] = { r = 0.533, g = 0.788, b = 0.6 }
+        apair = { '1.9', '2.1' }
+    elseif phaseNumber == 3 then
+        colorPrint[1] = { r = 0.533, g = 0.788, b = 0.6 }
+        colorPrint[2] = { r = 0.267, g = 0.467, b = 0.631 }
+        apair = { '2.9', '3.1' }
+    elseif phaseNumber == 4 then
+        colorPrint[1] = { r = 0.267, g = 0.467, b = 0.631 }
+        colorPrint[2] = { r = 0.902, g = 0.827, b = 0.298 }
+        apair = { '3.9', '4.1' }
+    end
+
+    for i, phaseString in ipairs(apair) do
+        showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] }) --
+        showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
+        showAllLocationInfo({ phaseNumber = phaseString, colorPrint = 'White' })
+    end
+end
+
+function showAllTreacheryInfo(params)
+    local phaseNumber = params.phaseNumber
+    local colorPrint = params.colorPrint
+    local playAreaTreacheries = getTreacheriesInPlayArea()
+    for _, treachery in ipairs(playAreaTreacheries) do
+        local msg = getTreacheryMessage(treachery, phaseNumber)
+        if msg then
+            printToAll(msg, colorPrint)
+            highlightObjects({ treachery }, colorPrint, 10)
+        end
+    end
+
+    -- Then in threat area of the mats
+    local COLORS = { White = Color.White, Orange = Color.Orange, Green = Color.Green, Red = Color.Red }
+    local matColors = Player.getAvailableColors()
+    for _, matColor in ipairs(matColors) do
+        local logColor = COLORS[matColor] or { 1, 1, 1 }
+        local treacheries = getTreacheriesInThreatArea(matColor)
+        for _, treachery in ipairs(treacheries) do
+            local msg = getTreacheryMessage(treachery, phaseNumber)
+            if msg then
+                printToAll(msg, logColor)
+                highlightObjects({ treachery }, colorPrint, 10)
+            end
+        end
+    end
+end
+
+function showAllEnemyInfo(params)
+    local phaseNumber = params.phaseNumber
+    local colorPrint = params.colorPrint
+
+    -- Retrieve objects
+    local enemiesInPlayArea = getEnemiesInPlayArea()
+    local matColors = Player.getAvailableColors()
+    local enemiesInThreatArea = {}
+    for _, matColor in ipairs(matColors) do
+        local adding = getEnemiesInThreatArea(matColor)
+        for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
+    end
+
+    for _, enemy in ipairs(enemiesInPlayArea) do
+        local msg = getEnemyMessage(enemy, phaseNumber)
+        if msg then
+            printToAll(msg, colorPrint)
+            highlightObjects({ enemy }, colorPrint, 10)
+        end
+    end
+
+    for _, enemy in ipairs(enemiesInThreatArea) do
+        local msg = getEnemyMessage(enemy, phaseNumber)
+        if msg then
+            printToAll(msg, colorPrint)
+            highlightObjects({ enemy }, colorPrint, 10)
+        end
+    end
+end
+
+function showAllLocationInfo(params)
+    local phaseNumber = params.phaseNumber
+    local colorPrint = params.colorPrint
+
+    -- Play area
+    local locationsInPlayArea = getLocationsInPlayArea()
+    for _, location in ipairs(locationsInPlayArea) do
+        local msg = getLocationMessage(location, phaseNumber, location.is_face_down)
+        if msg then
+            printToAll(msg, colorPrint)
+        end
+    end
+end
+
+-- Place Decals
+
+function placeEnemyDecalsWisely()
+    -- get all enemies in the map and threat areas
+    local enemies = getEnemiesInPlayArea()
+    local adding = getEnemiesInThreatArea('All')
+    for _, v in ipairs(adding) do
+        table.insert(enemies, v)
+    end
+
+    for _, enemy in ipairs(enemies) do
+        local rawNotes = enemy.getGMNotes() or "{}"
+        local md = JSON.decode(rawNotes) or {}
+        local id = md['id'] or ''
+        if MassiveEnemies[id] then DecalPlacerApi.placeDecal(enemy, 'massiveEnemy') end
+        if MassiveEnemiesFlipped[id] then DecalPlacerApi.placeDecal(enemy, 'massiveEnemyFlipped') end
+        if AgendaMassiveEnemiesFlipped[id] then DecalPlacerApi.placeDecal(enemy, 'massiveEnemyFlipped') end
+        if HunterEnemies[id] then DecalPlacerApi.placeDecal(enemy, 'hunterEnemy') end
+        if HunterEnemiesFlipped[id] then
+            log('this is Winged Serpent')
+            DecalPlacerApi.placeDecal(enemy, 'hunterEnemyFlipped')
+        end
+        if AgendaHunterEnemiesFlipped[id] then DecalPlacerApi.placeDecal(enemy, 'hunterEnemyFlipped') end
+        if AloofEnemies[id] then DecalPlacerApi.placeDecal(enemy, 'aloofEnemy') end
+    end
+end
+
+function placeLocationDecalsWisely()
+    local locations = getLocationsInPlayArea()
+    log("LOG:Placing location decals wisely. Found " .. tostring(#locations) .. " locations in play area.")
+    for _, location in ipairs(locations) do
+        local rawNotes = location.getGMNotes() or "{}"
+        local md = JSON.decode(rawNotes) or {}
+        local id = md['id'] or ''
+        if LocationsBlockedBack[id] then
+            log('IIinside:')
+            DecalPlacerApi.placeDecal(location, 'blockedLocation')
+        end
+    end
+end
+
+-- Threat area helper
+
+function getThreatAreaPositions(matColor)
+    -- Returns a table with Vectors
+    local positions = {}
+
+    for i = 1, 4 do
+        local position = zones.getZonePosition(matColor, "Threat" .. i)
+        table.insert(positions, position)
+    end
+
+    return positions
+end
+
+function getThreatAreaObjects(matColor)
+    -- Returns a table of objects
+    local objects = {}
+    for _, pos in ipairs(getThreatAreaPositions(matColor)) do
+        local thisObj = SearchLib.atPosition(pos, "isCardOrDeck")
+        if #thisObj > 0 then
+            table.insert(objects, thisObj[1])
+        end
+    end
+    return objects
+end
+
+function getEnemiesInThreatArea(matColor)
+    -- returns a table of objects
+    -- only enemies that are face up (some custom scenarios can make you draw facedown enemies)
+    local enemies = {}
+    if matColor == 'All' then
+        local colors = Player.getAvailableColors()
+    else
+        local colors = { matColor }
+    end
+
+    local colors = (matColor == 'All') and Player.getAvailableColors() or { matColor }
+    for _, color in ipairs(colors) do
+        local threats = getThreatAreaObjects(color)
+        for _, obj in ipairs(threats) do
+            if isVisibleEnemy(obj) then table.insert(enemies, obj) end
+        end
+    end
+    return enemies
+end
+
+function getTreacheriesInThreatArea(matColor)
+    -- returns a table of objects
+    local treacheries = {}
+    local threats = getThreatAreaObjects(matColor)
+    for _, obj in ipairs(threats) do
+        if isVisibleTreachery(obj) then table.insert(treacheries, obj) end
+    end
+    return treacheries
+end
+
+-- PlayArea helper
+
+function scanPlayArea()
+    -- Returns all objects in the PlayArea (the central zone)
+    local zoneGUID = "a2f932"
+    local zone = getObjectFromGUID(zoneGUID)
+
+    if not zone then
+        log("Zone not found (GUID " .. zoneGUID .. ")")
+        return
+    end
+
+    if zone.tag ~= "Scripting" then
+        log("Object is not a ScriptingTrigger zone. Tag: " .. zone.tag)
+        return
+    end
+
+    -- Obtener los objetos dentro de la zona
+    local objs = zone.getObjects()
+    return objs
+end
+
+function getEnemiesInPlayArea()
+    -- returns a table of objects
+    local enemies = {}
+    local objs = scanPlayArea()
+    for _, obj in ipairs(objs) do
+        if isVisibleEnemy(obj) then
+            table.insert(enemies, obj)
+        end
+    end
+    return enemies
+end
+
+function getTreacheriesInPlayArea()
+    -- returns a table of objects
+    -- Some treacheries may be in play area, like exploding spores
+    -- returns a table of objects
+    local treacheries = {}
+    local objs = scanPlayArea()
+    for _, obj in ipairs(objs) do
+        if isVisibleTreachery(obj) then
+            table.insert(treacheries, obj)
+        end
+    end
+    return treacheries
+end
+
+function getLocationsInPlayArea()
+    -- returns a table of objects
+    local locations = {}
+    local objs = scanPlayArea()
+    for _, obj in ipairs(objs) do
+        if isFaceupLocation(obj) then
+            table.insert(locations, obj)
+        elseif isFacedownLocation(obj) then
+            table.insert(locations, obj)
+        end
+    end
+    return locations
+end
+
+-- Message retrieval
+
+function getTreacheryMessage(obj, phaseNumber)
+    -- Returns string or nil
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local messages = TreacheryMessage[id] or nil
+    if messages then
+        return messages[phaseNumber] or nil
+    end
+    return nil
+end
+
+function getEnemyMessage(obj, phaseNumber)
+    -- Returns string or nil
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local messages = EnemyMessage[id] or nil
+    if messages then
+        return messages[phaseNumber] or nil
+    end
+    return nil
+end
+
+function getLocationMessage(obj, phaseNumber, isFaceUp)
+    -- Returns string or nil
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local messages = LocationMessage[id] or nil
+    if messages then
+        return messages[phaseNumber] or nil
+    end
+end
+
+-- Identify card wisely
+
+function isVisibleEnemy(obj)
+    -- Receives an object, takes its metadata and checks if it's an faceup or visible enemy
+    -- This is a long function, because it checks the type of the card
+    -- And if its visible, and there are many strange combinations
+    -- Returns boolean
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local type = md['type'] or ''
+    if type == 'Location' then
+        -- most objects in the playarea are objects, the fastest is to say false immediately
+        return false
+    elseif type == 'Enemy' and not obj.is_face_down then
+        return true
+    elseif type == 'Enemy' and obj.is_face_down then
+        local id = md['id'] or ''
+        if FaceDownEnemies[id] then return true end
+        return false
+    elseif type == 'Agenda' and obj.is_face_down then
+        local id = md['id'] or ''
+        local isSpecial = AgendaFacedownEnemies[id] or false
+        log(id .. ' is special agenda facedown enemy: ' .. tostring(isSpecial))
+        if isSpecial then return true end
+    elseif type == 'Agenda' and not obj.is_face_down then
+        return false
+    elseif type == 'Act' then
+        return false
+    end
+
+    return false
+end
+
+function isVisibleTreachery(obj)
+    -- Returns boolean
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local type = md['type'] or ''
+    if type == 'Treachery' and not obj.is_face_down then
+        return true
+    end
+    return false
+end
+
+function isFaceupLocation(obj)
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local type = md['type'] or ''
+    if type == 'Location' and not obj.is_face_down then
+        return true
+    elseif type == 'Agenda' then
+        -- some locations might be in the agenda
+        -- yet to implement
+        return false
+    end
+end
+
+function isFacedownLocation(obj)
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local type = md['type'] or ''
+    if type == 'Location' and obj.is_face_down then
+        return true
+    end
+end
+
+-- Generic
+
+function highlightObjects(objects, color, duration)
+    for _, obj in ipairs(objects) do
+        obj.highlightOn(color, duration)
+    end
+end
+
+function getObjectByName(name)
+    for _, obj in ipairs(getObjects()) do
+        if obj.getName() == name then
+            return obj
+        end
+    end
+    return nil
+end
