@@ -1,0 +1,124 @@
+-- auxiliary
+
+local function copyTable(t)
+    local c = {}
+    for k, v in ipairs(t) do
+        c[k] = v
+    end
+    return c
+end
+
+local function contains(t, value)
+    for _, v in ipairs(t) do
+        if v == value then return true end
+    end
+    return false
+end
+
+-- 
+
+MassiveDecal = {
+    name = "MassiveDecal",
+    url =
+    "https://steamusercontent-a.akamaihd.net/ugc/13297467573837376059/77675BE5EC5399FD2A038AEFFC34D745CCFB074F/",
+    position = Vector(0, 0.36, 0.45),
+    rotation = { 90, 180, 0 },
+    scale = { 2.25, 2.3, 1 }
+}
+
+MassiveDecalFlipped = copyTable(MassiveDecal)
+MassiveDecalFlipped.name = "MassiveDecalFlipped"
+MassiveDecalFlipped.position = Vector(0, -0.36, 0.45)
+MassiveDecalFlipped.rotation = { 270, 0, 0 }
+
+HunterDecal = {
+    name = "HunterDecal",
+    url =
+    "https://steamusercontent-a.akamaihd.net/ugc/14622504693633913562/246DCDBEE8B6B75EC420062038BE8E7D5EFFA326/",
+    position = Vector(-0.5, 0.36, 0.5),
+    rotation = { 90, 180, 0 },
+    scale = { 0.8, 0.8, 0.8 }
+}
+
+HunterDecalFlipped = copyTable(HunterDecal)
+HunterDecalFlipped.name = "HunterDecalFlipped"
+HunterDecalFlipped.position = Vector(-0.5, -0.36, 0.5)
+HunterDecalFlipped.rotation = { 270, 0, 0 }
+
+AloofDecal = {
+    name = "AloofDecal",
+    url =
+    "https://steamusercontent-a.akamaihd.net/ugc/9376279697645827261/5F2A4806E89A01A3D4B68D60AFADBE203D15A24D/",
+    position = Vector(0.0, 0.36, 0.45),
+    rotation = { 90, 180, 0 },
+    scale = { 2.25, 2.3, 1.0 }
+}
+
+BlockedLocation = {
+    name = "BlockedLocation",
+    url =
+    "https://steamusercontent-a.akamaihd.net/ugc/15303735332014113820/40BF15F6EC3B3BD9088E855FC39F59BECDF97965/",
+    position = Vector(0.0 , 0.36, 0.64),
+    rotation = { 90, 180, 0 },
+    scale = { 1, 1, 15 }
+}
+
+function onLoad()
+    self.interactable = true
+    arguments = {
+        'massiveEnemy',
+        'massiveEnemyFlipped',
+        'hunterEnemy',
+        'hunterEnemyFlipped',
+        'aloofEnemy',
+        'blockedLocation'
+    }
+end
+
+function placeDecal(objAndParameters)
+    -- The content and placing is this objects's responsibility
+    -- It also checks if this thing has that Decal already to prevent duplicate
+    local obj = objAndParameters.obj
+    local parameterWord = objAndParameters.params
+
+    -- Add decal to the list of decals
+    local decals = obj.getDecals() or {}
+
+    if not contains(arguments, parameterWord) then
+        log('DecalAutoPlacer: placeDecal - Invalid parameter: ' .. tostring(parameterWord))
+        return
+    end
+
+    if parameterWord == 'massiveEnemy' then
+        if not hasDecal(obj, MassiveDecal.name) then table.insert(decals, MassiveDecal) end
+    elseif parameterWord == 'massiveEnemyFlipped' then
+        if not hasDecal(obj, MassiveDecalFlipped.name) then table.insert(decals, MassiveDecalFlipped) end
+    elseif parameterWord == 'hunterEnemy' then
+        if not hasDecal(obj, HunterDecal.name) then table.insert(decals, HunterDecal) end
+    elseif parameterWord == 'hunterEnemyFlipped' then
+        log('afasdfsadfa')
+        if not hasDecal(obj, HunterDecalFlipped.name) then table.insert(decals, HunterDecalFlipped) end
+    elseif parameterWord == 'aloofEnemy' then
+        if not hasDecal(obj, AloofDecal.name) then table.insert(decals, AloofDecal) end
+    elseif parameterWord == 'blockedLocation' then
+        if not hasDecal(obj, BlockedLocation.name) then table.insert(decals, BlockedLocation) end
+    end
+
+    obj.setDecals(decals)
+
+end
+
+function hasDecal(obj, decalName)
+    local exists = false
+    local decals = obj.getDecals() or {}
+    for _, d in ipairs(decals) do
+        if d.name == decalName then
+            exists = true
+            break
+        end
+    end
+    return exists
+end
+
+
+
