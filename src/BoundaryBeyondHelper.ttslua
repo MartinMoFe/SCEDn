@@ -127,15 +127,15 @@ function destroyOneReplaceButton(obj)
     obj.removeButton(0)
 end
 
-function displaceThis(playerClikc, obj)
-    obj.highlightOn()
+function displaceThis(playerClick, object)
+    object.highlightOn()
     -- apartar minis
     -- levantar pistas en el aire
     local rawNotes = object.getGMNotes() or "{}"
     local metadata = JSON.decode(rawNotes) or {}
     local symbol = metadata['locationFront']["icons"] or nil
-    local position = obj.getPosition()
-    obj.setPositionSmooth({0,0,0})
+    local position = object.getPosition()
+    object.setPositionSmooth({0,0,0})
     if symbol ~= nil then drawSymbol(position, symbol) end
     -- poner la carta que hay en el descubrimiento
 
