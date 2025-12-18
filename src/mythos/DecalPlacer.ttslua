@@ -2,7 +2,7 @@
 
 local function copyTable(t)
     local c = {}
-    for k, v in ipairs(t) do
+    for k, v in pairs(t) do
         c[k] = v
     end
     return c
@@ -40,14 +40,7 @@ HunterDecal = {
     scale = { 0.8, 0.8, 0.8 }
 }
 
-HunterDecalFlipped  = {
-    name = "HunterDecalFlipped",
-    url =
-    "https://steamusercontent-a.akamaihd.net/ugc/14622504693633913562/246DCDBEE8B6B75EC420062038BE8E7D5EFFA326/",
-    position = Vector(-0.5, -0.36, 0.5),
-    rotation = { 270, 0, 0 },
-    scale = { 0.8, 0.8, 0.8 }
-}
+HunterDecalFlipped  = copyTable(HunterDecal)
 HunterDecalFlipped.name = "HunterDecalFlipped"
 HunterDecalFlipped.position = Vector(-0.5, -0.36, 0.5)
 HunterDecalFlipped.rotation = { 270, 0, 0 }
@@ -80,9 +73,6 @@ function onLoad()
         'aloofEnemy',
         'blockedLocation'
     }
-
-    THIS = {'copy','table', 'works'}
-    log(copyTable(THIS))
 
 end
 

@@ -8,19 +8,19 @@
   "ColorDiffuse": {
     "b": 0,
     "g": 0.9,
-    "r": 0.9  
+    "r": 0.9
   },
   "CustomImage": {
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
-    "ImageSecondaryURL": "",
-    "ImageScalar": 1.0,
-    "WidthScale": 0.0,
     "CustomToken": {
-      "Thickness": 0.1,
-      "MergeDistancePixels": 15.0,
+      "MergeDistancePixels": 15,
+      "Stackable": false,
       "StandUp": false,
-      "Stackable": false
-    }
+      "Thickness": 0.1
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+    "WidthScale": 0
   },
   "Description": "This Watcher knows how many enemies there are, and can communicate it.",
   "DragSelectable": true,

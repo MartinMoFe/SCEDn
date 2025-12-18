@@ -10,17 +10,17 @@
     "g": 0.9,
     "r": 0.9
   },
-    "CustomImage": {
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/11465063578188452576/0BAEE60732C67FEADDAC2AEA94C5DC79B3692A61/",
-    "ImageSecondaryURL": "",
-    "ImageScalar": 1.0,
-    "WidthScale": 0.0,
+  "CustomImage": {
     "CustomToken": {
-      "Thickness": 0.1,
-      "MergeDistancePixels": 15.0,
+      "MergeDistancePixels": 15,
+      "Stackable": false,
       "StandUp": false,
-      "Stackable": false
-    }
+      "Thickness": 0.1
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/11465063578188452576/0BAEE60732C67FEADDAC2AEA94C5DC79B3692A61/",
+    "WidthScale": 0
   },
   "Description": "Searches for continous effects and warns of them.",
   "DragSelectable": true,

@@ -31,6 +31,7 @@ function onLoad(savedData)
     self.interactable = true
     lastPhase = nil
     newPhase = nil
+    minisFrozen = {}
 
     timerID = Wait.time(scanGameChange, 2, -1)
    
@@ -40,8 +41,6 @@ function onLoad(savedData)
         self.destruct()
     end)
 end
-
---
 
 function scanGameChange()
     local phaseTracker = getObjectByName('Phase Tracker')
@@ -61,8 +60,11 @@ function scanGameChange()
 
     lastPhase = newPhase
     if newPhase == 2 then
-        createTemporaryTokens()
+        log('63')
+        createTemporaryMinis()
     elseif newPhase == 3 then
+        log('66')
+        destroyTemporaryMinis()
         showEnemyInfo(BLUE_ENEMY, 'Green')
     end
     
@@ -98,8 +100,21 @@ function showEnemyInfo(colorPrint, colorHighlight)
     highlightObjects(enemiesInThreatArea, colorHighlight, 5)
 end
 
-function createTemporaryTokens()
-    -- I want to mark on the map some positions.
+function createTemporaryMinis()
+    local minis = getMinicardsInPlayArea()
+    local duplicates = {}
+    for _, obj in ipairs(minis) do
+        local o = duplicateMiniCard(obj)
+        table.insert(duplicates, o)
+    end
+    minisFrozen = duplicates
+end
+
+function destroyTemporaryMinis()
+    for _, obj in ipairs(minisFrozen) do
+        obj.destruct()
+    end
+    minisFrozen = {}
 end
 
 -- Threat area helper
@@ -182,17 +197,49 @@ function getEnemiesInPlayArea()
     return enemies
 end
 
--- function getMinicardsInPlayArea()
---     -- returns a table of objects
---     local minis = {}
---     local objs = scanPlayArea()
---     for _, obj in ipairs(objs) do
---         if obj.hasTag("Minicard") then
---             table.insert(minis, obj)
---         end
---     end
---     return minis
--- end
+-- MINICARDS
+
+function getMinicardsInPlayArea()
+    -- returns a table of objects
+    local minis = {}
+    local objs = scanPlayArea()
+    for _, obj in ipairs(objs) do
+        if obj.hasTag("Minicard") then
+            table.insert(minis, obj)
+        end
+    end
+    return minis
+end
+
+function duplicateMiniCard(card)
+    assert(card and card.tag == "Card", "Expected a Card")
+
+    local scale = card.getScale()
+    scale.x = scale.x / 2
+    scale.y = scale.y / 2
+    scale.z = scale.z / 2
+
+    rotation = card.getRotation()
+    rotation.z = 180
+
+    local clone = card.clone({
+        position = card.getPosition(),
+        rotation = rotation,
+        scale    = scale,
+        sound    = false
+    })
+
+    clone.removeTag('Minicard')
+    clone.interactable = false
+    clone.setLock(true)
+
+    return clone
+end
+
+function removeDuplicate(object)
+    assert(card and card.tag == "Card", "Expected a Card")
+    object.destruct()
+end
 
 -- Identify card wisely
 
@@ -237,3 +284,5 @@ function getObjectByName(name)
     end
     return nil
 end
+
+
