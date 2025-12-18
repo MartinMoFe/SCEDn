@@ -80,6 +80,10 @@ function onLoad()
         'aloofEnemy',
         'blockedLocation'
     }
+
+    THIS = {'copy','table', 'works'}
+    log(copyTable(THIS))
+
 end
 
 function placeDecal(objAndParameters)
@@ -109,8 +113,6 @@ function placeDecal(objAndParameters)
     elseif parameterWord == 'blockedLocation' then
         if not hasDecal(obj, BlockedLocation.name) then table.insert(decals, BlockedLocation) end
     end
-
-    log(HunterDecalFlipped)
 
     obj.setDecals(decals)
 

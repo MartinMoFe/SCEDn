@@ -121,17 +121,11 @@
     "TableDivider.e10924",
     "AllEncounterCards.aa12bb",
     "TableDivider.e5f550",
-    "Clues.111119"
-    "AncientEvilsReplacements.8f5b10",
-    "CleanUpHelper.26cf4b",
-    "CoreNightoftheZealot.64a613",
-    "TheScarletKeys.300fcc",
-    "TheFeastofHemlockVale.c740af",
-    "TheDrownedCity.938aab",
-    "FilmFatale.45e513",
+    "Clues.111119",
     "MonsterWatcher.87e529",
     "ComplexWatcher.87e530",
-    "DecalPlacer.778507"
+    "DecalPlacer.778507",
+    "PhaseTracker.d0c8fa"
   ],
   "PlayArea": 1,
   "SaveName": "Arkham SCE - 4.5.2",

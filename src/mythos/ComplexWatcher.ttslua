@@ -240,9 +240,8 @@ function scanGameChange()
     local phaseTracker = getObjectByName('Phase Tracker')
 
     if not phaseTracker then
-        log('Not phase tracker')
+        log('Not phase tracker. We destroy the Complex Watcher.')
         Wait.stop(timerID)
-        broadcastToAll('Destroyed complex watcher', 'Red')
         self.destruct()
     end
 
@@ -306,15 +305,13 @@ function showAllTreacheryInfo(params)
     end
 
     -- Then in threat area of the mats
-    local COLORS = { White = Color.White, Orange = Color.Orange, Green = Color.Green, Red = Color.Red }
+    --local COLORS = { White = Color.White, Orange = Color.Orange, Green = Color.Green, Red = Color.Red }
     local matColors = Player.getAvailableColors()
     for _, matColor in ipairs(matColors) do
-        local logColor = COLORS[matColor] or { 1, 1, 1 }
         local treacheries = getTreacheriesInThreatArea(matColor)
         for _, treachery in ipairs(treacheries) do
             local msg = getTreacheryMessage(treachery, phaseNumber)
             if msg then
-                printToAll(msg, logColor)
                 highlightObjects({ treachery }, colorPrint, 10)
             end
         end
@@ -393,13 +390,12 @@ end
 
 function placeLocationDecalsWisely()
     local locations = getLocationsInPlayArea()
-    log("LOG:Placing location decals wisely. Found " .. tostring(#locations) .. " locations in play area.")
+    --log("LOG:Placing location decals wisely. Found " .. tostring(#locations) .. " locations in play area.")
     for _, location in ipairs(locations) do
         local rawNotes = location.getGMNotes() or "{}"
         local md = JSON.decode(rawNotes) or {}
         local id = md['id'] or ''
         if LocationsBlockedBack[id] then
-            log('IIinside:')
             DecalPlacerApi.placeDecal(location, 'blockedLocation')
         end
     end

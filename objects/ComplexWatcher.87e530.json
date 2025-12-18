@@ -11,7 +11,7 @@
     "r": 0.9
   },
     "CustomImage": {
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/11465063578188452576/0BAEE60732C67FEADDAC2AEA94C5DC79B3692A61/",
     "ImageSecondaryURL": "",
     "ImageScalar": 1.0,
     "WidthScale": 0.0,
@@ -44,9 +44,9 @@
   "Transform": {
     "posX": 78,
     "posY": 1.328,
-    "posZ": -17,
+    "posZ": -18,
     "rotX": 0,
-    "rotY": 0,
+    "rotY": 270,
     "rotZ": 0,
     "scaleX": 0.5,
     "scaleY": 0.5,
