@@ -1,0 +1,190 @@
+local GUIDReferenceApi     = require("core/GUIDReferenceApi")
+local SearchLib            = require("util/SearchLib")
+local TokenSpawnTrackerApi = require("tokens/TokenSpawnTrackerApi")
+
+START                      = { x = -30.24, y = 1.55, z = 0 }
+SET_ASIDE                  = { x = -12.5, y = 1.8, z = 6.75 }
+EXPLORATION                = { x = -11.5, y = 1.8, z = 11 }
+
+LOCATIONS                  = {
+  "City of the Serpents",
+  "Bridge over N'kai",
+  "Abandoned Site",
+  "Caverns of Yoth",
+  "Hall of Heresy",
+  "Bright Canyon",
+  "Forked Path",
+  "Crumbling Precipice",
+  "Broken Passage",
+  "Steps of Yoth"
+}
+
+local ID_TO_ENGLISH_NAME   = {
+  ["04287"] = "City of the Serpents",
+  ["04292"] = "Bridge over N'kai",
+  ["04294"] = "Abandoned Site",
+  ["04290"] = "Caverns of Yoth",
+  ["04288"] = "Hall of Heresy",
+  ["04295"] = "Bright Canyon",
+  ["04291"] = "Forked Path",
+  ["04289"] = "Crumbling Precipice",
+  ["04293"] = "Broken Passage",
+  ["04286"] = "Steps of Yoth"
+}
+local ENGLISH_NAME_TO_ID   = {}
+
+function onLoad()
+  self.createButton({
+    label          = "Set Up",
+    click_function = "setup",
+    function_owner = self,
+    position       = { 0, 0.1, 0 },
+    height         = 200,
+    width          = 500,
+    scale          = { x = 1.75, y = 1.75, z = 1.75 },
+    font_size      = 125
+  })
+
+  for key, value in pairs(ID_TO_ENGLISH_NAME) do
+    ENGLISH_NAME_TO_ID[value] = key
+  end
+end
+
+function getExploreDeckPosition()
+  -- use the explore helper if present
+  for _, obj in ipairs(getObjects()) do
+    if obj.getName() == "Explore Helper" then
+      return obj.positionToWorld(Vector(0.5887, 0.5, 0))
+    end
+  end
+  return EXPLORATION
+end
+
+function setup(_, playerColor)
+  local zone = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "PlayAreaZone")
+
+  -- make index of all cards in play area and remove all clues and doom
+  local allCards = {}
+  for _, obj in ipairs(zone.getObjects()) do
+    if obj.type == "Card" then
+      local md = JSON.decode(obj.getGMNotes()) or {}
+      if md.id and (ID_TO_ENGLISH_NAME[md.id] or md.id == "53060") then -- Perils of Yoth
+        allCards[md.id] = { card = obj, guid = obj.getGUID() }
+      end
+    elseif obj.type == "Deck" then
+      for _, card in ipairs(obj.getObjects()) do
+        local md = JSON.decode(card.gm_notes) or {}
+        if md.id and (ID_TO_ENGLISH_NAME[md.id] or md.id == "53060") then -- Perils of Yoth
+          allCards[md.id] = { deck = obj, guid = card.guid }
+        end
+      end
+    elseif obj.memo == "clueDoom" then
+      obj.destruct()
+    end
+  end
+
+  -- Perils of Yoth
+  local peril = allCards["53060"]
+  if peril ~= nil then
+    if peril.card ~= nil then
+      placeCard(nil, peril.card, getExploreDeckPosition())
+    else
+      placeCard(peril.deck, peril.guid, getExploreDeckPosition())
+    end
+  end
+
+  -- find location cards
+  local locCards = {}
+  local notFound = {}
+  for _, locName in ipairs(LOCATIONS) do
+    local cardId = ENGLISH_NAME_TO_ID[locName]
+    if allCards[cardId] == nil then
+      table.insert(notFound, locName)
+    else
+      table.insert(locCards, allCards[cardId])
+    end
+  end
+
+  if #notFound > 0 then
+    printToColor("The following locations were not found: " .. table.concat(notFound, ", "), playerColor)
+    printToColor("Place them in the central play area and try again.", playerColor)
+    return
+  end
+
+  -- reset clue spawn status and make a deck of all location cards
+  for _, loc in ipairs(locCards) do
+    if loc.card ~= nil then
+      placeCard(nil, loc.card, SET_ASIDE)
+    elseif loc.deck ~= nil and #loc.deck.getObjects() > 0 then
+      placeCard(loc.deck, loc.guid, SET_ASIDE)
+    else
+      -- all but one card was taken from deck, so it doesn't exist anymore
+      placeCard(nil, loc.guid, SET_ASIDE)
+    end
+  end
+
+  TokenSpawnTrackerApi.resetAllLocations()
+
+  Wait.time(setup_2, 0.5)
+end
+
+function setup_2()
+  local deck = nil
+  local result = SearchLib.inArea(SET_ASIDE, { 0, 270, 0 }, { x = 1, y = 1, z = 1 }, "isDeck")
+  if #result > 0 then
+    deck = result[1]
+    deck.setName("Set Aside Locations")
+  else
+    return
+  end
+
+  local locMap = {}
+  for _, card in ipairs(deck.getObjects()) do
+    local md = JSON.decode(card.gm_notes) or {}
+    if md.id then
+      locMap[md.id] = card.guid
+    end
+  end
+
+  -- assemble exploration deck (4 random locations + Steps of Yoth and Perils of Yoth (if necessary))
+  placeCard(deck, locMap[ENGLISH_NAME_TO_ID["Steps of Yoth"]], getExploreDeckPosition()) --
+  deck.shuffle()
+
+  for i = 1, 4 do
+    placeCard(deck, nil, getExploreDeckPosition())
+  end
+  Wait.time(nameExplorationDeck, 0.5)
+
+  -- randomly select starting location
+  placeCard(deck, nil, START, true)
+end
+
+function nameExplorationDeck()
+  local result = SearchLib.inArea(getExploreDeckPosition(), { 0, 270, 0 }, { x = 1, y = 1, z = 1 }, "isDeck")
+  if #result > 0 then
+    result[1].shuffle()
+    result[1].setName("Exploration Deck")
+  end
+end
+
+function placeCard(deck, card, position, faceup)
+  if deck ~= nil then
+    local rot = { 0, 270, 180 }
+    if faceup then rot = { 0, 270, 0 } end
+    deck.takeObject({
+      guid = card,
+      position = position,
+      rotation = rot,
+      smooth = false
+    })
+  else
+    if type(card) == "string" then
+      card = getObjectFromGUID(card)
+    end
+
+    if card ~= nil then
+      card.setRotation({ 0, 270, 180 })
+      card.setPosition(position)
+    end
+  end
+end

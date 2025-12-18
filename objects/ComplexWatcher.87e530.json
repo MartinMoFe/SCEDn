@@ -11,11 +11,11 @@
     "r": 0.9
   },
   "CustomImage": {
-    "CustomToken": {
-      "MergeDistancePixels": 15,
+    "CustomTile": {
       "Stackable": false,
-      "StandUp": false,
-      "Thickness": 0.1
+      "Stretch": true,
+      "Thickness": 0.2,
+      "Type": 0
     },
     "ImageScalar": 1,
     "ImageSecondaryURL": "",
@@ -49,7 +49,7 @@
     "rotY": 270,
     "rotZ": 0,
     "scaleX": 0.5,
-    "scaleY": 0.5,
+    "scaleY": 1,
     "scaleZ": 0.5
   },
   "Value": 0,

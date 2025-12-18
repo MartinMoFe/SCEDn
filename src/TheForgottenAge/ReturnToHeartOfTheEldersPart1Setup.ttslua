@@ -1,0 +1,139 @@
+local SearchLib       = require("util/SearchLib")
+
+ASSEMBLY              = {
+  position = Vector(68, 2, 36),
+  rotation = Vector(0, 270, 180)
+}
+SET_ASIDE_POSITION    = Vector(2.27, 1.39, 5.47)
+EXPLORATION_DECK_GUID = "1a1eae"
+RUINS_DECK_GUID       = "a25525"
+
+local RUINS           = {
+  { name = "Overgrown Ruins",    id = "04075", position = { -36.84, 1.65, -7.65 } },
+  { name = "Temple of the Fang", id = "04074", position = { -36.84, 1.65, 7.65 } },
+  { name = "Stone Altar",        id = "04218", position = { -36.84, 1.65, 0 } }
+}
+
+ASSEMBLY_OFFSET       = Vector(0, 0, -4)
+EXPLORATION           = Vector(-3.79, 1.65, 14.71)
+
+function onLoad()
+  self.createButton({
+    label          = "Ruins in play",
+    click_function = "setup_in_play",
+    function_owner = self,
+    position       = { 0, 0.3, 2 },
+    rotation       = { 0, 0, 0 },
+    height         = 300,
+    width          = 1800,
+    font_size      = 250,
+    color          = { 0, 0, 0 },
+    font_color     = { 1, 1, 1 }
+  })
+  self.createButton({
+    label = "Shuffle ruins in",
+    click_function = "setup_shuffle_in",
+    function_owner = self,
+    position = { 0, 0.3, 2.8 },
+    rotation = { 0, 0, 0 },
+    height = 300,
+    width = 1800,
+    font_size = 250,
+    color = { 0, 0, 0 },
+    font_color = { 1, 1, 1 }
+  })
+end
+
+function setup_in_play()
+  ruins_in_play = true
+  setup()
+end
+
+function setup_shuffle_in()
+  ruins_in_play = false
+  setup()
+end
+
+function setup()
+  if DISABLED then return end
+  DISABLED = true
+  local objs = self.getObjects()
+  for i = #objs, 1, -1 do
+    self.takeObject({
+      position = ASSEMBLY.position + (ASSEMBLY_OFFSET * i),
+      rotation = ASSEMBLY.rotation,
+      smooth = false,
+      callback_function = function(obj) pickRandomCard(obj) end
+    })
+  end
+
+  self.setPosition(SET_ASIDE_POSITION)
+  Wait.time(setup_2, 1)
+end
+
+function setup_2()
+  local deck
+  local result = SearchLib.inArea(ASSEMBLY.position, ASSEMBLY.rotation, { x = 3, y = 3, z = 3 }, "isDeck")
+  if #result > 0 then
+    deck = result[1]
+  end
+
+  deck.shuffle()
+  explorationDeck = getObjectFromGUID(EXPLORATION_DECK_GUID)
+  explorationDeck.putObject(deck)
+
+  local ruins = getObjectFromGUID(RUINS_DECK_GUID)
+  ruins.shuffle()
+
+  local ruin = ruins.getObjects()[1]
+  if ruins_in_play then
+    local ruinPosition
+    local md = JSON.decode(ruin.gm_notes) or {}
+
+    for _, data in ipairs(RUINS) do
+      if data.id == md.id then
+        ruinPosition = data.position
+        break
+      end
+    end
+
+    if not ruinPosition then
+      print("Error determining ruin position.")
+    else
+      ruins.takeObject({
+        position = ruinPosition,
+        rotation = { 0, 270, 0 },
+        smooth   = false
+      })
+    end
+  else
+    explorationDeck.putObject(ruins.takeObject())
+  end
+
+  Wait.time(setup_3, 1)
+end
+
+function setup_3()
+  explorationDeck.shuffle()
+  explorationDeck.setPosition(getExploreDeckPosition())
+end
+
+function pickRandomCard(obj)
+  obj.shuffle()
+  obj.takeObject({
+    position = ASSEMBLY.position,
+    rotation = ASSEMBLY.rotation,
+    smooth   = false
+  })
+  self.putObject(obj.remainder)
+end
+
+function getExploreDeckPosition()
+  -- use the explore helper if present
+  for _, obj in ipairs(getObjects()) do
+    if obj.getName() == "Explore Helper" then
+      return obj.positionToWorld(Vector(0.5887, 0.5, 0))
+    end
+  end
+  return EXPLORATION
+end

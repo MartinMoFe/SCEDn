@@ -111,6 +111,10 @@
     {
       "displayed": "Red",
       "normalized": "red"
+    },
+    {
+      "displayed": "Reloadable",
+      "normalized": "reloadable"
     }
   ]
 }

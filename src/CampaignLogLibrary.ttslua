@@ -1,0 +1,248 @@
+---@diagnostic disable: undefined-global
+local PlayermatApi = require("playermat/PlayermatApi")
+
+-- returns the trauma values for the investigators from left to right (4x physical, 4x mental)
+function returnTrauma()
+  if returnTraumaCustom ~= nil then
+    return returnTraumaCustom()
+  else
+    local stateId = self.getStateId()
+    if stateId == 1 or stateId == -1 then
+      return extractTrauma(ref_buttonData.counter)
+    else
+      local data = self.getData()
+      local stateData = data["States"]
+      local firstStateData = stateData[1]
+      local scriptState = firstStateData["LuaScriptState"]
+      local savedData = JSON.decode(scriptState or "") or {}
+      return extractTrauma(savedData.counter)
+    end
+  end
+end
+
+-- helper function to extract trauma values
+function extractTrauma(counterTable)
+  local function getValue(i)
+    return counterTable[i] and counterTable[i].value or 0
+  end
+
+  local trauma = {}
+  -- physical trauma from left to right, mental trauma from left to right
+  for _, index in ipairs({1, 4, 7, 10, 2, 5, 8, 11}) do
+    table.insert(trauma, getValue(index))
+  end
+  return trauma
+end
+
+function onLoad(savedData)
+  -- set this to true while editing and false when you have finished
+  disableSave       = false
+
+  -- set this to true to show all checkboxes as marked
+  markAllCheckBoxes = false
+  checkBoxColor     = checkBoxColor or { 1, 1, 1, 0 }
+  checkboxFontColor = checkboxFontColor or { 0, 0, 0, 98 }
+  counterFontColor  = counterFontColor or { 0, 0, 0, 99 }
+  interfaceScale    = interfaceScale or { 0.1, 0.1, 0.1 }
+  minValue          = minValue or 0
+  maxValue          = maxValue or 99
+
+  if not disableSave and savedData and savedData ~= "" then
+    ref_buttonData = JSON.decode(savedData)
+  else
+    if createCampaignSpecificStuff ~= nil then
+      createCampaignSpecificStuff()
+    end
+    ref_buttonData = defaultButtonData
+  end
+
+  math.randomseed(seed or os.time())
+  createButtonsAndBoxes()
+end
+
+function updateSave()
+  self.script_state = disableSave and "" or JSON.encode(ref_buttonData)
+end
+
+function click_none() end
+
+-- generates a list of random characters from a list of eligible choices
+function generateCharList(num)
+  choices = choices or { 10007, 10008 }
+  local charList = {}
+  for i = 1, num do
+    table.insert(charList, choices[math.random(1, #choices)])
+  end
+  return charList
+end
+
+function click_checkbox(buttonIndex)
+  local state = ref_buttonData.checkbox[buttonIndex].state
+  ref_buttonData.checkbox[buttonIndex].state = not state
+  self.editButton({ index = buttonIndex - 1, label = (state and "" or string.char(cb_unicode[buttonIndex])) })
+  updateSave()
+end
+
+function click_counter(tableIndex, isRightClick)
+  local buttonIndex = tableIndex + #ref_buttonData.checkbox
+  local val = (ref_buttonData.counter[tableIndex].value or 0) + (isRightClick and -1 or 1)
+  local localMin = ref_buttonData.counter[tableIndex].minValue or minValue
+  local localMax = ref_buttonData.counter[tableIndex].maxValue or maxValue
+  ref_buttonData.counter[tableIndex].value = math.min(math.max(val, localMin), localMax)
+  self.editButton({ index = buttonIndex - 1, label = ref_buttonData.counter[tableIndex].value })
+  updateSave()
+end
+
+function click_textbox(i, value, selected)
+  if selected == false then
+    ref_buttonData.textbox[i].value = value
+    updateSave()
+  end
+end
+
+function createButtonsAndBoxes()
+  cb_unicode = generateCharList(#ref_buttonData.checkbox)
+  createCheckboxes()
+  createCounters()
+  createTextboxes()
+  createContextMenu()
+end
+
+function createCheckboxes()
+  for i, data in ipairs(ref_buttonData.checkbox) do
+    local funcName = "checkbox" .. i
+    self.setVar(funcName, function() click_checkbox(i) end)
+    self.createButton({
+      label          = (data.state or markAllCheckBoxes) and string.char(cb_unicode[i]) or "",
+      click_function = funcName,
+      function_owner = self,
+      position       = data.pos,
+      rotation       = data.rot or { 0, 0, 0 },
+      height         = data.size or 300,
+      width          = data.size or 300,
+      font_size      = data.size or 300,
+      scale          = data.scale or interfaceScale,
+      color          = data.color or checkBoxColor,
+      font_color     = data.fontColor or checkboxFontColor
+    })
+  end
+end
+
+function createCounters()
+  for i, data in ipairs(ref_buttonData.counter) do
+    local buttonParameters          = {}
+    buttonParameters.function_owner = self
+    buttonParameters.scale          = data.scale or interfaceScale
+    buttonParameters.color          = data.color or { 1, 1, 1, 0 }
+    buttonParameters.font_color     = data.fontColor or counterFontColor
+    buttonParameters.label          = data.value or 0
+    buttonParameters.position       = data.pos
+    buttonParameters.height         = data.size or 400
+    buttonParameters.width          = data.size or 400
+    buttonParameters.font_size      = data.size or 400
+
+    local funcName                  = "counter" .. i
+    self.setVar(funcName, function(_, _, isRightClick) click_counter(i, isRightClick) end)
+    buttonParameters.click_function = funcName
+    self.createButton(buttonParameters)
+  end
+end
+
+function createTextboxes()
+  for i, data in ipairs(ref_buttonData.textbox) do
+    local funcName = "textbox" .. i
+    self.setVar(funcName, function(_, _, val, sel) click_textbox(i, val, sel) end)
+    self.createInput({
+      input_function = funcName,
+      function_owner = self,
+      label          = data.label or "Click to type",
+      alignment      = data.alignment or 2,
+      position       = data.pos,
+      rotation       = data.rot or { 0, 0, 0 },
+      scale          = data.scale or interfaceScale,
+      width          = data.width or 2350,
+      height         = ((data.font_size or 175) * (data.rows or 1)) + 40,
+      font_size      = data.font_size or 175,
+      color          = data.color,
+      font_color     = data.fontColor or { 0, 0, 0 },
+      value          = data.value or ""
+    })
+  end
+end
+
+function createContextMenu()
+  -- only do this for the first state of the campaign log (or if this is a stateless log)
+  -- EXCEPT for The Dream-Eaters
+  if math.abs(self.getStateId()) == 1 or string.match(self.getGMNotes(), "CL0602") then
+    self.addContextMenuItem("Fill players", function() fillPlayers() end)
+    self.addContextMenuItem("Fill investigators", function() fillInvestigators() end)
+    self.addContextMenuItem("Fill trauma", function() fillTrauma() end)
+    self.addContextMenuItem("Fill all", function() fillAll() end)
+  end
+end
+
+-- Context menu functions
+
+-- textbox 1, 4, 7, 10
+function fillPlayers(data)
+  local count = 0
+  for matColor, card in pairs(data or PlayermatApi.getUsedInvestigatorCards()) do
+    count = count + 1
+
+    local id = 3 * count - 2
+    local playerColor = PlayermatApi.getPlayerColor(matColor)
+    local value = playerColor
+
+    if Player[playerColor].steam_name then
+      value = Player[playerColor].steam_name
+    end
+
+    ref_buttonData.textbox[id].value = value
+    self.editInput({ index = id - 1, value = value })
+  end
+
+  updateSave()
+end
+
+-- textbox 2, 5, 8, 11
+function fillInvestigators(data)
+  local count = 0
+  for matColor, card in pairs(data or PlayermatApi.getUsedInvestigatorCards()) do
+    count = count + 1
+
+    local id = 3 * count - 1
+    local value = card.getName()
+    ref_buttonData.textbox[id].value = value
+    self.editInput({ index = id - 1, value = value })
+  end
+
+  updateSave()
+end
+
+-- physical: counter 1, 4, 7, 10
+-- mental: counter 2, 5, 8, 11
+function fillTrauma(data)
+  local checkboxCount = #ref_buttonData.checkbox
+  local count = 0
+  for matColor, card in pairs(data or PlayermatApi.getUsedInvestigatorCards()) do
+    count = count + 1
+
+    local pid = 3 * count - 2
+    local mid = 3 * count - 1
+    local pvalue = PlayermatApi.getCounterValue(matColor, "DamageCounter")
+    local mvalue = PlayermatApi.getCounterValue(matColor, "HorrorCounter")
+    ref_buttonData.counter[pid].value = pvalue
+    ref_buttonData.counter[mid].value = mvalue
+    self.editButton({ index = checkboxCount + pid - 1, label = pvalue })
+    self.editButton({ index = checkboxCount + mid - 1, label = mvalue })
+  end
+
+  updateSave()
+end
+
+function fillAll()
+  local data = PlayermatApi.getUsedInvestigatorCards()
+  fillPlayers(data)
+  fillInvestigators(data)
+  fillTrauma(data)
+end

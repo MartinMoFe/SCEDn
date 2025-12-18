@@ -1,0 +1,126 @@
+MIN_VALUE = -99
+MAX_VALUE = 999
+val = 0
+
+-- special handling for FHV and TDC (boxes are further down)
+FURTHER_DOWN = {
+  ["10501"]  = true,
+  ["10502"]  = true,
+  ["10605"]  = true,
+  ["11639"]  = true,
+  ["11673"]  = true,
+  ["11688c"] = true,
+  ["90090"]  = true
+}
+
+function updateSave()
+  self.script_state = JSON.encode(val)
+end
+
+function onLoad(savedData)
+  self.addTag("ScenarioReference")
+  if savedData and savedData ~= "" then
+    val = JSON.decode(savedData) or 0
+  end
+  createButtons()
+end
+
+function getXmlParameters()
+  local params = {
+    positionZ = "90",
+    height    = 175,
+    fontSize  = 130,
+    offsetXY  = "0 -25"
+  }
+
+  local md = JSON.decode(self.getGMNotes()) or {}
+
+  -- store the ID in a global variable for later referring
+  id = md.id or "00000"
+  if id == "09545" then
+    -- special handling for Sanguine Shadows (box has less height)
+    params.height   = 150
+    params.fontSize = 95
+    params.offsetXY = "0 -39"
+  elseif FURTHER_DOWN[id] then
+    -- special handling for FHV and TDC (boxes are further down)
+    params.positionZ = "103"
+  end
+  return params
+end
+
+function createButtons()
+  local params = getXmlParameters()
+  local xml = {
+    {
+      tag = "Defaults",
+      children = {
+        {
+          tag = "Panel",
+          attributes = {
+            onClick = "addOrSubtract",
+            scale   = "0.3 0.3 1",
+            color   = "#FFFFFF00",
+            height  = params.height,
+            width   = 575
+          }
+        },
+        {
+          tag = "Text",
+          attributes = {
+            text     = val,
+            color    = "#000000",
+            fontSize = params.fontSize,
+            font     = "font_teutonic-arkham",
+            offsetXY = params.offsetXY
+          }
+        }
+      }
+    },
+    {
+      tag        = "Panel",
+      attributes = { position = "0 " .. params.positionZ .. " -25", rotation = "0 0 180" },
+      children   = { { tag = "Text", attributes = { id = "textFront" } } }
+    },
+    {
+      tag        = "Panel",
+      attributes = { position = "0 " .. params.positionZ .. " 25", rotation = "0 180 180" },
+      children   = { { tag = "Text", attributes = { id = "textBack" } } }
+    }
+  }
+  self.UI.setXmlTable(xml)
+end
+
+-- left-click: increase / right-click: decrease / middle-click: reset
+function addOrSubtract(_, clickType)
+  local mod = 1
+  if clickType == "-2" then
+    mod = -1
+  elseif clickType == "-3" then
+    resetVal()
+    return
+  end
+  local newVal = math.min(math.max(val + mod, MIN_VALUE), MAX_VALUE)
+  updateVal(newVal, true)
+end
+
+function updateVal(newVal, updateCopies)
+  val = newVal
+  updateSave()
+  self.UI.setAttribute("textFront", "text", val)
+  self.UI.setAttribute("textBack", "text", val)
+
+  -- this will update any copies of this card
+  if updateCopies then
+    for _, obj in ipairs(getObjectsWithTag("ScenarioReference")) do
+      if obj ~= self and obj.getVar("id") == id then
+        obj.call("updateVal", val)
+      end
+    end
+  end
+end
+
+function resetVal()
+  printToAll("Reset counter on scenario card to 0 from " .. val .. ".")
+  updateVal(0, true)
+end

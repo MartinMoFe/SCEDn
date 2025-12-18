@@ -6,5 +6,30 @@
     "r": 0.4
   },
   "connectionsEnabled": true,
-  "trackedLocations": []
+  "trackedLocations": {
+    "158c7c": {
+      "connections": "Diamond",
+      "icons": "Square"
+    },
+    "22f371": {
+      "connections": "Diamond|Star",
+      "icons": "Heart"
+    },
+    "941f46": {
+      "connections": "Heart|Square|Star|Circle",
+      "icons": "Diamond"
+    },
+    "c8f441": {
+      "connections": "Star",
+      "icons": "Triangle"
+    },
+    "d71f61": {
+      "connections": "Diamond|Star",
+      "icons": "Circle"
+    },
+    "db1ed3": {
+      "connections": "Diamond|Triangle|Circle|Heart",
+      "icons": "Star"
+    }
+  }
 }

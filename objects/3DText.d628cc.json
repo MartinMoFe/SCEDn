@@ -29,6 +29,7 @@
   "Snap": true,
   "Sticky": true,
   "Text": {
+    "OwnerSteamID": 0,
     "Text": "Featured Fan Content",
     "colorstate": {
       "b": 1,

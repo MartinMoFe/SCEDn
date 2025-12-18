@@ -26,7 +26,7 @@
       "type": "shell",
       "command": "python",
       "args": [
-        "${workspaceFolder}/.vscode/buildd.py",
+        "${workspaceFolder}/.vscode/build.py",
         "--action",
         "decompose",
         "--moddir",

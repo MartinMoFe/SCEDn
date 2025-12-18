@@ -1,0 +1,430 @@
+local PlayAreaApi     = require("playarea/PlayAreaApi")
+local SearchLib       = require("util/SearchLib")
+
+allLines              = allLines or {}
+FIRST_BUTTON_POSITION = Vector(0, 1, -1.5)
+DELTA                 = Vector(0, 0, 1)
+
+
+
+function onLoad()
+    
+    buttonsVisible = false
+
+    local buttonPosition = FIRST_BUTTON_POSITION
+    self.createButton({
+        label = "Highlight Ancient Locations in play",
+        click_function = "empty",
+        function_owner = self,
+        position = buttonPosition,
+        rotation = { 0, 0, 0 },
+        width = 2500,
+        height = 300,
+        font_size = 150,
+        color = { 0.5, 0.5, 1 },
+        font_color = { 1, 1, 1 },
+        tooltip = ""
+    })
+    buttonPosition = buttonPosition + DELTA
+    self.createButton({
+        label = "Replace Locations Helper.",
+        click_function = "replaceLocationsHelper",
+        function_owner = self,
+        position = buttonPosition,
+        rotation = { 0, 0, 0 },
+        width = 2500,
+        height = 300,
+        font_size = 150,
+        color = { 0.5, 0.5, 1 },
+        font_color = { 1, 1, 1 },
+        tooltip = ""
+    })
+    buttonPosition = buttonPosition + DELTA
+    self.createButton({
+        label = "Show forced effects in the Ancient locations",
+        click_function = "showForcedEffects",
+        function_owner = self,
+        position = buttonPosition,
+        rotation = { 0, 0, 0 },
+        width = 2500,
+        height = 300,
+        font_size = 150,
+        color = { 0.5, 0.6, 0.9 },
+        font_color = { 1, 1, 1 },
+        tooltip = ""
+    })
+    buttonPosition = buttonPosition + DELTA
+    self.createButton({
+        label = "Place Amrita and Act and Agenda",
+        click_function = "placeActAgenda3",
+        function_owner = self,
+        position = buttonPosition,
+        rotation = { 0, 0, 0 },
+        width = 2500,
+        height = 300,
+        font_size = 150,
+        color = { 0.5, 0.6, 0.9 },
+        font_color = { 1, 1, 1 },
+        tooltip = ""
+    })
+end
+
+function replaceLocationsHelper(playerColor, _)
+    -- Search for present-day locations
+    if buttonsVisible == false then
+        log('sPAWN BUTTONS')
+        for _, obj in ipairs(findLocations('Present')) do
+            log(obj)
+            createOneReplaceButton(obj)
+        end
+    elseif buttonsVisible == true then
+        log('sPAWN BUTTONS')
+        for _, obj in ipairs(findLocations('Present')) do
+            log(obj)
+            destroyOneReplaceButton(obj)
+        end
+    end
+    buttonsVisible = not buttonsVisible
+    log('end of replaceLocationsHelper')
+end
+
+function findLocations(trait)
+    local allObjects = getAllObjects()
+    local locations = {}
+    assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
+    for _, object in ipairs(allObjects) do
+        local rawNotes = object.getGMNotes() or "{}"
+        local metadata = JSON.decode(rawNotes) or {}
+        if PlayAreaApi.isInPlayArea(object) and metadata['type'] == 'Location' then
+            local descripcion = object.getDescription() or ""
+            if string.find(descripcion, "Present") and PlayAreaApi.isInPlayArea(object) then
+                table.insert(locations, object)
+            end
+        end
+    end
+    log('Find locations return:')
+    log(#locations)
+    return locations
+end
+
+function createOneReplaceButton(obj)
+    obj.createButton({
+        label = "Replace this location",
+        click_function = "displaceThis",
+        function_owner = self,
+        position = {0, 1, 0},
+        rotation = { 0, 0, 0 },
+        width = 300,
+        height = 300,
+        font_size = 150,
+        color = { 1, 1, 1 },
+        font_color = { 1, 1, 1 },
+        tooltip = ""
+    })
+end
+
+function destroyOneReplaceButton(obj)
+    obj.removeButton(0)
+end
+
+function displaceThis(playerClikc, obj)
+    obj.highlightOn()
+    -- apartar minis
+    -- levantar pistas en el aire
+    local rawNotes = object.getGMNotes() or "{}"
+    local metadata = JSON.decode(rawNotes) or {}
+    local symbol = metadata['locationFront']["icons"] or nil
+    local position = obj.getPosition()
+    obj.setPositionSmooth({0,0,0})
+    if symbol ~= nil then drawSymbol(position, symbol) end
+    -- poner la carta que hay en el descubrimiento
+
+    -- dejar caer las pistas
+    printToAll('The new location takes place. Check if it has any Forced effects.')
+    -- if cluesTransfered > 0 display message
+end
+
+function markSymbolsInTable()
+    -- Obtener todos los objetos en la mesa
+    local allObjects = getAllObjects()
+    for _, object in ipairs(allObjects) do
+        local descripcion = object.getDescription() or ""
+        if PlayAreaApi.isInPlayArea(object) and (string.find(descripcion, "Ancient") or string.find(descripcion, "Mexico City")) then
+            local rawNotes = object.getGMNotes() or "{}"
+            local metadata = JSON.decode(rawNotes) or {}
+            local symbol = metadata['locationFront']["icons"] or nil
+            if symbol ~= nil then drawSymbol(object, symbol) end
+        end
+    end
+    printToAll('Please, place manually the six Ancient locations in play, where the Present Day locations are ')
+end
+
+function showForcedEffects()
+    -- list of target GUIDs
+    local targetGuids = {
+        ["80cef8"] = true,
+        ["fb0083"] = true,
+        ["5bc035"] = true,
+        ["0e6a01"] = true,
+        ["07056f"] = true,
+        ["0261d3"] = true
+
+    }
+
+    -- go through all objects on the table
+    for _, obj in ipairs(getAllObjects()) do
+        if PlayAreaApi.isInPlayArea(obj) and targetGuids[obj.guid] then
+            -- apply a red highlight for 10 seconds
+            obj.highlightOn({ 1, 0, 0 }, 10)
+        end
+    end
+    printToAll("Please, remember that Ancient locations have FORCED hazardous effects when they enter play")
+    printToAll("Remember to lose your CLUES.")
+end
+
+function placeActAgenda3()
+    -- get the chest (guid 7a167a)
+    local chest = getObjectFromGUID("7a167a")
+    if not chest then
+        print("Chest (7a167a) not found")
+        return
+    end
+
+    -- find the bag inside the chest
+    local chestContents = chest.getObjects()
+    if #chestContents == 0 then
+        print("Set-Aside Chest is empty")
+        return
+    end
+
+    local bagData = nil
+    for _, data in ipairs(chestContents) do
+        if data.nickname == "Agenda 3 & Act 3" then
+            bagData = data
+            break
+        end
+    end
+
+    if not bagData then
+        print("Bag not found inside chest")
+        return
+    end
+
+    -- take out the bag near a reference position (guid 70b9f6)
+    local pos    = getObjectFromGUID("70b9f6").getPosition()
+    local bagObj = chest.takeObject({ guid = bagData.guid, position = pos, smooth = true })
+
+    -- tint the bag white
+    bagObj.setColorTint({ r = 1, g = 1, b = 1 })
+
+    -- wait until the bag is on the table
+    Wait.condition(function()
+        if not bagObj then
+            print("Inner object is not a bag")
+            return
+        end
+
+        -- now inspect the bag contents
+        local bagContents = bagObj.getObjects()
+        for _, item in ipairs(bagContents) do
+            if item.nickname == "The Return Trip" then
+                local dest = getObjectFromGUID("4a3aa4").getPosition()
+                bagObj.takeObject({
+                    guid     = item.guid,
+                    position = dest,
+                    smooth   = true
+                })
+            elseif item.nickname == "Time Collapsing" then
+                local dest = getObjectFromGUID("652ff3").getPosition()
+                bagObj.takeObject({
+                    guid     = item.guid,
+                    position = dest,
+                    smooth   = true
+                })
+            end
+        end
+    end, function() return bagObj.resting end)   -- wait until the bag is placed
+    printToAll("Placing new Act 3 and Agenda 3. Placing Padme Amrita in Templo Mayor")
+    -- after handling the bag, inspect chest again
+    local chestContents2 = chest.getObjects()
+    for _, data in ipairs(chestContents2) do
+        if data.nickname == "Padma Amrita" then
+            local targetObj = getObjectFromGUID("ae5d5c")
+            if targetObj then
+                local targetPos = targetObj.getPosition()
+                local targetRot = targetObj.getRotation()
+
+                -- displace slightly (0.3 on X, 0.3 on Z)
+                local displacedPos = {
+                    x = targetPos.x + 0.3,
+                    y = targetPos.y + 2, -- raise so it falls nicely
+                    z = targetPos.z + 1.3
+                }
+
+                -- rotation offset by 10 degrees around Y
+                local newRot = {
+                    x = targetRot.x,
+                    y = targetRot.y + 10,
+                    z = targetRot.z
+                }
+
+                chest.takeObject({
+                    guid     = data.guid,
+                    position = displacedPos,
+                    rotation = newRot,
+                    smooth   = true,
+                    flip     = false
+                })
+            end
+            break -- stop after finding Padma Amrita
+        end
+    end
+end
+
+-- Helper functions
+
+function findByName(name)
+    for _, o in ipairs(getAllObjects()) do
+        if o.getName() == name then
+            return o
+        end
+    end
+    return nil
+end
+
+function connectObjects(objA, objB, color, thickness)
+    if not objA or not objB then
+        return
+    end
+
+    local p1 = objA.getPosition()
+    local p2 = objB.getPosition()
+
+    local newLine = {
+        points    = { p1, p2 },
+        color     = color or { 0, 0, 1 },
+        thickness = thickness or 0.2
+    }
+
+    table.insert(allLines, newLine)
+
+    Global.setVectorLines(allLines)
+end
+
+function drawRectangle(objA, color, thickness)
+    if not objA then return end
+
+    local pos = objA.getPosition()
+    local bounds = objA.getBounds().size -- tamaño del collider
+    local halfX = bounds.x / 2
+    local halfZ = bounds.z / 2
+
+    -- esquinas en coordenadas globales
+    local p1 = { x = pos.x - halfX, y = pos.y, z = pos.z - halfZ }
+    local p2 = { x = pos.x + halfX, y = pos.y, z = pos.z - halfZ }
+    local p3 = { x = pos.x + halfX, y = pos.y, z = pos.z + halfZ }
+    local p4 = { x = pos.x - halfX, y = pos.y, z = pos.z + halfZ }
+
+    -- añadir las 4 líneas al array global
+    table.insert(allLines, { points = { p1, p2 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
+    table.insert(allLines, { points = { p2, p3 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
+    table.insert(allLines, { points = { p3, p4 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
+    table.insert(allLines, { points = { p4, p1 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
+
+    -- refrescar los vector lines
+    Global.setVectorLines(allLines)
+end
+
+function drawSymbol(pos, symbol)
+    if not pos then return end
+
+    local pos = ancient.getPosition()
+    local center = { x = pos.x, y = pos.y, z = pos.z }
+
+    local thickness = 0.1
+    local color = { 1, 1, 0 }
+
+    if symbol == 'Star' then
+        color = 'Black'
+        local radius = 2
+        local points = {}
+        for i = 0, 4 do
+            local angle = math.rad(72 * i - 90)
+            local px = center.x + radius * math.cos(angle)
+            local pz = center.z + radius * math.sin(angle)
+            table.insert(points, { x = px, y = center.y, z = pz })
+        end
+        local order = { 1, 3, 5, 2, 4, 1 }
+        for i = 1, #order - 1 do
+            local p1 = points[order[i]]
+            local p2 = points[order[i + 1]]
+            table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
+        end
+    elseif symbol == 'Circle' then
+        color = 'Yellow'
+        local radius = 2
+        local segments = 24
+        local points = {}
+        for i = 0, segments do
+            local angle = math.rad((360 / segments) * i)
+            local px = center.x + radius * math.cos(angle)
+            local pz = center.z + radius * math.sin(angle)
+            table.insert(points, { x = px, y = center.y, z = pz })
+        end
+        for i = 1, #points - 1 do
+            table.insert(allLines, { points = { points[i], points[i + 1] }, color = color, thickness = thickness })
+        end
+    elseif symbol == 'Diamond' then
+        color = 'Green'
+        local size = 2
+        local p1 = { x = center.x, y = center.y, z = center.z - size }
+        local p2 = { x = center.x + size, y = center.y, z = center.z }
+        local p3 = { x = center.x, y = center.y, z = center.z + size }
+        local p4 = { x = center.x - size, y = center.y, z = center.z }
+        table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p3, p4 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p4, p1 }, color = color, thickness = thickness })
+    elseif symbol == 'Square' then
+        color = { 1, 0, 0 }
+        local size = 2
+        local p1 = { x = center.x - size, y = center.y, z = center.z - size }
+        local p2 = { x = center.x + size, y = center.y, z = center.z - size }
+        local p3 = { x = center.x + size, y = center.y, z = center.z + size }
+        local p4 = { x = center.x - size, y = center.y, z = center.z + size }
+        table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p3, p4 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p4, p1 }, color = color, thickness = thickness })
+    elseif symbol == 'Heart' then
+        color = { 1, 0.5, 0.5 }
+        local size = 1.5
+        local steps = 32
+        local points = {}
+        for i = 0, steps do
+            local t = (i / steps) * 2 * math.pi
+            local x = size * 16 * math.sin(t) ^ 3 / 16
+            local z = -size * (13 * math.cos(t) - 5 * math.cos(2 * t) - 2 * math.cos(3 * t) - math.cos(4 * t)) / 16
+            table.insert(points, { x = center.x + x, y = center.y, z = center.z + z })
+        end
+        for i = 1, #points - 1 do
+            table.insert(allLines, { points = { points[i], points[i + 1] }, color = color, thickness = thickness })
+        end
+    elseif symbol == 'Triangle' then
+        color = { 0, 0, 0.8 }
+        local size = 2
+        local p1 = { x = center.x, y = center.y, z = center.z - size }
+        local p2 = { x = center.x + size, y = center.y, z = center.z + size }
+        local p3 = { x = center.x - size, y = center.y, z = center.z + size }
+        table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
+        table.insert(allLines, { points = { p3, p1 }, color = color, thickness = thickness })
+    else
+        error('NO NO', 2)
+    end
+
+    -- actualizar
+    Global.setVectorLines(allLines)
+end
+
+

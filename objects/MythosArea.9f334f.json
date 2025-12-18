@@ -117,7 +117,7 @@
   "LayoutGroupSortIndex": 0,
   "Locked": true,
   "LuaScript": "require(\"mythos/MythosArea\")",
-  "LuaScriptState": "{\"currentScenario\":\"\",\"tokenData\":[],\"useFrontData\":true}",
+  "LuaScriptState_path": "MythosArea.9f334f.luascriptstate",
   "MeasureMovement": false,
   "Name": "Custom_Tile",
   "Nickname": "Mythos Area",
