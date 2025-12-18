@@ -1,0 +1,24 @@
+do
+    local DecalPlacerApi              = {}
+
+    local function getDecalPlacer()
+        return getObjectFromGUID('778507')
+    end
+
+    function DecalPlacerApi.placeDecal(object, instruction)
+        -- Object must be an object with type Card
+        -- parameters is just a word
+        if object.tag ~= 'Card' then
+            error('Type error in DecalPlacerApi.placeDecal, object', 2)
+        elseif type(instruction)~= 'string' then
+            error('Type error in DecalPlacerApi.placeDecal, instruction', 2)
+        elseif not getDecalPlacer() then
+            log('DecalPlacerApi.placeDecal::silent return')
+            return
+        end
+        log(getDecalPlacer())
+        getDecalPlacer().call('placeDecal', { obj = object, params = instruction })
+    end
+
+    return DecalPlacerApi
+end
