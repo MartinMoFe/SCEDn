@@ -16,7 +16,6 @@ do
             log('DecalPlacerApi.placeDecal::silent return')
             return
         end
-        log('entering call')
         log(getDecalPlacer())
         getDecalPlacer().call('placeDecal', { obj = object, params = instruction })
     end

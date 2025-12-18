@@ -21,7 +21,11 @@ AgendaFacedownEnemies  = { -- Some enemies are Agenda or Act cards
     ['11537a'] = true,     -- Seafloor Leviathan
 }
 
--- General functions
+-- █▀▀ █▀▀█ █▀▀▄ █▀▀
+-- █── █──█ █──█ █▀▀
+-- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
+
+local BLUE_ENEMY = { r = 0.267, g = 0.467, b = 0.631 }
 
 function onLoad(savedData)
     self.interactable = true
@@ -59,7 +63,7 @@ function scanGameChange()
     if newPhase == 2 then
         createTemporaryTokens()
     elseif newPhase == 3 then
-        showEnemyInfo({ r = 0.267, g = 0.467, b = 0.631 }, 'Green')
+        showEnemyInfo(BLUE_ENEMY, 'Green')
     end
     
 end
@@ -75,19 +79,21 @@ function showEnemyInfo(colorPrint, colorHighlight)
         local adding = getEnemiesInThreatArea(matColor)
         for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
     end
+    
+    log(colorHighlight)
 
     local num = #enemiesInPlayArea
     if num > 1 then
-        printToAll('There are ' .. tostring(num) .. ' enemies in the map', colorPrint)
+        printToAll('There are ' .. tostring(num) .. ' enemies in the map.', colorPrint)
     elseif num == 1 then
-        printToAll('There is ' .. tostring(num) .. ' enemy in the map', colorPrint)
+        printToAll('There is ' .. tostring(num) .. ' enemy in the map.', colorPrint)
     end
-    highlightObjects(enemiesInPlayArea, colorHighlight, 5)
+    highlightObjects(enemiesInPlayArea, colorHighlight, 10)
     local num = #enemiesInThreatArea
     if num > 1 then
-        printToAll('There are ' .. tostring(num) .. ' enemies engaged', colorPrint)
+        printToAll('There are ' .. tostring(num) .. ' enemies engaged.', colorPrint)
     elseif num == 1 then
-        printToAll('There is ' .. tostring(num) .. ' enemy engaged', colorPrint)
+        printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
     end
     highlightObjects(enemiesInThreatArea, colorHighlight, 5)
 end

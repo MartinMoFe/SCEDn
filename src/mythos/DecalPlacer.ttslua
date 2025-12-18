@@ -40,7 +40,14 @@ HunterDecal = {
     scale = { 0.8, 0.8, 0.8 }
 }
 
-HunterDecalFlipped = copyTable(HunterDecal)
+HunterDecalFlipped  = {
+    name = "HunterDecalFlipped",
+    url =
+    "https://steamusercontent-a.akamaihd.net/ugc/14622504693633913562/246DCDBEE8B6B75EC420062038BE8E7D5EFFA326/",
+    position = Vector(-0.5, -0.36, 0.5),
+    rotation = { 270, 0, 0 },
+    scale = { 0.8, 0.8, 0.8 }
+}
 HunterDecalFlipped.name = "HunterDecalFlipped"
 HunterDecalFlipped.position = Vector(-0.5, -0.36, 0.5)
 HunterDecalFlipped.rotation = { 270, 0, 0 }
@@ -96,13 +103,14 @@ function placeDecal(objAndParameters)
     elseif parameterWord == 'hunterEnemy' then
         if not hasDecal(obj, HunterDecal.name) then table.insert(decals, HunterDecal) end
     elseif parameterWord == 'hunterEnemyFlipped' then
-        log('afasdfsadfa')
         if not hasDecal(obj, HunterDecalFlipped.name) then table.insert(decals, HunterDecalFlipped) end
     elseif parameterWord == 'aloofEnemy' then
         if not hasDecal(obj, AloofDecal.name) then table.insert(decals, AloofDecal) end
     elseif parameterWord == 'blockedLocation' then
         if not hasDecal(obj, BlockedLocation.name) then table.insert(decals, BlockedLocation) end
     end
+
+    log(HunterDecalFlipped)
 
     obj.setDecals(decals)
 

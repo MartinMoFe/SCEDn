@@ -10,7 +10,19 @@
     "g": 0.9,
     "r": 0.9
   },
-  "Description": "Searches for continous effects and warns.",
+    "CustomImage": {
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+    "ImageSecondaryURL": "",
+    "ImageScalar": 1.0,
+    "WidthScale": 0.0,
+    "CustomToken": {
+      "Thickness": 0.1,
+      "MergeDistancePixels": 15.0,
+      "StandUp": false,
+      "Stackable": false
+    }
+  },
+  "Description": "Searches for continous effects and warns of them.",
   "DragSelectable": true,
   "GMNotes": "",
   "GUID": "87e530",
@@ -24,7 +36,7 @@
   "LuaScript": "require(\"mythos/ComplexWatcher\")",
   "LuaScriptState": "",
   "MeasureMovement": false,
-  "Name": "go_game_piece_black",
+  "Name": "Custom_Tile",
   "Nickname": "Complex Watcher",
   "Snap": true,
   "Sticky": true,
@@ -32,13 +44,13 @@
   "Transform": {
     "posX": 78,
     "posY": 1.328,
-    "posZ": -20,
+    "posZ": -17,
     "rotX": 0,
     "rotY": 0,
     "rotZ": 0,
-    "scaleX": 1,
-    "scaleY": 1,
-    "scaleZ": 1
+    "scaleX": 0.5,
+    "scaleY": 0.5,
+    "scaleZ": 0.5
   },
   "Value": 0,
   "XmlUI": ""

@@ -32,7 +32,7 @@ TreacheryMessage            = {
         ["2.9"] =
         'When your turn ends, if you did not successfully investigate the chosen location this turn, take 2 horror and shuffle Call of the Unknown back into your deck.'
     },
-    ["01164"] = { ["2.9"] = 'Forced - At the end of your turn: Test foot (3).' },
+    ["01164"] = { ["2.9"] = 'Forced - At the end of your turn: Test 🧠 (3).' },
     ["02038"] = { ["2.9"] = 'Forced - At the end of your turn: Take 1 direct damage.' },
     ["02039"] = { ["2.9"] = 'Forced - At the end of your turn: Take 1 direct horror.' },
     ["02088"] = { ["2.9"] = 'Forced - At the end of your turn: Test  (3).' },
@@ -65,6 +65,10 @@ LocationMessage             = {
 EnemyMessage                = {
     ["02087"]  = { ["1.1"] = 'Forced - When the engaged investigator draws a Hex or Pact card: Wizard of Yog-Sothoth attacks that investigator.' },
     ["01170"]  = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Wizard of the Order.' },
+    ["50042"]  = {
+        ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Corpse-Taker.',
+        ['3.9'] = 'Forced - At the end of the enemy phase: Corpse-Taker moves once toward Rivertown or Main Path. If Corpse-Taker is already at Rivertown or Main Path, move all doom from Corpse-Taker to the current agenda, instead.'
+    },
     ["01157"]  = { ["2.9"] = 'Forced - At the end of each investigators turn: Ready Umôrdhoth.' },
     ["02141"]  = { ["3.1"] = 'Forced - At the start of the enemy phase: Reveal a random token from the chaos bag. If the revealed token has a ? symbol, ready Hunting Horror.' },
     ["02058"]  = { ["3.1"] = 'Forced - When the enemy phase begins: Ready The Experiment.' },
@@ -210,7 +214,12 @@ LocationsBlockedBack        = {
     ["11593"] = true,
 }
 
--- General functions
+
+-- █▀▀ █▀▀█ █▀▀▄ █▀▀ 
+-- █── █──█ █──█ █▀▀ 
+-- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
+
+local BLUE_ENEMY = { r = 0.267, g = 0.467, b = 0.631 }
 
 function onLoad(savedData)
     self.interactable = true
@@ -246,6 +255,12 @@ function scanGameChange()
     lastPhase = newPhase
 
     showAllCardsInfo(newPhase)
+
+    if newPhase == 2 then
+        placeLocationDecalsWisely()
+    elseif newPhase == 3 then
+        placeEnemyDecalsWisely()
+    end
 end
 
 -- Show things, according to phase number
@@ -256,17 +271,17 @@ function showAllCardsInfo(phaseNumber)
     if phaseNumber == 1 then
         colorPrint[1] = { r = 0.902, g = 0.827, b = 0.298 }
         colorPrint[2] = { r = 0.8, g = 0.2, b = 0.2 }
-        apair = { '3.9', '1.1' }
+        apair = { '4.9', '1.1' }
     elseif phaseNumber == 2 then
         colorPrint[1] = { r = 0.8, g = 0.2, b = 0.2 }
         colorPrint[2] = { r = 0.533, g = 0.788, b = 0.6 }
         apair = { '1.9', '2.1' }
     elseif phaseNumber == 3 then
         colorPrint[1] = { r = 0.533, g = 0.788, b = 0.6 }
-        colorPrint[2] = { r = 0.267, g = 0.467, b = 0.631 }
+        colorPrint[2] = BLUE_ENEMY
         apair = { '2.9', '3.1' }
     elseif phaseNumber == 4 then
-        colorPrint[1] = { r = 0.267, g = 0.467, b = 0.631 }
+        colorPrint[1] = BLUE_ENEMY
         colorPrint[2] = { r = 0.902, g = 0.827, b = 0.298 }
         apair = { '3.9', '4.1' }
     end
@@ -369,7 +384,6 @@ function placeEnemyDecalsWisely()
         if AgendaMassiveEnemiesFlipped[id] then DecalPlacerApi.placeDecal(enemy, 'massiveEnemyFlipped') end
         if HunterEnemies[id] then DecalPlacerApi.placeDecal(enemy, 'hunterEnemy') end
         if HunterEnemiesFlipped[id] then
-            log('this is Winged Serpent')
             DecalPlacerApi.placeDecal(enemy, 'hunterEnemyFlipped')
         end
         if AgendaHunterEnemiesFlipped[id] then DecalPlacerApi.placeDecal(enemy, 'hunterEnemyFlipped') end
