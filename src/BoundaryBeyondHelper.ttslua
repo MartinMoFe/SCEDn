@@ -1,5 +1,4 @@
 local PlayAreaApi     = require("playarea/PlayAreaApi")
-local SearchLib       = require("util/SearchLib")
 
 allLines              = allLines or {}
 FIRST_BUTTON_POSITION = Vector(0, 1, -1.5)
@@ -10,11 +9,12 @@ DELTA                 = Vector(0, 0, 1)
 function onLoad()
     
     buttonsVisible = false
+    locationsWithButton = {}
 
     local buttonPosition = FIRST_BUTTON_POSITION
     self.createButton({
         label = "Highlight Ancient Locations in play",
-        click_function = "empty",
+        click_function = "highlightAncient",
         function_owner = self,
         position = buttonPosition,
         rotation = { 0, 0, 0 },
@@ -69,71 +69,79 @@ function onLoad()
     })
 end
 
-function replaceLocationsHelper(playerColor, _)
+-- Clicked functions
+
+function highlightAncient(_, playerColor)
+  -- Search for present-day locations
+  for _, obj in ipairs(findLocations('Ancient')) do
+    obj.highlightOn('White', 5)
+  end
+end
+
+function replaceLocationsHelper( _, playerColor)
     -- Search for present-day locations
     if buttonsVisible == false then
-        log('sPAWN BUTTONS')
         for _, obj in ipairs(findLocations('Present')) do
-            log(obj)
             createOneReplaceButton(obj)
         end
     elseif buttonsVisible == true then
-        log('sPAWN BUTTONS')
-        for _, obj in ipairs(findLocations('Present')) do
-            log(obj)
-            destroyOneReplaceButton(obj)
-        end
+        removeAllTrackedButtons()
     end
     buttonsVisible = not buttonsVisible
     log('end of replaceLocationsHelper')
+    log(locationsWithButton)
 end
 
-function findLocations(trait)
-    local allObjects = getAllObjects()
-    local locations = {}
-    assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
-    for _, object in ipairs(allObjects) do
-        local rawNotes = object.getGMNotes() or "{}"
-        local metadata = JSON.decode(rawNotes) or {}
-        if PlayAreaApi.isInPlayArea(object) and metadata['type'] == 'Location' then
-            local descripcion = object.getDescription() or ""
-            if string.find(descripcion, "Present") and PlayAreaApi.isInPlayArea(object) then
-                table.insert(locations, object)
-            end
-        end
-    end
-    log('Find locations return:')
-    log(#locations)
-    return locations
-end
+
+-- Buttons
 
 function createOneReplaceButton(obj)
+    local offset = obj.getPosition() - self.getPosition()
+    assert(offset)
     obj.createButton({
-        label = "Replace this location",
+        label = "Place in\nsafe space",
         click_function = "displaceThis",
         function_owner = self,
-        position = {0, 1, 0},
+        position = offset,
         rotation = { 0, 0, 0 },
-        width = 300,
-        height = 300,
+        width = 600,
+        height = 600,
         font_size = 150,
         color = { 1, 1, 1 },
         font_color = { 1, 1, 1 },
         tooltip = ""
     })
+    index = #self.getButtons() or 0
+    locationsWithButton[index] = obj
 end
 
-function destroyOneReplaceButton(obj)
-    obj.removeButton(0)
+function removeAllTrackedButtons()
+    local indices = {}
+
+    for idx, obj in pairs(locationsWithButton) do
+        table.insert(indices, idx)
+    end
+
+    table.sort(indices, function(a, b) return a > b end)
+
+    for _, idx in ipairs(indices) do
+        self.removeButton(idx)
+        locationsWithButton[idx] = nil
+    end
 end
 
-function displaceThis(playerClick, object)
+-- 
+
+function displaceThis(object, playerColor, altClick)
+    
     object.highlightOn()
     -- apartar minis
     -- levantar pistas en el aire
     local rawNotes = object.getGMNotes() or "{}"
     local metadata = JSON.decode(rawNotes) or {}
-    local symbol = metadata['locationFront']["icons"] or nil
+    local locationFront = metadata['locationFront']
+    if not locationFront then return end
+    local symbol = locationFront["icons"] or nil
     local position = object.getPosition()
     object.setPositionSmooth({0,0,0})
     if symbol ~= nil then drawSymbol(position, symbol) end
@@ -338,7 +346,7 @@ end
 function drawSymbol(pos, symbol)
     if not pos then return end
 
-    local pos = ancient.getPosition()
+  local pos = pos
     local center = { x = pos.x, y = pos.y, z = pos.z }
 
     local thickness = 0.1
@@ -428,3 +436,21 @@ function drawSymbol(pos, symbol)
 end
 
 
+function findLocations(trait)
+    local allObjects = getAllObjects()
+    local locations = {}
+    assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
+    for _, object in ipairs(allObjects) do
+        local rawNotes = object.getGMNotes() or "{}"
+        local metadata = JSON.decode(rawNotes) or {}
+        if PlayAreaApi.isInPlayArea(object) and metadata['type'] == 'Location' then
+            local descripcion = object.getDescription() or ""
+            if string.find(descripcion, "Present") and PlayAreaApi.isInPlayArea(object) then
+                table.insert(locations, object)
+            end
+        end
+    end
+    log('Find locations return:')
+    log(#locations)
+    return locations
+end
