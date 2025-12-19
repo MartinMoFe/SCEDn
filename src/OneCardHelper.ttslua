@@ -1,78 +1,133 @@
 local SearchLib    = require("util/SearchLib")
 
-SET_ASIDE_POSITION = {x = -8.56, y = 1.53, z = 0}
+SET_ASIDE_POSITION = { x = -8.56, y = 1.53, z = 0 }
+
+EXPLORE_HELPER = "8355c3"
 
 function onLoad()
-  -- do nothing visual here
   cousin = nil
 end
 
-function init(cousinGUID)
-  if not cousinGUID then return end
-  if cousin then log('Already initialized:') return end
-  cousin = cousinGUID
+function init(cousinParam)
+  if not cousinParam then return end
+  if cousin then
+    log('Already initialized:')
+    return
+  end
+  cousin = cousinParam
   spawnThisButton()
 end
 
 function spawnThisButton()
   self.createButton({
-    label = "replaceThis",
+    label = "Replace\nthis location",
     click_function = "doStuff",
     function_owner = self,
-    position = { 0, 0.3, 0 },
-    width = 800,
-    height = 300,
+    position = { 0, 0.6, 0 },
+    rotation = { 0, 270, 0 },
+    width = 1000,
+    height = 1000,
     font_size = 200
   })
 end
 
 function doStuff()
+  
   if not cousin then return end
-  local card = getObjectFromGUID(cousin)
-  if not card then return end
 
-  -- get any clues or minicards on this card
+  local originalPosition = cousin.getPosition()
 
-  local originalPosition = card.getPosition()
-  card.setPositionSmooth(SET_ASIDE_POSITION)
-  printToAll('The card was placed aside, so its connection lines dont mess with the the Ancient version.')
-  
-  -- search the other card on the table
+  local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
 
-  local exploreHelper = getObjectFromGUID('8355c3')
-  local pos = exploreHelper.getPosition()
-  log('a')
-  log(pos)
-  local objects = SearchLib.inArea(pos, {0,0,0}, 1, nil, false)
-  local object = findEquivalentIn(objects)
-  
-  if not object then
-    local message = "We couldn't find the past version of " .. card.getName()
-    printToAll(message)  
+  local objects = SearchLib.onObject(exploreHelper, "isCardOrDeck")
+
+  local otherLocation = findEquivalentLocationIn(objects)
+
+
+  if otherLocation == nil then
+    local message = "We couldn't find the past version of " .. cousin.getName()
+    printToAll(message)
     return
   end
-  
-  object.setPositionSmooth(originalPosition)
 
+  -- If the card is replaceable, go !
+  -- Leave places on air, and let them fall
+  cousin.setPositionSmooth(SET_ASIDE_POSITION)
+  
+  printToAll('The card was placed aside, so its connection lines dont mess with the the Ancient version.')
+  
+  otherLocation.setPositionSmooth(originalPosition)
+  
+  printToAll('The new card was placed in that place.')
+  printToAll('Remember that clues and cards are preserved, but new clues spawn.')
 end
 
-function findEquivalentIn(objects)
-  local found = nil  -- This functions returns the past version of a location, if it is visible on the table
-  local md = JSON.decode(cousin.getGMNotes()) or {}
-  local symbol = md['locationFront']["icons"] or nil
-  -- Searching for a star, square...
-  for _, obj in ipairs(objects) do
-    local md2 = JSON.decode(cousin.getGMNotes()) or {}
-    local lf = md2['locationFront']
-    if not lf then
+function findEquivalentLocationIn(objects)
+  -- This functions returns the past version of a location, if it is visible on the table
+  -- For instance, if the cousin (object variable) is Xoximilko, then it can find 'Lake Xoximilko'
+  -- but only if that past version is visible.
+  -- This accepts a table and even accepts decks.
+  -- It returns the card.
+  local found = nil
+  local rawNotes = cousin.getGMNotes() or "{}"
+  local md = JSON.decode(rawNotes) or {}
+  local lf = md['locationFront']
+  local symbol = lf["icons"] or nil
+  for _, objectFound in ipairs(objects) do
+    if objectFound.tag == 'Tile' then
       break
-    end
-    local symbol2 = lf["icons"] or nil
-    if symbol2 == symbol then
-      log('found')
-      log(obj)
-      found = obj
+    elseif objectFound.tag == 'Card' then
+      local rawNotes2 = objectFound.getGMNotes() or "{}"
+      local md2 = JSON.decode(rawNotes2) or {}
+      local lf2 = md2['locationFront']
+      if not lf2 then
+        break
+      end
+      local symbol2 = lf2["icons"] or nil
+      if symbol2 == symbol then
+        found = objectFound
+      end
+    elseif objectFound.tag == 'Deck' then
+      found = findInVisibleDeck(objectFound, symbol)
     end
   end
   return found
+end
+
+function findInVisibleDeck(deck, symbolToMatch)
+  -- Grabs the top card of a visible deck, if matches
+
+  if deck.tag ~= 'Deck' then
+    error("Parámetro 'deck' debe ser un objeto Deck válido", 2)
+  end
+
+  if type(symbolToMatch) ~= "string" then
+    error("Parámetro 'symbol' debe ser un string", 2)
+  end
+
+  if deck.is_face_down then
+    return nil
+  end
+
+  local visibleIndex = lastIndex(deck)
+  local topCardTable = deck.getObjects()[visibleIndex] -- Primera carta en el array es la superior
+  local cardGUID = topCardTable.guid
+  local rawNotes = topCardTable.gm_notes or "{}"       -- Esto es un STRING JSON
+  local decodedNotes = JSON.decode(rawNotes) or {}
+  local locationFront = decodedNotes['locationFront']
+  local symbol2 = locationFront["icons"] or nil
+  
+  if symbol2 == symbolToMatch then
+    local takenCard = deck.takeObject({
+      position = deck.getPosition():add(Vector(0, 0, 1)),
+      smooth = false,
+      guid = cardGUID                                     
+    })
+    return takenCard
+  end
+
+end
+
+function lastIndex(deck)
+  return #deck.getObjects()
 end

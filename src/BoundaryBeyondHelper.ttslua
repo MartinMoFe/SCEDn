@@ -201,7 +201,7 @@ function createOneHelper(card)
 
   Wait.frames(function()
     if helper then
-      helper.call("init", card.getGUID())
+      helper.call("init", card)
     end
   end, 2)
   return helper
@@ -216,6 +216,26 @@ function removeAllHelper()
     end
   end
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- MARK SYMBOLS IN TABLE
 

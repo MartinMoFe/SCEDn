@@ -6,7 +6,7 @@
   },
   "Autoraise": true,
   "ColorDiffuse": {
-    "b": 0,
+    "b": 0.77206,
     "g": 0.77206,
     "r": 0.0054
   },
@@ -24,7 +24,7 @@
   "LuaScript": "require(\"OneCardHelper\")",
   "LuaScriptState": "",
   "MeasureMovement": false,
-  "Name": "BlockTriangle",
+  "Name": "BlockSquare",
   "Nickname": "One Card Helper",
   "Snap": true,
   "Sticky": true,
