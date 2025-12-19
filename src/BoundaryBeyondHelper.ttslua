@@ -7,7 +7,7 @@ DELTA                 = Vector(0, 0, 1)
 
 
 function onLoad()
-  buttonsVisible = false
+  helpersVisible = false
   locationsWithButton = {}
 
   local buttonPosition = FIRST_BUTTON_POSITION
@@ -79,14 +79,14 @@ end
 
 function HelperReplaceLocations(_, playerColor)
   -- Search for present-day locations
-  if buttonsVisible == false then
+  if helpersVisible == false then
     for _, obj in ipairs(findLocations('Present')) do
       createOneHelper(obj)
     end
-  elseif buttonsVisible == true then
+  elseif helpersVisible == true then
     removeAllHelper()
   end
-  buttonsVisible = not buttonsVisible
+  helpersVisible = not helpersVisible
 end
 
 function placeActAgenda3()
@@ -188,76 +188,33 @@ function placeActAgenda3()
   end
 end
 
--- Buttons
+-- Create and destroy helpers
 
-function createOneHelper(obj)
-  local helper = duplicateCardAsHelper(obj)
-  helper.createButton({
-    label = "Replace This",
-    click_function = "replacethis",
-    function_owner = self,
-    position = buttonPosition,
-    rotation = { 0, 0, 0 },
-    width = 2500,
-    height = 300,
-    font_size = 150,
-    color = { 0.5, 0.5, 1 },
-    font_color = { 1, 1, 1 },
-    tooltip = ""
+function createOneHelper(card)
+  local template = getObjectFromGUID("3592d8")
+  local helper = template.clone({
+    position = card.getPosition() + Vector(0, 1, 0)
   })
+  helper.interactable = false
+
+  helper.addTag("BoundaryHelper")
+
+  Wait.frames(function()
+    if helper then
+      helper.call("init", card.getGUID())
+    end
+  end, 2)
+  return helper
 end
 
 function removeAllHelper()
-  local indices = {}
-
-  for idx, _ in pairs(locationsWithButton) do
-    table.insert(indices, idx)
+  local this
+  this = getAllObjects()
+  for _, el in ipairs(this) do
+    if el.hasTag('BoundaryHelper') then
+      el.destruct()
+    end
   end
-
-  table.sort(indices, function(a, b) return a > b end)
-
-  local i = 1
-  local function removeNext()
-    local idx = indices[i]
-    if not idx then return end
-
-    self.removeButton(idx)
-    locationsWithButton[idx] = nil
-
-    i = i + 1
-    Wait.frames(removeNext, 1)
-  end
-
-  removeNext()
-end
-
--- DISPLACE
-
-function displaceThis(object)
-  object.highlightOn()
-  -- apartar minis
-  -- levantar pistas en el aire
-  local rawNotes = object.getGMNotes() or "{}"
-  local metadata = JSON.decode(rawNotes) or {}
-  local locationFront = metadata['locationFront']
-  if not locationFront then return end
-  local symbol = locationFront["icons"] or nil
-  local position = object.getPosition()
-  object.setPositionSmooth({ 0, 0, 0 })
-  if symbol ~= nil then drawSymbol(position, symbol) end
-  -- poner la carta que hay en el descubrimiento
-
-  -- dejar caer las pistas
-  printToAll('The new location takes place. Check if it has any Forced effects.')
-  -- if cluesTransfered > 0 display message
-end
-
-function displace1(_, playerColor, altClick)
-  local obj = getObjectByName('Temple Ruins')
-  displaceThis(obj)
-end
-
-function test()
 end
 
 -- MARK SYMBOLS IN TABLE

@@ -3,7 +3,7 @@ local MathLib      = require("util/MathLib")
 local PlayermatApi = require("playermat/PlayermatApi")
 
 ROTATION           = "0 0 90"
-POSITION           = "0 -70 -40"
+SET_ASIDE_POSITION           = "0 -70 -40"
 isListening        = false
 
 require("playercards/SkillSelectionCard")

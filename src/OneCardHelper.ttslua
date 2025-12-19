@@ -1,0 +1,78 @@
+local SearchLib    = require("util/SearchLib")
+
+SET_ASIDE_POSITION = {x = -8.56, y = 1.53, z = 0}
+
+function onLoad()
+  -- do nothing visual here
+  cousin = nil
+end
+
+function init(cousinGUID)
+  if not cousinGUID then return end
+  if cousin then log('Already initialized:') return end
+  cousin = cousinGUID
+  spawnThisButton()
+end
+
+function spawnThisButton()
+  self.createButton({
+    label = "replaceThis",
+    click_function = "doStuff",
+    function_owner = self,
+    position = { 0, 0.3, 0 },
+    width = 800,
+    height = 300,
+    font_size = 200
+  })
+end
+
+function doStuff()
+  if not cousin then return end
+  local card = getObjectFromGUID(cousin)
+  if not card then return end
+
+  -- get any clues or minicards on this card
+
+  local originalPosition = card.getPosition()
+  card.setPositionSmooth(SET_ASIDE_POSITION)
+  printToAll('The card was placed aside, so its connection lines dont mess with the the Ancient version.')
+  
+  -- search the other card on the table
+
+  local exploreHelper = getObjectFromGUID('8355c3')
+  local pos = exploreHelper.getPosition()
+  log('a')
+  log(pos)
+  local objects = SearchLib.inArea(pos, {0,0,0}, 1, nil, false)
+  local object = findEquivalentIn(objects)
+  
+  if not object then
+    local message = "We couldn't find the past version of " .. card.getName()
+    printToAll(message)  
+    return
+  end
+  
+  object.setPositionSmooth(originalPosition)
+
+end
+
+function findEquivalentIn(objects)
+  local found = nil  -- This functions returns the past version of a location, if it is visible on the table
+  local md = JSON.decode(cousin.getGMNotes()) or {}
+  local symbol = md['locationFront']["icons"] or nil
+  -- Searching for a star, square...
+  for _, obj in ipairs(objects) do
+    local md2 = JSON.decode(cousin.getGMNotes()) or {}
+    local lf = md2['locationFront']
+    if not lf then
+      break
+    end
+    local symbol2 = lf["icons"] or nil
+    if symbol2 == symbol then
+      log('found')
+      log(obj)
+      found = obj
+    end
+  end
+  return found
+end

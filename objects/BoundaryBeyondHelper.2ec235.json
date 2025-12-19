@@ -56,7 +56,7 @@
   "LayoutGroupSortIndex": 0,
   "Locked": false,
   "LuaScript": "require(\"BoundaryBeyondHelper\")",
-  "LuaScriptState_path": "",
+  "LuaScriptState": "",
   "MaterialIndex": -1,
   "MeasureMovement": false,
   "MeshIndex": -1,

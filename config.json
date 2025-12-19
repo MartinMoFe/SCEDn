@@ -3,6 +3,7 @@
   "ComponentTags_path": "ComponentTags.json",
   "CustomUIAssets_path": "CustomUIAssets.json",
   "DecalPallet": [],
+  "Decals": [],
   "GameComplexity": "",
   "GameMode": "Arkham Horror LCG - Super Complete Edition",
   "GameType": "",
@@ -145,7 +146,8 @@
     "ChapultepecPark.c8f441",
     "TempleRuins.d71f61",
     "Coyoacn.db1ed3",
-    "BoundaryBeyondHelper.2ec235"
+    "BoundaryBeyondHelper.2ec235",
+    "OneCardHelper.3592d8"
   ],
   "PlayArea": 1,
   "SaveName": "Arkham SCE - 4.5.2",

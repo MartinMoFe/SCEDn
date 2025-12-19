@@ -87,7 +87,7 @@ function generateXml()
       childAlignment  = "MiddleCenter",
       constraint      = "FixedColumnCount",
       constraintCount = 2,
-      position        = POSITION or "0 -60 -40",
+      position        = SET_ASIDE_POSITION or "0 -60 -40",
       width           = 350 * 2 + 55,
       height          = 350 * 2 + 55,
       cellSize        = "350 350",
