@@ -1,20 +1,21 @@
 local SearchLib    = require("util/SearchLib")
 
 SET_ASIDE_POSITION = { x = -8.56, y = 1.53, z = 0 }
-
 EXPLORE_HELPER = "8355c3"
+BOUNDARY_BEYOND_HELPER_GUID = "2ec235"
+
 
 function onLoad()
-  cousin = nil
+  cousinLocation = nil
 end
 
 function init(cousinParam)
   if not cousinParam then return end
-  if cousin then
+  if cousinLocation then
     log('Already initialized:')
     return
   end
-  cousin = cousinParam
+  cousinLocation = cousinParam
   spawnThisButton()
 end
 
@@ -33,9 +34,9 @@ end
 
 function doStuff()
   
-  if not cousin then return end
+  if not cousinLocation then return end
 
-  local originalPosition = cousin.getPosition()
+  local originalPosition = cousinLocation.getPosition()
 
   local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
 
@@ -43,16 +44,23 @@ function doStuff()
 
   local otherLocation = findEquivalentLocationIn(objects)
 
-
   if otherLocation == nil then
-    local message = "We couldn't find the past version of " .. cousin.getName()
+    local message = "We couldn't find the past version of " .. cousinLocation.getName()
     printToAll(message)
     return
   end
 
   -- If the card is replaceable, go !
   -- Leave places on air, and let them fall
-  cousin.setPositionSmooth(SET_ASIDE_POSITION)
+
+  local thingsAbove = SearchLib.onObject(cousinLocation)
+  for _, el in ipairs(thingsAbove) do
+    liftObjects(thingsAbove)
+  end
+
+  -- Switch them quickly
+
+  cousinLocation.setPositionSmooth(SET_ASIDE_POSITION)
   
   printToAll('The card was placed aside, so its connection lines dont mess with the the Ancient version.')
   
@@ -60,42 +68,48 @@ function doStuff()
   
   printToAll('The new card was placed in that place.')
   printToAll('Remember that clues and cards are preserved, but new clues spawn.')
+
+  -- Deactivate the buttons when one is pressed
+  local BBHelper = getObjectFromGUID(BOUNDARY_BEYOND_HELPER_GUID)
+  BBHelper.call("toggleIndividualHelpers")
+
 end
 
 function findEquivalentLocationIn(objects)
   -- This functions returns the past version of a location, if it is visible on the table
-  -- For instance, if the cousin (object variable) is Xoximilko, then it can find 'Lake Xoximilko'
+  -- For instance, if the cousinLocation (object variable) is Xoximilko, then it can find 'Lake Xoximilko'
   -- but only if that past version is visible.
   -- This accepts a table and even accepts decks.
   -- It returns the card.
   local found = nil
-  local rawNotes = cousin.getGMNotes() or "{}"
-  local md = JSON.decode(rawNotes) or {}
-  local lf = md['locationFront']
-  local symbol = lf["icons"] or nil
+  local symbol = getSymbol(cousinLocation)
+  local symbol2 = nil
+  if not symbol then return end
+
+  log('Searching symbol')
+  log(symbol)
+
   for _, objectFound in ipairs(objects) do
+  
     if objectFound.tag == 'Tile' then
-      break
+      -- pass
     elseif objectFound.tag == 'Card' then
-      local rawNotes2 = objectFound.getGMNotes() or "{}"
-      local md2 = JSON.decode(rawNotes2) or {}
-      local lf2 = md2['locationFront']
-      if not lf2 then
-        break
-      end
-      local symbol2 = lf2["icons"] or nil
+      symbol2 = getSymbol(objectFound)
       if symbol2 == symbol then
         found = objectFound
+        break
       end
+    
     elseif objectFound.tag == 'Deck' then
       found = findInVisibleDeck(objectFound, symbol)
+      break
     end
   end
   return found
 end
 
 function findInVisibleDeck(deck, symbolToMatch)
-  -- Grabs the top card of a visible deck, if matches
+  -- Grabs the top card of a visible deck, if matches the symbol
 
   if deck.tag ~= 'Deck' then
     error("Parámetro 'deck' debe ser un objeto Deck válido", 2)
@@ -119,7 +133,7 @@ function findInVisibleDeck(deck, symbolToMatch)
   
   if symbol2 == symbolToMatch then
     local takenCard = deck.takeObject({
-      position = deck.getPosition():add(Vector(0, 0, 1)),
+      position = deck.getPosition():add(Vector(0, 0, 3)),
       smooth = false,
       guid = cardGUID                                     
     })
@@ -129,5 +143,33 @@ function findInVisibleDeck(deck, symbolToMatch)
 end
 
 function lastIndex(deck)
+  -- generic
   return #deck.getObjects()
+end
+
+function getSymbol(obj)
+  assert(obj.getName() and obj.getGMNotes())
+  local rawNotes = obj.getGMNotes() or "{}"
+  local md = JSON.decode(rawNotes) or {}
+  local lf = md['locationFront']
+  if not lf then return nil end
+  local symbol = lf["icons"] or nil
+  return symbol
+end
+
+-- PHYSICS
+
+function liftObjects(objects, height)
+  height = height or 3
+
+  for _, obj in ipairs(objects) do
+    if obj and obj.getPosition then
+      local pos = obj.getPosition()
+      obj.setPositionSmooth({
+        pos.x,
+        pos.y + height,
+        pos.z
+      })
+    end
+  end
 end

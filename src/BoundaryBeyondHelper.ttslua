@@ -1,14 +1,17 @@
-local PlayAreaApi     = require("playarea/PlayAreaApi")
+local PlayAreaApi             = require("playarea/PlayAreaApi")
 
-allLines              = allLines or {}
-FIRST_BUTTON_POSITION = Vector(0, 1, -1.5)
-DELTA                 = Vector(0, 0, 1)
+allLines                      = allLines or {}
+FIRST_BUTTON_POSITION         = Vector(0, 1, -1.5)
+DELTA                         = Vector(0, 0, 1)
+ONE_CARD_HELPER_TEMPLATE_GUID = "3592d8"
+COLOR_BLUE                    = { 0.5, 0.5, 1 }
+COLOR_RED                     = { 0.8, 0.3, 0.3 }
 
 
 
 function onLoad()
   helpersVisible = false
-  locationsWithButton = {}
+  printedSymbols = false
 
   local buttonPosition = FIRST_BUTTON_POSITION
   self.createButton({
@@ -20,14 +23,14 @@ function onLoad()
     width = 2500,
     height = 300,
     font_size = 150,
-    color = { 0.5, 0.5, 1 },
+    color = COLOR_BLUE,
     font_color = { 1, 1, 1 },
     tooltip = ""
   })
   buttonPosition = buttonPosition + DELTA
   self.createButton({
-    label = "Replace Locations Helper.",
-    click_function = "HelperReplaceLocations",
+    label = "Replace explored location",
+    click_function = "toggleIndividualHelpers",
     function_owner = self,
     position = buttonPosition,
     rotation = { 0, 0, 0 },
@@ -40,8 +43,8 @@ function onLoad()
   })
   buttonPosition = buttonPosition + DELTA
   self.createButton({
-    label = "Show forced effects in the Ancient locations",
-    click_function = "showForcedEffects",
+    label = "Print symbols on table",
+    click_function = "markSymbolsInTable",
     function_owner = self,
     position = buttonPosition,
     rotation = { 0, 0, 0 },
@@ -66,6 +69,7 @@ function onLoad()
     font_color = { 1, 1, 1 },
     tooltip = ""
   })
+  onLoadTests()
 end
 
 -- Clicked functions
@@ -77,19 +81,30 @@ function highlightAncient(_, playerColor)
   end
 end
 
-function HelperReplaceLocations(_, playerColor)
+function toggleIndividualHelpers(_, playerColor)
   -- Search for present-day locations
   if helpersVisible == false then
     for _, obj in ipairs(findLocations('Present')) do
       createOneHelper(obj)
+      self.editButton({
+        index = 1,
+        label = "Hide Locations Helper",
+        color = COLOR_RED
+      })
     end
   elseif helpersVisible == true then
     removeAllHelper()
+    self.editButton({
+      index = 1,
+      label = "Replace explored location",
+      color = COLOR_BLUE
+    })
   end
+
   helpersVisible = not helpersVisible
 end
 
-function placeActAgenda3()
+function placeActAgenda3(_, playerColor)
   -- get the chest (guid 7a167a)
   local chest = getObjectFromGUID("7a167a")
   if not chest then
@@ -188,12 +203,29 @@ function placeActAgenda3()
   end
 end
 
+function markSymbolsInTable(_, playerColor)
+  if printedSymbols then
+    return nil
+  end
+  -- Obtener todos los objetos en la mesa
+  local things = findLocations('Present')
+  local symbol = nil
+  log('1111')
+  log(things)
+
+  for _, object in ipairs(things) do
+    symbol = getSymbol(things)
+    if symbol ~= nil then drawSymbol(object, symbol) end
+  end
+  printedSymbols = true
+end
+
 -- Create and destroy helpers
 
 function createOneHelper(card)
   local template = getObjectFromGUID("3592d8")
   local helper = template.clone({
-    position = card.getPosition() + Vector(0, 1, 0)
+    position = card.getPosition() + Vector(0, 0.5, 0)
   })
   helper.interactable = false
 
@@ -217,121 +249,7 @@ function removeAllHelper()
   end
 end
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
--- MARK SYMBOLS IN TABLE
-
-function markSymbolsInTable()
-  -- Obtener todos los objetos en la mesa
-  local allObjects = getAllObjects()
-  for _, object in ipairs(allObjects) do
-    local descripcion = object.getDescription() or ""
-    if PlayAreaApi.isInPlayArea(object) and (string.find(descripcion, "Ancient") or string.find(descripcion, "Mexico City")) then
-      local rawNotes = object.getGMNotes() or "{}"
-      local metadata = JSON.decode(rawNotes) or {}
-      local symbol = metadata['locationFront']["icons"] or nil
-      if symbol ~= nil then drawSymbol(object, symbol) end
-    end
-  end
-  printToAll('Please, place manually the six Ancient locations in play, where the Present Day locations are ')
-end
-
-function showForcedEffects()
-  -- list of target GUIDs
-  local targetGuids = {
-    ["80cef8"] = true,
-    ["fb0083"] = true,
-    ["5bc035"] = true,
-    ["0e6a01"] = true,
-    ["07056f"] = true,
-    ["0261d3"] = true
-
-  }
-
-  -- go through all objects on the table
-  for _, obj in ipairs(getAllObjects()) do
-    if PlayAreaApi.isInPlayArea(obj) and targetGuids[obj.guid] then
-      -- apply a red highlight for 10 seconds
-      obj.highlightOn({ 1, 0, 0 }, 10)
-    end
-  end
-  printToAll("Please, remember that Ancient locations have FORCED hazardous effects when they enter play")
-  printToAll("Remember to lose your CLUES.")
-end
-
-
-
 -- Helper functions
-
-function findByName(name)
-  for _, o in ipairs(getAllObjects()) do
-    if o.getName() == name then
-      return o
-    end
-  end
-  return nil
-end
-
-function connectObjects(objA, objB, color, thickness)
-  if not objA or not objB then
-    return
-  end
-
-  local p1 = objA.getPosition()
-  local p2 = objB.getPosition()
-
-  local newLine = {
-    points    = { p1, p2 },
-    color     = color or { 0, 0, 1 },
-    thickness = thickness or 0.2
-  }
-
-  table.insert(allLines, newLine)
-
-  Global.setVectorLines(allLines)
-end
-
-function drawRectangle(objA, color, thickness)
-  if not objA then return end
-
-  local pos = objA.getPosition()
-  local bounds = objA.getBounds().size -- tamaño del collider
-  local halfX = bounds.x / 2
-  local halfZ = bounds.z / 2
-
-  -- esquinas en coordenadas globales
-  local p1 = { x = pos.x - halfX, y = pos.y, z = pos.z - halfZ }
-  local p2 = { x = pos.x + halfX, y = pos.y, z = pos.z - halfZ }
-  local p3 = { x = pos.x + halfX, y = pos.y, z = pos.z + halfZ }
-  local p4 = { x = pos.x - halfX, y = pos.y, z = pos.z + halfZ }
-
-  -- añadir las 4 líneas al array global
-  table.insert(allLines, { points = { p1, p2 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
-  table.insert(allLines, { points = { p2, p3 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
-  table.insert(allLines, { points = { p3, p4 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
-  table.insert(allLines, { points = { p4, p1 }, color = color or { 0, 0, 1 }, thickness = thickness or 0.1 })
-
-  -- refrescar los vector lines
-  Global.setVectorLines(allLines)
-end
 
 function drawSymbol(pos, symbol)
   if not pos then return end
@@ -442,19 +360,10 @@ function findLocations(trait)
   return locations
 end
 
-function getObjectByName(name)
-  for _, obj in ipairs(getObjects()) do
-    if obj.getName() == name then
-      return obj
-    end
-  end
-  return nil
-end
-
 function duplicateCardAsHelper(card)
   assert(card and card.tag == "Card", "Expected a Card")
 
-  
+
 
   local clone = card.clone({
     position = card.getPosition(),
@@ -474,4 +383,31 @@ end
 function removeDuplicate(object)
   assert(card and card.tag == "Card", "Expected a Card")
   object.destruct()
+end
+
+
+function getSymbol(obj)
+  assert(obj.getName() and obj.getGMNotes())
+  local rawNotes = obj.getGMNotes() or "{}"
+  local md = JSON.decode(rawNotes) or {}
+  local lf = md['locationFront']
+  if not lf then return nil end
+  local symbol = lf["icons"] or nil
+  return symbol
+end
+
+
+function onLoadTests()
+  log('aaaaa1')
+  getSymbol(getObjectFromGUID("c8f441"))
+  log('aaaaa2')
+  getSymbol(getObjectFromGUID("d71f61"))
+  log('aaaaa3')
+  getSymbol(getObjectFromGUID("158c7c"))
+  log('aaaaa4')
+  getSymbol(getObjectFromGUID("941f46"))
+  log('aaaaa5')
+  getSymbol(getObjectFromGUID("22f371"))
+  log('aaaaa6')
+  getSymbol(getObjectFromGUID("db1ed3"))
 end
