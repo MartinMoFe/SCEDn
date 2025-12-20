@@ -209,13 +209,11 @@ function markSymbolsInTable(_, playerColor)
   end
   -- Obtener todos los objetos en la mesa
   local things = findLocations('Present')
-  local symbol = nil
-  log('1111')
-  log(things)
 
   for _, object in ipairs(things) do
-    symbol = getSymbol(things)
-    if symbol ~= nil then drawSymbol(object, symbol) end
+    local symbol = getSymbol(object)
+    local pos = object.getPosition()
+    if symbol ~= nil then drawSymbol(pos, symbol) end
   end
   printedSymbols = true
 end
@@ -254,7 +252,6 @@ end
 function drawSymbol(pos, symbol)
   if not pos then return end
 
-  local pos = pos
   local center = { x = pos.x, y = pos.y, z = pos.z }
 
   local thickness = 0.1
@@ -336,7 +333,7 @@ function drawSymbol(pos, symbol)
     table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
     table.insert(allLines, { points = { p3, p1 }, color = color, thickness = thickness })
   else
-    error('NO NO', 2)
+    error('Not managed symbol', 2)
   end
 
   -- actualizar
@@ -387,12 +384,16 @@ end
 
 
 function getSymbol(obj)
+  -- It returns the symbol of a location
   assert(obj.getName() and obj.getGMNotes())
   local rawNotes = obj.getGMNotes() or "{}"
+  log('aa')
   local md = JSON.decode(rawNotes) or {}
+  assert(md['type'] == 'Location', 'Not a location')
   local lf = md['locationFront']
   if not lf then return nil end
   local symbol = lf["icons"] or nil
+  log(symbol)
   return symbol
 end
 
@@ -410,4 +411,8 @@ function onLoadTests()
   getSymbol(getObjectFromGUID("22f371"))
   log('aaaaa6')
   getSymbol(getObjectFromGUID("db1ed3"))
+
+
+  markSymbolsInTable()
+
 end
