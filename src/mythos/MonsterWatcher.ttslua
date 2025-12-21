@@ -63,7 +63,6 @@ function scanGameChange()
         log('63')
         createTemporaryMinis()
     elseif newPhase == 3 then
-        log('66')
         destroyTemporaryMinis()
         showEnemyInfo(BLUE_ENEMY, 'Green')
     end

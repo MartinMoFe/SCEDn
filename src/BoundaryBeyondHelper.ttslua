@@ -1,17 +1,25 @@
-local PlayAreaApi             = require("playarea/PlayAreaApi")
+local MythosAreaApi                 = require("mythos/MythosAreaApi")
+local DeckLib                       = require("util/DeckLib")
+local GlobalApi                     = require("Global/GlobalApi")
+local GUIDReferenceApi              = require("core/GUIDReferenceApi")
+local PlayAreaApi                   = require("playarea/PlayAreaApi")
+local PlayermatApi                  = require("playermat/PlayermatApi")
+local SearchLib                     = require("util/SearchLib")
+local TokenArrangerApi              = require("tokens/TokenArrangerApi")
+local TokenSpawnTrackerApi          = require("tokens/TokenSpawnTrackerApi")
+local VictoryDisplayApi             = require("mythos/VictoryDisplayApi")
 
-allLines                      = allLines or {}
-FIRST_BUTTON_POSITION         = Vector(0, 1, -1.5)
-DELTA                         = Vector(0, 0, 1)
-ONE_CARD_HELPER_TEMPLATE_GUID = "3592d8"
-COLOR_BLUE                    = { 0.5, 0.5, 1 }
-COLOR_RED                     = { 0.8, 0.3, 0.3 }
-
-
+local FIRST_BUTTON_POSITION         = Vector(0, 1, -1.5)
+local DELTA                         = Vector(0, 0, 1)
+local ONE_CARD_HELPER_TEMPLATE_GUID = "3592d8"
+local EXPLORE_HELPER                = "8355c3"
+local COLOR_BLUE                    = { 0.5, 0.5, 1 }
+local COLOR_RED                     = { 0.8, 0.3, 0.3 }
 
 function onLoad()
   helpersVisible = false
   printedSymbols = false
+  indexes = {}
 
   local buttonPosition = FIRST_BUTTON_POSITION
   self.createButton({
@@ -37,27 +45,27 @@ function onLoad()
     width = 2500,
     height = 300,
     font_size = 150,
-    color = { 0.5, 0.5, 1 },
+    color = COLOR_BLUE,
     font_color = { 1, 1, 1 },
     tooltip = ""
   })
   buttonPosition = buttonPosition + DELTA
   self.createButton({
     label = "Print symbols on table",
-    click_function = "markSymbolsInTable",
+    click_function = "toggleMarkSymbols",
     function_owner = self,
     position = buttonPosition,
     rotation = { 0, 0, 0 },
     width = 2500,
     height = 300,
     font_size = 150,
-    color = { 0.5, 0.6, 0.9 },
+    color = COLOR_BLUE,
     font_color = { 1, 1, 1 },
     tooltip = ""
   })
   buttonPosition = buttonPosition + DELTA
   self.createButton({
-    label = "Place Amrita and Act and Agenda",
+    label = "Agenda 2b, follow instructions",
     click_function = "placeActAgenda3",
     function_owner = self,
     position = buttonPosition,
@@ -75,16 +83,21 @@ end
 -- Clicked functions
 
 function highlightAncient(_, playerColor)
-  -- Search for present-day locations
-  for _, obj in ipairs(findLocations('Ancient')) do
+  -- Search for Ancient locations
+  local ancientLocations = {}
+  for _, obj in ipairs(getLocations('Ancient')) do
     obj.highlightOn('White', 5)
+    table(ancientLocations, obj)
+  end
+  if #ancientLocations > 0 then
+    printToAll('There are ' .. tostring(#ancientLocations) .. ' Ancient locations.')
   end
 end
 
 function toggleIndividualHelpers(_, playerColor)
   -- Search for present-day locations
   if helpersVisible == false then
-    for _, obj in ipairs(findLocations('Present')) do
+    for _, obj in ipairs(getLocations('Present')) do
       createOneHelper(obj)
       self.editButton({
         index = 1,
@@ -105,11 +118,19 @@ function toggleIndividualHelpers(_, playerColor)
 end
 
 function placeActAgenda3(_, playerColor)
-  -- get the chest (guid 7a167a)
-  local chest = getObjectFromGUID("7a167a")
+  local chest = MythosAreaApi.getSetAsideChest() or nil
   if not chest then
-    print("Chest (7a167a) not found")
+    print("Chest not found")
     return
+  end
+
+  local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
+  if not exploreHelper then
+    printToAll('Explore helper not found. Setup aborted.', 'Red')
+  end
+  local explorationDeck = getExplorationDeck(exploreHelper)
+  if not explorationDeck then
+    printToAll('Exploration deck was not found. Setup aborted.', 'Red')
   end
 
   -- find the bag inside the chest
@@ -132,12 +153,66 @@ function placeActAgenda3(_, playerColor)
     return
   end
 
-  -- take out the bag near a reference position (guid 70b9f6)
-  local pos    = getObjectFromGUID("70b9f6").getPosition()
-  local bagObj = chest.takeObject({ guid = bagData.guid, position = pos, smooth = true })
+  local trash = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "Trash")
+  if not trash then
+    print('Trash not found')
+    return
+  end
+  aboveTrash   = trash.getPosition() + Vector(0, 0.8, 0)
 
-  -- tint the bag white
+  -- take out the bag near a reference position (guid 70b9f6)
+  local bagObj = chest.takeObject({
+    guid = bagData.guid,
+    position = PlayAreaApi.gridToWorld({ x = 0, y = 2.5 }),
+    smooth = true
+  })
+
+  -- tint the bag white (it is black against black)
   bagObj.setColorTint({ r = 1, g = 1, b = 1 })
+
+  -- Start the card instructions. Find each Tenochtitlán location in play with no clues on it.
+  local ancientLocations = getLocations('Ancient')
+  local symbolPosition = {}
+  for _, location in ipairs(ancientLocations) do
+    local thingsAbove = SearchLib.onObject(location)
+    for _, el in ipairs(thingsAbove) do
+      liftObjects(thingsAbove)
+    end
+
+    local symbol = getSymbol(location)
+    if symbol then
+      symbolPosition[symbol] = location.getPosition()
+    end
+
+    PlayAreaApi.maybeUntrackLocation(location)
+    VictoryDisplayApi.placeCard(location)
+    printToAll(location.getName() .. ' was placed on the Victory Display.')
+  end
+
+  for symbol, position in pairs(symbolPosition) do
+    for _, obj in ipairs(explorationDeck) do
+      if getSymbol(obj) == symbol then
+        printToAll('Found!')
+        explorationDeck.takeObject({ guid = obj.guid , position= position})
+        -- take it
+        break
+      end
+    end
+  end
+
+  -- Then, place cards from the exploration deck in those symbolPosition
+
+
+  -- Remove act deck and agenda deck
+  local agendaPos = MythosAreaApi.getAgendaPosition()
+  local search1 = SearchLib.atPosition(agendaPos, "isCardOrDeck")
+  local actPos = MythosAreaApi.getActPosition()
+  local searc2 = SearchLib.atPosition(actPos, "isCardOrDeck")
+  for _, objects in ipairs({ search1, searc2 }) do
+    for j, object in ipairs(objects) do
+      object.setPosition(aboveTrash)
+    end
+  end
 
   -- wait until the bag is on the table
   Wait.condition(function()
@@ -150,24 +225,25 @@ function placeActAgenda3(_, playerColor)
     local bagContents = bagObj.getObjects()
     for _, item in ipairs(bagContents) do
       if item.nickname == "The Return Trip" then
-        local dest = getObjectFromGUID("4a3aa4").getPosition()
         bagObj.takeObject({
           guid     = item.guid,
-          position = dest,
+          position = MythosAreaApi.getActPosition(),
           smooth   = true
         })
       elseif item.nickname == "Time Collapsing" then
         local dest = getObjectFromGUID("652ff3").getPosition()
         bagObj.takeObject({
           guid     = item.guid,
-          position = dest,
+          position = MythosAreaApi.getAgendaPosition(),
           smooth   = true
         })
       end
     end
   end, function() return bagObj.resting end) -- wait until the bag is placed
-  printToAll("Placing new Act 3 and Agenda 3. Placing Padme Amrita in Templo Mayor")
-  -- after handling the bag, inspect chest again
+
+  printToAll("Placed new Act 3 and Agenda 3.")
+
+
   local chestContents2 = chest.getObjects()
   for _, data in ipairs(chestContents2) do
     if data.nickname == "Padma Amrita" then
@@ -203,19 +279,34 @@ function placeActAgenda3(_, playerColor)
   end
 end
 
-function markSymbolsInTable(_, playerColor)
-  if printedSymbols then
-    return nil
+function toggleMarkSymbols(_, playerColor)
+  -- Remove lines
+  if printedSymbols == true then
+    removeLines(indexes)
+    printedSymbols = false
+    self.editButton({
+      index = 2,
+      label = "Print symbols on table",
+      color = COLOR_BLUE
+    })
+    return
   end
-  -- Obtener todos los objetos en la mesa
-  local things = findLocations('Present')
 
-  for _, object in ipairs(things) do
+  for _, object in ipairs(getLocations()) do
     local symbol = getSymbol(object)
     local pos = object.getPosition()
-    if symbol ~= nil then drawSymbol(pos, symbol) end
+    if symbol ~= nil then
+      newIndexes = drawSymbol(pos, symbol)
+      indexes = append(indexes, newIndexes)
+    end
   end
+
   printedSymbols = true
+  self.editButton({
+    index = 2,
+    label = "Remove symbols on table",
+    color = COLOR_RED
+  })
 end
 
 -- Create and destroy helpers
@@ -250,15 +341,26 @@ end
 -- Helper functions
 
 function drawSymbol(pos, symbol)
-  if not pos then return end
+  assert(type(pos) == 'table', 'Type error in drawSymbol')
+  assert(type(symbol) == 'string', 'Type error in drawSymbol')
+
+
+  local lineIndexes = {}
 
   local center = { x = pos.x, y = pos.y, z = pos.z }
 
   local thickness = 0.1
   local color = { 1, 1, 0 }
 
+  local allLines = Global.getVectorLines() or {}
+
+  local function addLine(line)
+    table.insert(allLines, line)
+    table.insert(lineIndexes, #allLines)
+  end
+
   if symbol == 'Star' then
-    color = 'Black'
+    color = 'Grey'
     local radius = 2
     local points = {}
     for i = 0, 4 do
@@ -271,7 +373,9 @@ function drawSymbol(pos, symbol)
     for i = 1, #order - 1 do
       local p1 = points[order[i]]
       local p2 = points[order[i + 1]]
-      table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
+      for i = 1, #order - 1 do
+        addLine({ points = { points[order[i]], points[order[i + 1]] }, color = color, thickness = thickness })
+      end
     end
   elseif symbol == 'Circle' then
     color = 'Yellow'
@@ -285,7 +389,7 @@ function drawSymbol(pos, symbol)
       table.insert(points, { x = px, y = center.y, z = pz })
     end
     for i = 1, #points - 1 do
-      table.insert(allLines, { points = { points[i], points[i + 1] }, color = color, thickness = thickness })
+      addLine({ points = { points[i], points[i + 1] }, color = color, thickness = thickness })
     end
   elseif symbol == 'Diamond' then
     color = 'Green'
@@ -294,21 +398,21 @@ function drawSymbol(pos, symbol)
     local p2 = { x = center.x + size, y = center.y, z = center.z }
     local p3 = { x = center.x, y = center.y, z = center.z + size }
     local p4 = { x = center.x - size, y = center.y, z = center.z }
-    table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p3, p4 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p4, p1 }, color = color, thickness = thickness })
+    addLine({ points = { p1, p2 }, color = color, thickness = thickness })
+    addLine({ points = { p2, p3 }, color = color, thickness = thickness })
+    addLine({ points = { p3, p4 }, color = color, thickness = thickness })
+    addLine({ points = { p4, p1 }, color = color, thickness = thickness })
   elseif symbol == 'Square' then
-    color = { 1, 0, 0 }
+    local color = { 1, 0, 0 }
     local size = 2
     local p1 = { x = center.x - size, y = center.y, z = center.z - size }
     local p2 = { x = center.x + size, y = center.y, z = center.z - size }
     local p3 = { x = center.x + size, y = center.y, z = center.z + size }
     local p4 = { x = center.x - size, y = center.y, z = center.z + size }
-    table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p3, p4 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p4, p1 }, color = color, thickness = thickness })
+    addLine({ points = { p1, p2 }, color = color, thickness = thickness })
+    addLine({ points = { p2, p3 }, color = color, thickness = thickness })
+    addLine({ points = { p3, p4 }, color = color, thickness = thickness })
+    addLine({ points = { p4, p1 }, color = color, thickness = thickness })
   elseif symbol == 'Heart' then
     color = { 1, 0.5, 0.5 }
     local size = 1.5
@@ -321,7 +425,7 @@ function drawSymbol(pos, symbol)
       table.insert(points, { x = center.x + x, y = center.y, z = center.z + z })
     end
     for i = 1, #points - 1 do
-      table.insert(allLines, { points = { points[i], points[i + 1] }, color = color, thickness = thickness })
+      addLine({ points = { points[i], points[i + 1] }, color = color, thickness = thickness })
     end
   elseif symbol == 'Triangle' then
     color = { 0, 0, 0.8 }
@@ -329,27 +433,53 @@ function drawSymbol(pos, symbol)
     local p1 = { x = center.x, y = center.y, z = center.z - size }
     local p2 = { x = center.x + size, y = center.y, z = center.z + size }
     local p3 = { x = center.x - size, y = center.y, z = center.z + size }
-    table.insert(allLines, { points = { p1, p2 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p2, p3 }, color = color, thickness = thickness })
-    table.insert(allLines, { points = { p3, p1 }, color = color, thickness = thickness })
+    addLine({ points = { p1, p2 }, color = color, thickness = thickness })
+    addLine({ points = { p2, p3 }, color = color, thickness = thickness })
+    addLine({ points = { p3, p1 }, color = color, thickness = thickness })
   else
     error('Not managed symbol', 2)
   end
 
   -- actualizar
   Global.setVectorLines(allLines)
+  return lineIndexes
 end
 
-function findLocations(trait)
+function removeLines(indexes)
+  if type(indexes) ~= "table" then return end
+
+  local lines = Global.getVectorLines() or {}
+  if #lines == 0 then return end
+
+  -- mark indexes to remove
+  local toRemove = {}
+  for _, idx in ipairs(indexes) do
+    toRemove[idx] = true
+  end
+
+  -- rebuild the list with only remaining lines
+  local remaining = {}
+  for i, line in ipairs(lines) do
+    if not toRemove[i] then
+      table.insert(remaining, line)
+    end
+  end
+
+  Global.setVectorLines(remaining)
+end
+
+function getLocations(trait)
+  assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
   local allObjects = getAllObjects()
   local locations = {}
-  assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
   for _, object in ipairs(allObjects) do
     local rawNotes = object.getGMNotes() or "{}"
     local metadata = JSON.decode(rawNotes) or {}
     if PlayAreaApi.isInPlayArea(object) and metadata['type'] == 'Location' then
       local descripcion = object.getDescription() or ""
-      if string.find(descripcion, trait) and PlayAreaApi.isInPlayArea(object) then
+      if trait == nil then
+        table.insert(locations, object)
+      elseif trait ~= nil and string.find(descripcion, trait) then
         table.insert(locations, object)
       end
     end
@@ -357,62 +487,59 @@ function findLocations(trait)
   return locations
 end
 
-function duplicateCardAsHelper(card)
-  assert(card and card.tag == "Card", "Expected a Card")
-
-
-
-  local clone = card.clone({
-    position = card.getPosition(),
-    rotation = rotation.getPosition(),
-    scale    = card.getScale(),
-    sound    = false
-  })
-
-  clone.removeTag('Minicard')
-  clone.addTag('HelperDuplicate')
-  clone.interactable = false
-  clone.setLock(true)
-
-  return clone
-end
-
-function removeDuplicate(object)
-  assert(card and card.tag == "Card", "Expected a Card")
-  object.destruct()
-end
-
-
 function getSymbol(obj)
   -- It returns the symbol of a location
   assert(obj.getName() and obj.getGMNotes())
   local rawNotes = obj.getGMNotes() or "{}"
-  log('aa')
   local md = JSON.decode(rawNotes) or {}
   assert(md['type'] == 'Location', 'Not a location')
   local lf = md['locationFront']
   if not lf then return nil end
   local symbol = lf["icons"] or nil
-  log(symbol)
   return symbol
 end
 
-
 function onLoadTests()
-  log('aaaaa1')
   getSymbol(getObjectFromGUID("c8f441"))
-  log('aaaaa2')
   getSymbol(getObjectFromGUID("d71f61"))
-  log('aaaaa3')
   getSymbol(getObjectFromGUID("158c7c"))
-  log('aaaaa4')
   getSymbol(getObjectFromGUID("941f46"))
-  log('aaaaa5')
   getSymbol(getObjectFromGUID("22f371"))
-  log('aaaaa6')
   getSymbol(getObjectFromGUID("db1ed3"))
+  log('END OF TEST 1')
 
+  toggleIndividualHelpers()
+  log('END OF TEST 2')
 
-  markSymbolsInTable()
+  Wait.frames(function()
+    toggleIndividualHelpers()
+  end, 140)
+  log('END OF TEST 3')
 
+  toggleMarkSymbols()
+  log('END OF TEST')
+
+  Wait.frames(function()
+    placeActAgenda3()
+  end, 180)
+end
+
+function append(table1, table2)
+  -- Returns a new table
+  assert(type(table1) == 'table', 'Type error 1')
+  assert(type(table2) == 'table', 'Type error 2')
+  for _, el in ipairs(table2) do
+    table.insert(table1, el)
+  end
+  return table1
+end
+
+function getExplorationDeck(explorerHelper)
+  local objects = SearchLib.onObject(explorerHelper)
+  for _, object in ipairs(objects) do
+    if object.tag == 'Deck' and object.is_face_down then
+      return object
+    end
+  end
+  return nil
 end

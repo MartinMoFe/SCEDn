@@ -1,8 +1,8 @@
 local SearchLib    = require("util/SearchLib")
 
-SET_ASIDE_POSITION = { x = -8.56, y = 1.53, z = 0 }
-EXPLORE_HELPER = "8355c3"
-BOUNDARY_BEYOND_HELPER_GUID = "2ec235"
+local SET_ASIDE_POSITION = { x = -8.56, y = 1.53, z = 0 }
+local EXPLORE_HELPER = "8355c3"
+local BOUNDARY_BEYOND_HELPER_GUID = "2ec235"
 
 
 function onLoad()
@@ -62,11 +62,11 @@ function doStuff()
 
   cousinLocation.setPositionSmooth(SET_ASIDE_POSITION)
   
-  printToAll('The card was placed aside, so its connection lines dont mess with the the Ancient version.')
+  printToAll('The card ' .. cousinLocation.getName() .. ' was placed aside, so its connection lines dont mess with the the Ancient version.')
   
   otherLocation.setPositionSmooth(originalPosition)
   
-  printToAll('The new card was placed in that place.')
+  printToAll('The new card '.. otherLocation.getName()..' was placed in that place.')
   printToAll('Remember that clues and cards are preserved, but new clues spawn.')
 
   -- Deactivate the buttons when one is pressed

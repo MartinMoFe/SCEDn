@@ -75,7 +75,7 @@ end
 -- helper functions to get specific objects
 ---------------------------------------------------------
 
-function getExploreDeck()
+function getExplorationDeck()
   return getDeckOrCardAtLocalOffset(exploreDeckOffset)
 end
 
@@ -129,7 +129,7 @@ function explore()
     allHighlightedCards = {}
   end
 
-  local exploreDeck = getExploreDeck()
+  local exploreDeck = getExplorationDeck()
   if exploreDeck then
     local card
     if exploreDeck.type == "Deck" then
@@ -198,7 +198,7 @@ function shuffleBack(forceShuffle)
     end
 
     -- wait until deck is in place, then shuffle
-    Wait.time(function() getExploreDeck().shuffle() end, 0.5)
+    Wait.time(function() getExplorationDeck().shuffle() end, 0.5)
   end
 end
 
@@ -229,7 +229,7 @@ end
 -- search through the Explore deck and return num of locations left
 function getNumLocations()
   local val = 0
-  local exploreDeck = getExploreDeck()
+  local exploreDeck = getExplorationDeck()
 
   if not exploreDeck then
     self.UI.hide("countingPanel")
@@ -449,7 +449,7 @@ function useSupply()
   end
 
   -- see how many cards are left in the explore deck
-  local exploreDeck = getExploreDeck()
+  local exploreDeck = getExplorationDeck()
   if not exploreDeck then
     broadcastToAll("No cards in exploration deck", "Red")
     return
@@ -484,7 +484,7 @@ function useSupply()
 end
 
 function isSomethingRevealed()
-  local exploreDeck = getExploreDeck()
+  local exploreDeck = getExplorationDeck()
 
   for _, pos in ipairs(revealCardPositions) do
     for _, obj in ipairs(SearchLib.atPosition(exploreDeck.positionToWorld(pos), "isCard")) do
@@ -498,7 +498,7 @@ end
 function revealTopCards()
   if movingCards or isSomethingRevealed() then return end
 
-  local exploreDeck = getExploreDeck()
+  local exploreDeck = getExplorationDeck()
   if exploreDeck.type == 'Deck' then
     for i, _ in ipairs(exploreDeck.getObjects()) do
       movingCards = true
@@ -543,7 +543,7 @@ function shuffleRevealedBack(_, cardGUID)
   local card = getObjectFromGUID(cardGUID)
   card.UI.setXml("")
   DeckLib.placeOrMergeIntoDeck(card, self.positionToWorld(exploreDeckOffset), card.getRotation():setAt("z", 180))
-  Wait.time(function() getExploreDeck().shuffle() end, 1) -- necessary for 3.9.2
+  Wait.time(function() getExplorationDeck().shuffle() end, 1) -- necessary for 3.9.2
 end
 
 function addSupplyXML(obj)
