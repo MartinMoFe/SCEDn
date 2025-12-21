@@ -1,3 +1,4 @@
+local CoroutineLib                  = require("util/CoroutineLib")
 local MythosAreaApi                 = require("mythos/MythosAreaApi")
 local DeckLib                       = require("util/DeckLib")
 local GlobalApi                     = require("Global/GlobalApi")
@@ -15,11 +16,15 @@ local ONE_CARD_HELPER_TEMPLATE_GUID = "3592d8"
 local EXPLORE_HELPER                = "8355c3"
 local COLOR_BLUE                    = { 0.5, 0.5, 1 }
 local COLOR_RED                     = { 0.8, 0.3, 0.3 }
+local ROTATION_VERTICAL             = { 0, 270, 0 }
+local ROTATION_HORIZONTAL           = { 0, 180, 0 }
+local SET_ASIDE_POSITION_2          = { x = -8.56, y = 1.53, z = 2 }
 
 function onLoad()
   helpersVisible = false
   printedSymbols = false
   indexes = {}
+  act3done = false
 
   local buttonPosition = FIRST_BUTTON_POSITION
   self.createButton({
@@ -87,7 +92,7 @@ function highlightAncient(_, playerColor)
   local ancientLocations = {}
   for _, obj in ipairs(getLocations('Ancient')) do
     obj.highlightOn('White', 5)
-    table(ancientLocations, obj)
+    table.insert(ancientLocations, obj)
   end
   if #ancientLocations > 0 then
     printToAll('There are ' .. tostring(#ancientLocations) .. ' Ancient locations.')
@@ -118,165 +123,200 @@ function toggleIndividualHelpers(_, playerColor)
 end
 
 function placeActAgenda3(_, playerColor)
-  local chest = MythosAreaApi.getSetAsideChest() or nil
-  if not chest then
-    print("Chest not found")
-    return
-  end
-
-  local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
-  if not exploreHelper then
-    printToAll('Explore helper not found. Setup aborted.', 'Red')
-  end
-  local explorationDeck = getExplorationDeck(exploreHelper)
-  if not explorationDeck then
-    printToAll('Exploration deck was not found. Setup aborted.', 'Red')
-  end
-
-  -- find the bag inside the chest
-  local chestContents = chest.getObjects()
-  if #chestContents == 0 then
-    print("Set-Aside Chest is empty")
-    return
-  end
-
-  local bagData = nil
-  for _, data in ipairs(chestContents) do
-    if data.nickname == "Agenda 3 & Act 3" then
-      bagData = data
-      break
+  function placeActAgenda3coroutine()
+    if act3done then
+      printToAll('Button was already clicked')
+      return
     end
-  end
-
-  if not bagData then
-    print("Bag not found inside chest")
-    return
-  end
-
-  local trash = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "Trash")
-  if not trash then
-    print('Trash not found')
-    return
-  end
-  aboveTrash   = trash.getPosition() + Vector(0, 0.8, 0)
-
-  -- take out the bag near a reference position (guid 70b9f6)
-  local bagObj = chest.takeObject({
-    guid = bagData.guid,
-    position = PlayAreaApi.gridToWorld({ x = 0, y = 2.5 }),
-    smooth = true
-  })
-
-  -- tint the bag white (it is black against black)
-  bagObj.setColorTint({ r = 1, g = 1, b = 1 })
-
-  -- Start the card instructions. Find each Tenochtitlán location in play with no clues on it.
-  local ancientLocations = getLocations('Ancient')
-  local symbolPosition = {}
-  for _, location in ipairs(ancientLocations) do
-    local thingsAbove = SearchLib.onObject(location)
-    for _, el in ipairs(thingsAbove) do
-      liftObjects(thingsAbove)
-    end
-
-    local symbol = getSymbol(location)
-    if symbol then
-      symbolPosition[symbol] = location.getPosition()
-    end
-
-    PlayAreaApi.maybeUntrackLocation(location)
-    VictoryDisplayApi.placeCard(location)
-    printToAll(location.getName() .. ' was placed on the Victory Display.')
-  end
-
-  for symbol, position in pairs(symbolPosition) do
-    for _, obj in ipairs(explorationDeck) do
-      if getSymbol(obj) == symbol then
-        printToAll('Found!')
-        explorationDeck.takeObject({ guid = obj.guid , position= position})
-        -- take it
-        break
-      end
-    end
-  end
-
-  -- Then, place cards from the exploration deck in those symbolPosition
-
-
-  -- Remove act deck and agenda deck
-  local agendaPos = MythosAreaApi.getAgendaPosition()
-  local search1 = SearchLib.atPosition(agendaPos, "isCardOrDeck")
-  local actPos = MythosAreaApi.getActPosition()
-  local searc2 = SearchLib.atPosition(actPos, "isCardOrDeck")
-  for _, objects in ipairs({ search1, searc2 }) do
-    for j, object in ipairs(objects) do
-      object.setPosition(aboveTrash)
-    end
-  end
-
-  -- wait until the bag is on the table
-  Wait.condition(function()
-    if not bagObj then
-      print("Inner object is not a bag")
+    local chest = MythosAreaApi.getSetAsideChest() or nil
+    if not chest then
+      print("Chest not found")
       return
     end
 
-    -- now inspect the bag contents
-    local bagContents = bagObj.getObjects()
-    for _, item in ipairs(bagContents) do
-      if item.nickname == "The Return Trip" then
-        bagObj.takeObject({
-          guid     = item.guid,
-          position = MythosAreaApi.getActPosition(),
-          smooth   = true
-        })
-      elseif item.nickname == "Time Collapsing" then
-        local dest = getObjectFromGUID("652ff3").getPosition()
-        bagObj.takeObject({
-          guid     = item.guid,
-          position = MythosAreaApi.getAgendaPosition(),
-          smooth   = true
-        })
+    local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
+    if not exploreHelper then
+      printToAll('Explore helper not found. Setup aborted.', 'Red')
+    end
+    local explorationDeck = getExplorationDeck(exploreHelper)
+    if not explorationDeck then
+      printToAll('Exploration deck was not found. Setup aborted.', 'Red')
+    end
+
+    -- find the bag inside the chest
+    local chestContents = chest.getObjects()
+    if #chestContents == 0 then
+      print("Set-Aside Chest is empty")
+      return
+    end
+
+    local bagData = nil
+    for _, data in ipairs(chestContents) do
+      if data.nickname == "Agenda 3 & Act 3" then
+        bagData = data
+        break
       end
     end
-  end, function() return bagObj.resting end) -- wait until the bag is placed
 
-  printToAll("Placed new Act 3 and Agenda 3.")
-
-
-  local chestContents2 = chest.getObjects()
-  for _, data in ipairs(chestContents2) do
-    if data.nickname == "Padma Amrita" then
-      local targetObj = getObjectFromGUID("ae5d5c")
-      if targetObj then
-        local targetPos = targetObj.getPosition()
-        local targetRot = targetObj.getRotation()
-
-        -- displace slightly (0.3 on X, 0.3 on Z)
-        local displacedPos = {
-          x = targetPos.x + 0.3,
-          y = targetPos.y + 2, -- raise so it falls nicely
-          z = targetPos.z + 1.3
-        }
-
-        -- rotation offset by 10 degrees around Y
-        local newRot = {
-          x = targetRot.x,
-          y = targetRot.y + 10,
-          z = targetRot.z
-        }
-
-        chest.takeObject({
-          guid     = data.guid,
-          position = displacedPos,
-          rotation = newRot,
-          smooth   = true,
-          flip     = false
-        })
-      end
-      break -- stop after finding Padma Amrita
+    if not bagData then
+      print("Bag not found inside chest")
+      return
     end
+
+    local trash = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "Trash")
+    if not trash then
+      print('Trash not found')
+      return
+    end
+    aboveTrash   = trash.getPosition() + Vector(0, 0.8, 0)
+
+    -- We are ready
+
+    act3done     = true
+
+    -- Take out the bag near a reference position { x = 0, y = 2.5 }. Tint the bag white (it is black against black)
+    local bagObj = chest.takeObject({
+      guid = bagData.guid,
+      position = PlayAreaApi.gridToWorld({ x = 0, y = 2.5 }),
+      smooth = true
+    })
+    bagObj.setColorTint({ r = 1, g = 1, b = 1 })
+
+    -- Start the card instructions. Find each Location in play
+    -- █▀█ █▀▀ █▀▄▀█ █▀▀ █▀▄▀█ █▄▄ █▀▀ █▀█
+    -- █▀▄ ██▄ █░▀░█ ██▄ █░▀░█ █▄█ ██▄ █▀▄
+
+    local symbolPosition = {}
+
+    -- █▀█ █▀▀ █▀▄▀█ █▀█ █░█ █▀▀   ▀█▀ █▀█   █░█ █ █▀▀
+    -- █▀▄ ██▄ █░▀░█ █▄█ ▀▄▀ ██▄   ░█░ █▄█   ▀▄▀ █ █▄▄
+
+    local ancientLocations = getLocations('Ancient')
+    for _, location in ipairs(ancientLocations) do
+      if not cardHasClues(location) then
+        local thingsAbove = SearchLib.onObject(location)
+        liftObjects(thingsAbove)
+        -- update the rembering list
+        symbolPosition[getSymbol(location)] = location.getPosition()
+        PlayAreaApi.maybeUntrackLocation(location)
+        VictoryDisplayApi.placeCard(location)
+        printToAll(location.getName() .. ' was placed on the Victory Display.')
+        CoroutineLib.yieldSeconds(0.5)
+      else
+        message = "This card has still some clues, we don't remove it: " .. location.getName()
+        log(message)
+      end
+    end
+
+    CoroutineLib.yieldSeconds(0.5)
+
+    -- █▀█ █▀▀ █▀▄▀█ █▀█ █░█ █▀▀   █▀█ █▀█ █▀▀ █▀ █▀▀ █▄░█ ▀█▀
+    -- █▀▄ ██▄ █░▀░█ █▄█ ▀▄▀ ██▄   █▀▀ █▀▄ ██▄ ▄█ ██▄ █░▀█ ░█░
+    local presentLocations = getLocations('Present')
+    for _, location in ipairs(presentLocations) do
+      local thingsAbove = SearchLib.onObject(location)
+      liftObjects(thingsAbove, 4)
+      symbolPosition[getSymbol(location)] = location.getPosition()
+      PlayAreaApi.maybeUntrackLocation(location)
+      location.setPositionSmooth(SET_ASIDE_POSITION_2)
+      CoroutineLib.yieldSeconds(0.2)
+      printToAll(location.getName() .. ' was placed aside.')
+      -- update the rembering list
+    end
+
+    -- search the exploration deck for a location with a matching location symbol
+    -- in the upper-left corner and place it on top of that location, taking its place.
+
+    for symbol, position in pairs(symbolPosition) do
+      log('Searching ' .. symbol)
+      local success = false
+      for _, obj in ipairs(explorationDeck.getObjects()) do
+        local symbol2 = getSymbol(obj)
+        if symbol2 == symbol then
+          explorationDeck.takeObject({ guid = obj.guid, position = position, rotation = ROTATION_VERTICAL })
+          success = true
+          break
+        end
+      end
+      if not success then
+        log('Couldnt find the ' .. symbol .. ' in the exploration deck.')
+      end
+    end
+
+    CoroutineLib.yieldSeconds(0.5)
+    -- Remove Act deck and Agenda deck
+    local agendaPos = MythosAreaApi.getAgendaPosition()
+    local search1 = SearchLib.atPosition(agendaPos, "isCardOrDeck")
+    local actPos = MythosAreaApi.getActPosition()
+    local searc2 = SearchLib.atPosition(actPos, "isCardOrDeck")
+    for _, objects in ipairs({ search1, searc2 }) do
+      for j, object in ipairs(objects) do
+        object.setPositionSmooth(aboveTrash)
+        object.setRotationSmooth(ROTATION_HORIZONTAL)
+      end
+    end
+
+    -- wait until the bag is on the table
+    Wait.condition(function()
+      if not bagObj then
+        print("Inner object is not a bag")
+        return
+      end
+
+      -- now inspect the bag contents
+      local bagContents = bagObj.getObjects()
+      for _, item in ipairs(bagContents) do
+        if item.nickname == "The Return Trip" then
+          bagObj.takeObject({
+            guid     = item.guid,
+            position = MythosAreaApi.getActPosition(),
+            smooth   = true
+          })
+        elseif item.nickname == "Time Collapsing" then
+          local dest = getObjectFromGUID("652ff3").getPosition()
+          bagObj.takeObject({
+            guid     = item.guid,
+            position = MythosAreaApi.getAgendaPosition(),
+            smooth   = true
+          })
+        end
+      end
+    end, function() return bagObj.resting end) -- wait until the bag is placed
+
+    printToAll("Placed new Act 3 and Agenda 3.")
+
+    -- █▀█ ▄▀█ █▀▄ █▀▄▀█ █▀▀
+    -- █▀▀ █▀█ █▄▀ █░▀░█ ██▄
+
+    local success = false
+    local chestContents2 = chest.getObjects()
+    for _, data in ipairs(chestContents2) do
+      if data.nickname == "Padma Amrita" then
+        local targetPos = symbolPosition['Circle']
+        if targetPos then
+          local targetPos = {
+            x = targetPos.x,
+            y = targetPos.y + 4,
+            z = targetPos.z + 2.4
+          }
+
+          chest.takeObject({
+            guid     = data.guid,
+            position = targetPos,
+            rotation = ROTATION_VERTICAL,
+            smooth   = true,
+            flip     = false
+          })
+        end
+        success = true
+        break -- stop after finding Padma Amrita
+      end
+    end
+    if success then printToAll('Padme was not found in the Set-Aside chest.') end
+    printToAll('Lose all your clues.', 'Green')
   end
+
+  CoroutineLib.start(placeActAgenda3coroutine)
 end
 
 function toggleMarkSymbols(_, playerColor)
@@ -488,11 +528,18 @@ function getLocations(trait)
 end
 
 function getSymbol(obj)
-  -- It returns the symbol of a location
-  assert(obj.getName() and obj.getGMNotes())
-  local rawNotes = obj.getGMNotes() or "{}"
+  -- It returns the symbol of a location, if it not a location, it returns nil
+  -- This works even for an object inside a deck
+  local rawNotes = nil
+  if type(obj) == 'table' then -- This object is inside a deck
+    rawNotes = obj.gm_notes or "{}"
+  else
+    rawNotes = obj.getGMNotes() or "{}"
+  end
   local md = JSON.decode(rawNotes) or {}
-  assert(md['type'] == 'Location', 'Not a location')
+  if md['type'] ~= 'Location' then
+    return nil
+  end
   local lf = md['locationFront']
   if not lf then return nil end
   local symbol = lf["icons"] or nil
@@ -500,28 +547,28 @@ function getSymbol(obj)
 end
 
 function onLoadTests()
-  getSymbol(getObjectFromGUID("c8f441"))
-  getSymbol(getObjectFromGUID("d71f61"))
-  getSymbol(getObjectFromGUID("158c7c"))
-  getSymbol(getObjectFromGUID("941f46"))
-  getSymbol(getObjectFromGUID("22f371"))
-  getSymbol(getObjectFromGUID("db1ed3"))
-  log('END OF TEST 1')
+  -- getSymbol(getObjectFromGUID("c8f441"))
+  -- getSymbol(getObjectFromGUID("d71f61"))
+  -- getSymbol(getObjectFromGUID("158c7c"))
+  -- getSymbol(getObjectFromGUID("941f46"))
+  -- getSymbol(getObjectFromGUID("22f371"))
+  -- getSymbol(getObjectFromGUID("db1ed3"))
+  -- log('END OF TEST 1')
 
-  toggleIndividualHelpers()
-  log('END OF TEST 2')
+  -- toggleIndividualHelpers()
+  -- log('END OF TEST 2')
 
-  Wait.frames(function()
-    toggleIndividualHelpers()
-  end, 140)
-  log('END OF TEST 3')
+  -- Wait.frames(function()
+  --   toggleIndividualHelpers()
+  -- end, 140)
+  -- log('END OF TEST 3')
 
-  toggleMarkSymbols()
-  log('END OF TEST')
+  -- toggleMarkSymbols()
+  -- log('END OF TEST')
 
-  Wait.frames(function()
-    placeActAgenda3()
-  end, 180)
+  -- Wait.frames(function()
+  --   placeActAgenda3()
+  -- end, 150)
 end
 
 function append(table1, table2)
@@ -542,4 +589,24 @@ function getExplorationDeck(explorerHelper)
     end
   end
   return nil
+end
+
+function liftObjects(objects, height)
+  height = height or 3
+
+  for _, obj in ipairs(objects) do
+    if obj and obj.getPosition then
+      local pos = obj.getPosition()
+      obj.setPositionSmooth({
+        pos.x,
+        pos.y + height,
+        pos.z
+      })
+    end
+  end
+end
+
+function cardHasClues(card)
+  local searchResult = SearchLib.onObject(card, "isClue")
+  return #searchResult > 0
 end

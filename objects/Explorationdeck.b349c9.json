@@ -11,7 +11,6 @@
     "r": 0.71324
   },
   "ContainedObjects_order": [
-    "SacredWoods.b5e340",
     "TimelineDestabilization.3ad663",
     "ChapultepecHill.baec21",
     "TemplesofTenochtitln.80cef8",
@@ -41,7 +40,6 @@
     }
   },
   "DeckIDs": [
-    235761,
     235766,
     235755,
     235752,
@@ -80,7 +78,7 @@
   "Tooltip": true,
   "Transform": {
     "posX": -12.499,
-    "posY": 1.718,
+    "posY": 1.713,
     "posZ": 13.501,
     "rotX": 0,
     "rotY": 270,

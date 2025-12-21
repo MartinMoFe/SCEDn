@@ -54,9 +54,10 @@ function doStuff()
   -- Leave places on air, and let them fall
 
   local thingsAbove = SearchLib.onObject(cousinLocation)
-  for _, el in ipairs(thingsAbove) do
-    liftObjects(thingsAbove)
-  end
+  liftObjects(thingsAbove)
+  -- for _, el in ipairs(thingsAbove) do
+    
+  -- end
 
   -- Switch them quickly
 

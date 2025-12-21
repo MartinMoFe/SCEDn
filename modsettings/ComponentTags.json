@@ -115,6 +115,10 @@
     {
       "displayed": "Reloadable",
       "normalized": "reloadable"
+    },
+    {
+      "displayed": "BoundaryHelper",
+      "normalized": "boundaryhelper"
     }
   ]
 }
