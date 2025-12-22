@@ -87,9 +87,6 @@ function findEquivalentLocationIn(objects)
   local symbol2 = nil
   if not symbol then return end
 
-  log('Searching symbol')
-  log(symbol)
-
   for _, objectFound in ipairs(objects) do
   
     if objectFound.tag == 'Tile' then

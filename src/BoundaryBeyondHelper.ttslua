@@ -1,13 +1,8 @@
 local CoroutineLib                  = require("util/CoroutineLib")
 local MythosAreaApi                 = require("mythos/MythosAreaApi")
-local DeckLib                       = require("util/DeckLib")
-local GlobalApi                     = require("Global/GlobalApi")
 local GUIDReferenceApi              = require("core/GUIDReferenceApi")
 local PlayAreaApi                   = require("playarea/PlayAreaApi")
-local PlayermatApi                  = require("playermat/PlayermatApi")
 local SearchLib                     = require("util/SearchLib")
-local TokenArrangerApi              = require("tokens/TokenArrangerApi")
-local TokenSpawnTrackerApi          = require("tokens/TokenSpawnTrackerApi")
 local VictoryDisplayApi             = require("mythos/VictoryDisplayApi")
 
 local FIRST_BUTTON_POSITION         = Vector(0, 1, -1.5)
@@ -19,6 +14,9 @@ local COLOR_RED                     = { 0.8, 0.3, 0.3 }
 local ROTATION_VERTICAL             = { 0, 270, 0 }
 local ROTATION_HORIZONTAL           = { 0, 180, 0 }
 local SET_ASIDE_POSITION_2          = { x = -8.56, y = 1.53, z = 2 }
+
+DEBUG = true
+
 
 function onLoad()
   helpersVisible = false
@@ -43,7 +41,7 @@ function onLoad()
   buttonPosition = buttonPosition + DELTA
   self.createButton({
     label = "Replace explored location",
-    click_function = "toggleIndividualHelpers",
+    click_function = "doStuff",
     function_owner = self,
     position = buttonPosition,
     rotation = { 0, 0, 0 },
@@ -349,6 +347,107 @@ function toggleMarkSymbols(_, playerColor)
   })
 end
 
+function doStuff()
+  -- find a explored location
+  -- place it in place of a Present Day location
+  log('doStuff')
+
+  local ancientLocationExplored = findEquivalentPresentLocationIn()
+
+  if ancientLocationExplored == nil then
+    printToAll('No Ancient location found in the explore helper.')
+    return
+  end
+
+  local symbol = getSymbol(ancientLocationExplored)
+
+  -- Search the Present location
+  local presentLocations = getLocations('Present')
+  log(presentLocations)
+  found = nil
+  for _, present in ipairs(presentLocations) do
+    log('getSymbol(present)')
+    log(getSymbol(present))
+    if getSymbol(present) == symbol then
+      found = present
+      break
+    end
+  end
+
+  -- lift things , see the other file
+  local posToPlace = found.getPosition()
+  ancientLocationExplored.setPositionSmooth(SET_ASIDE_POSITION)
+  printToAll(ancientLocationExplored.getName() .. " was set aside, so its connections don't confuse the user.")
+  found.setPositionSmooth(posToPlace)
+  
+end
+
+-- Location finder and inspectors 
+
+
+function findEquivalentPresentLocationIn()
+  -- Looks at the explore helper, and searches for a visible location
+  local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
+  local pos = exploreHelper.positionToWorld(Vector(-0.5887, 0.5, 0))
+  local searchResult = SearchLib.atPosition(pos, "isCardOrDeck")
+  log(searchResult)
+
+  -- check if a deck was found
+  for _, obj in ipairs(searchResult) do
+    log(obj)
+    if obj.tag == 'Card' and not obj.is_face_down then
+      return obj
+  -- if no deck was found, return the first hit (a card)
+    elseif obj.tag == 'Deck' and obj.is_face_down then
+      return obj[#obj.getObjects()] -- last one upper one
+    end
+  end
+  return nil
+end
+
+function getLocations(trait)
+  assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
+  local allObjects = getAllObjects()
+  local locations = {}
+  for _, object in ipairs(allObjects) do
+    local rawNotes = object.getGMNotes() or "{}"
+    local metadata = JSON.decode(rawNotes) or {}
+    if PlayAreaApi.isInPlayArea(object) and metadata['type'] == 'Location' then
+      local descripcion = object.getDescription() or ""
+      if trait == nil then
+        table.insert(locations, object)
+      elseif trait ~= nil and string.find(descripcion, trait) then
+        table.insert(locations, object)
+      end
+    end
+  end
+  return locations
+end
+
+function getSymbol(obj)
+  -- It returns the symbol of a location, if it not a location, it returns nil
+  -- This works even for an object inside a deck
+  local rawNotes = nil
+  if type(obj) == 'table' then -- This object is inside a deck
+    rawNotes = obj.gm_notes or "{}"
+  else
+    rawNotes = obj.getGMNotes() or "{}"
+  end
+  local md = JSON.decode(rawNotes) or {}
+  if md['type'] ~= 'Location' then
+    return nil
+  end
+  local lf = md['locationFront']
+  if not lf then return nil end
+  local symbol = lf["icons"] or nil
+  return symbol
+end
+
+function cardHasClues(card)
+  local searchResult = SearchLib.onObject(card, "isClue")
+  return #searchResult > 0
+end
+
 -- Create and destroy helpers
 
 function createOneHelper(card)
@@ -508,67 +607,23 @@ function removeLines(indexes)
   Global.setVectorLines(remaining)
 end
 
-function getLocations(trait)
-  assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
-  local allObjects = getAllObjects()
-  local locations = {}
-  for _, object in ipairs(allObjects) do
-    local rawNotes = object.getGMNotes() or "{}"
-    local metadata = JSON.decode(rawNotes) or {}
-    if PlayAreaApi.isInPlayArea(object) and metadata['type'] == 'Location' then
-      local descripcion = object.getDescription() or ""
-      if trait == nil then
-        table.insert(locations, object)
-      elseif trait ~= nil and string.find(descripcion, trait) then
-        table.insert(locations, object)
-      end
-    end
-  end
-  return locations
-end
-
-function getSymbol(obj)
-  -- It returns the symbol of a location, if it not a location, it returns nil
-  -- This works even for an object inside a deck
-  local rawNotes = nil
-  if type(obj) == 'table' then -- This object is inside a deck
-    rawNotes = obj.gm_notes or "{}"
-  else
-    rawNotes = obj.getGMNotes() or "{}"
-  end
-  local md = JSON.decode(rawNotes) or {}
-  if md['type'] ~= 'Location' then
-    return nil
-  end
-  local lf = md['locationFront']
-  if not lf then return nil end
-  local symbol = lf["icons"] or nil
-  return symbol
-end
 
 function onLoadTests()
-  -- getSymbol(getObjectFromGUID("c8f441"))
-  -- getSymbol(getObjectFromGUID("d71f61"))
-  -- getSymbol(getObjectFromGUID("158c7c"))
-  -- getSymbol(getObjectFromGUID("941f46"))
-  -- getSymbol(getObjectFromGUID("22f371"))
-  -- getSymbol(getObjectFromGUID("db1ed3"))
-  -- log('END OF TEST 1')
-
-  -- toggleIndividualHelpers()
-  -- log('END OF TEST 2')
-
-  -- Wait.frames(function()
-  --   toggleIndividualHelpers()
-  -- end, 140)
-  -- log('END OF TEST 3')
-
-  -- toggleMarkSymbols()
-  -- log('END OF TEST')
-
-  -- Wait.frames(function()
-  --   placeActAgenda3()
-  -- end, 150)
+  if debug == false then return end
+  function coroutineTest()
+    getSymbol(getObjectFromGUID("c8f441"))
+    getSymbol(getObjectFromGUID("d71f61"))
+    getSymbol(getObjectFromGUID("158c7c"))
+    getSymbol(getObjectFromGUID("941f46"))
+    getSymbol(getObjectFromGUID("22f371"))
+    getSymbol(getObjectFromGUID("db1ed3"))
+    log('END OF TEST 1')
+    toggleMarkSymbols()
+    toggleMarkSymbols()
+    log('END OF TEST2')
+    doStuff()
+  end
+  coroutineTest()
 end
 
 function append(table1, table2)
@@ -604,9 +659,4 @@ function liftObjects(objects, height)
       })
     end
   end
-end
-
-function cardHasClues(card)
-  local searchResult = SearchLib.onObject(card, "isClue")
-  return #searchResult > 0
 end
