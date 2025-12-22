@@ -13,6 +13,12 @@
     "g": 1,
     "r": 1
   },
+  "ContainedObjects_order": [
+    "Custom_Tile.96f701",
+    "Custom_Tile.a3fb6c",
+    "Custom_Tile.4f3982"
+  ],
+  "ContainedObjects_path": "Trash.147e80",
   "CustomMesh": {
     "CastShadows": true,
     "ColliderURL": "",
@@ -41,7 +47,6 @@
   "MeshIndex": -1,
   "Name": "Custom_Model_Bag",
   "Nickname": "Trash",
-  "Number": 0,
   "Snap": true,
   "Sticky": true,
   "Tooltip": true,

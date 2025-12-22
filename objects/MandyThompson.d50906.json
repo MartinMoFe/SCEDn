@@ -5,27 +5,27 @@
     "z": 0
   },
   "Autoraise": true,
-  "CardID": 235514,
+  "CardID": 274012,
   "ColorDiffuse": {
     "b": 0.71324,
     "g": 0.71324,
     "r": 0.71324
   },
   "CustomDeck": {
-    "2355": {
+    "2740": {
       "BackIsHidden": true,
-      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/1467561769777261683/0D1AA3DD1777795A7A85C5891B15A2EC85BEDBD3/",
-      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/1467561769777261131/3E6F9DF9591B05CCE2257F910B261776662220BF/",
-      "NumHeight": 7,
-      "NumWidth": 10,
+      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/1011562618093846975/4726098952C64103F2C211D202FFDD40D9D988BB/",
+      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/775107869050066760/0DE2BD4589CC8C2F3D26C2900A17ED7A6483062F/",
+      "NumHeight": 3,
+      "NumWidth": 7,
       "Type": 0,
       "UniqueBack": true
     }
   },
-  "Description": "Mexico City. Present-Day.",
+  "Description": "",
   "DragSelectable": true,
-  "GMNotes_path": "MetropolitanCathedral.158c7c.gmnotes",
-  "GUID": "158c7c",
+  "GMNotes": "{\n  \"id\": \"06002-m\",\n  \"type\": \"Minicard\"\n}",
+  "GUID": "d50906",
   "Grid": true,
   "GridProjection": false,
   "Hands": true,
@@ -37,25 +37,24 @@
   "LuaScriptState": "",
   "MeasureMovement": false,
   "Name": "Card",
-  "Nickname": "Metropolitan Cathedral",
+  "Nickname": "Mandy Thompson",
   "SidewaysCard": false,
-  "Snap": true,
+  "Snap": false,
   "Sticky": true,
   "Tags": [
-    "Location",
-    "ScenarioCard"
+    "Minicard"
   ],
   "Tooltip": true,
   "Transform": {
-    "posX": -36.84,
-    "posY": 1.534,
-    "posZ": -7.65,
+    "posX": -31.36,
+    "posY": 1.56,
+    "posZ": -0.507,
     "rotX": 0,
     "rotY": 270,
-    "rotZ": 180,
-    "scaleX": 1,
+    "rotZ": 0,
+    "scaleX": 0.6,
     "scaleY": 1,
-    "scaleZ": 1
+    "scaleZ": 0.6
   },
   "Value": 0,
   "XmlUI": ""

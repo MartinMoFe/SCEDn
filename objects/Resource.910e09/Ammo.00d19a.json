@@ -5,30 +5,27 @@
     "z": 0
   },
   "Autoraise": true,
-  "Bag": {
-    "Order": 0
-  },
   "ColorDiffuse": {
     "b": 1,
     "g": 1,
     "r": 1
   },
   "CustomImage": {
-    "CustomTile": {
+    "CustomToken": {
+      "MergeDistancePixels": 10,
       "Stackable": false,
-      "Stretch": true,
-      "Thickness": 0.1,
-      "Type": 2
+      "StandUp": false,
+      "Thickness": 0.3
     },
     "ImageScalar": 1,
     "ImageSecondaryURL": "",
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/14280472534262036296/D1D6263AF1FBA9EAD5AEB07499504108CC06E944/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/2028355744161230067/741BC33D398801C4BC8368C345EAEF3BE2522823/",
     "WidthScale": 0
   },
   "Description": "",
   "DragSelectable": true,
   "GMNotes": "",
-  "GUID": "2ec235",
+  "GUID": "00d19a",
   "Grid": true,
   "GridProjection": false,
   "Hands": false,
@@ -36,27 +33,25 @@
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
-  "LuaScript": "require(\"BoundaryBeyondHelper\")",
+  "LuaScript": "",
   "LuaScriptState": "",
-  "MaterialIndex": -1,
   "MeasureMovement": false,
-  "MeshIndex": -1,
-  "Name": "Custom_Tile",
-  "Nickname": "Boundary Beyond Helper",
-  "Number": 0,
-  "Snap": true,
+  "Memo": "ammo",
+  "Name": "Custom_Token",
+  "Nickname": "Ammo",
+  "Snap": false,
   "Sticky": true,
   "Tooltip": true,
   "Transform": {
-    "posX": -27.91,
-    "posY": 1.481,
-    "posZ": -39.682,
+    "posX": 44,
+    "posY": 1.5,
+    "posZ": 8,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
-    "scaleX": 2.21,
-    "scaleY": 0.46,
-    "scaleZ": 2.42
+    "scaleX": 0.17,
+    "scaleY": 0.17,
+    "scaleZ": 0.17
   },
   "Value": 0,
   "XmlUI": ""

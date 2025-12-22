@@ -5,31 +5,31 @@
     "z": 0
   },
   "Autoraise": true,
-  "CardID": 235514,
+  "CardID": 231741,
   "ColorDiffuse": {
     "b": 0.71324,
     "g": 0.71324,
     "r": 0.71324
   },
   "CustomDeck": {
-    "2355": {
+    "2317": {
       "BackIsHidden": true,
-      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/1467561769777261683/0D1AA3DD1777795A7A85C5891B15A2EC85BEDBD3/",
-      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/1467561769777261131/3E6F9DF9591B05CCE2257F910B261776662220BF/",
+      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/",
+      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/775106514377430057/E4E5A51434CEF23EF5D04A104F352520304AA550/",
       "NumHeight": 7,
       "NumWidth": 10,
       "Type": 0,
-      "UniqueBack": true
+      "UniqueBack": false
     }
   },
-  "Description": "Mexico City. Present-Day.",
+  "Description": "Monster. Servitor. Cultist.",
   "DragSelectable": true,
-  "GMNotes_path": "MetropolitanCathedral.158c7c.gmnotes",
-  "GUID": "158c7c",
+  "GMNotes_path": "Corpse-Taker.53b9cb.gmnotes",
+  "GUID": "53b9cb",
   "Grid": true,
   "GridProjection": false,
   "Hands": true,
-  "HideWhenFaceDown": false,
+  "HideWhenFaceDown": true,
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
@@ -37,22 +37,21 @@
   "LuaScriptState": "",
   "MeasureMovement": false,
   "Name": "Card",
-  "Nickname": "Metropolitan Cathedral",
+  "Nickname": "Corpse-Taker",
   "SidewaysCard": false,
   "Snap": true,
   "Sticky": true,
   "Tags": [
-    "Location",
     "ScenarioCard"
   ],
   "Tooltip": true,
   "Transform": {
-    "posX": -36.84,
-    "posY": 1.534,
-    "posZ": -7.65,
+    "posX": -28.344,
+    "posY": 1.554,
+    "posZ": -9.077,
     "rotX": 0,
     "rotY": 270,
-    "rotZ": 180,
+    "rotZ": 1,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1

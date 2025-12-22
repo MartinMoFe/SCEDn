@@ -6,6 +6,11 @@
   },
   "Autoraise": true,
   "CardID": 235752,
+  "ColorDiffuse": {
+    "b": 0.71324,
+    "g": 0.71324,
+    "r": 0.71324
+  },
   "CustomDeck": {
     "2357": {
       "BackIsHidden": true,
@@ -23,6 +28,8 @@
   "GUID": "80cef8",
   "Grid": true,
   "GridProjection": false,
+  "Hands": true,
+  "HideWhenFaceDown": true,
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
@@ -31,6 +38,7 @@
   "MeasureMovement": false,
   "Name": "Card",
   "Nickname": "Temples of Tenochtitlán",
+  "SidewaysCard": false,
   "Snap": true,
   "Sticky": true,
   "Tags": [
@@ -39,12 +47,12 @@
   ],
   "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
+    "posX": -12.5,
+    "posY": 1.818,
+    "posZ": 13.502,
     "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
+    "rotZ": 180,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1

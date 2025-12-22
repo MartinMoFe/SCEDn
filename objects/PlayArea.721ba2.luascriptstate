@@ -19,17 +19,6 @@
       "connections": "Heart|Square|Star|Circle",
       "icons": "Diamond"
     },
-    "b5e340": {
-      "connections": "Heart|Triangle",
-      "icons": "Star",
-      "uses": [
-        {
-          "countPerInvestigator": 1,
-          "token": "clue",
-          "type": "Clue"
-        }
-      ]
-    },
     "c8f441": {
       "connections": "Star",
       "icons": "Triangle"
@@ -37,6 +26,10 @@
     "d71f61": {
       "connections": "Diamond|Star",
       "icons": "Circle"
+    },
+    "db1ed3": {
+      "connections": "Diamond|Triangle|Circle|Heart",
+      "icons": "Star"
     }
   }
 }

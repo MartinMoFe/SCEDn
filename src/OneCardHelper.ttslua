@@ -32,7 +32,7 @@ function spawnThisButton()
   })
 end
 
-function doStuff()
+function placeExploredLocation()
   
   if not cousinLocation then return end
 
@@ -55,9 +55,6 @@ function doStuff()
 
   local thingsAbove = SearchLib.onObject(cousinLocation)
   liftObjects(thingsAbove)
-  -- for _, el in ipairs(thingsAbove) do
-    
-  -- end
 
   -- Switch them quickly
 
@@ -168,6 +165,84 @@ function liftObjects(objects, height)
         pos.y + height,
         pos.z
       })
+    end
+  end
+end
+
+function toggleIndividualHelpers(_, playerColor)
+  -- Search for present-day locations
+  if helpersVisible == false then
+    for _, obj in ipairs(getLocations('Present')) do
+      createOneHelper(obj)
+      self.editButton({
+        index = 1,
+        label = "Hide Locations Helper",
+        color = COLOR_RED
+      })
+    end
+  elseif helpersVisible == true then
+    removeAllHelper()
+    self.editButton({
+      index = 1,
+      label = "Replace explored location",
+      color = COLOR_BLUE
+    })
+  end
+
+  helpersVisible = not helpersVisible
+end
+
+
+-- toggle them, in the master helper
+
+function toggleIndividualHelpers(_, playerColor)
+  -- Search for present-day locations
+  if helpersVisible == false then
+    for _, obj in ipairs(getLocations('Present')) do
+      createOneHelper(obj)
+      self.editButton({
+        index = 1,
+        label = "Hide Locations Helper",
+        color = COLOR_RED
+      })
+    end
+  elseif helpersVisible == true then
+    removeAllHelper()
+    self.editButton({
+      index = 1,
+      label = "Replace explored location",
+      color = COLOR_BLUE
+    })
+  end
+
+  helpersVisible = not helpersVisible
+end
+
+-- Create and destroy helpers
+
+function createOneHelper(card)
+  local template = getObjectFromGUID("3592d8")
+  local helper = template.clone({
+    position = card.getPosition() + Vector(0, 0.5, 0)
+  })
+  helper.interactable = false
+
+  helper.addTag("BoundaryHelper")
+
+  Wait.frames(function()
+    if helper then
+      helper.call("init", card)
+    end
+  end, 2)
+  return helper
+end
+
+function removeAllHelper()
+  local this
+  this = getAllObjects()
+  for _, el in ipairs(this) do
+    if el.hasTag('BoundaryHelper') then
+      el.destruct()
     end
   end
 end

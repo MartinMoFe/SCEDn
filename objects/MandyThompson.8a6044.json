@@ -5,31 +5,31 @@
     "z": 0
   },
   "Autoraise": true,
-  "CardID": 235761,
+  "CardID": 274012,
   "ColorDiffuse": {
     "b": 0.71324,
     "g": 0.71324,
     "r": 0.71324
   },
   "CustomDeck": {
-    "2357": {
+    "2740": {
       "BackIsHidden": true,
-      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/2342503777940351785/F64D8EFB75A9E15446D24343DA0A6EEF5B3E43DB/",
-      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/1467561769777497046/3003A76996378249E6AAA4A60D85AE7EE59C1B8B/",
-      "NumHeight": 7,
-      "NumWidth": 10,
+      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/1011562618093846975/4726098952C64103F2C211D202FFDD40D9D988BB/",
+      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/775107869050066760/0DE2BD4589CC8C2F3D26C2900A17ED7A6483062F/",
+      "NumHeight": 3,
+      "NumWidth": 7,
       "Type": 0,
-      "UniqueBack": false
+      "UniqueBack": true
     }
   },
-  "Description": "Ancient. Tenochtitlán.",
+  "Description": "",
   "DragSelectable": true,
-  "GMNotes_path": "SacredWoods.b5e340.gmnotes",
-  "GUID": "b5e340",
+  "GMNotes": "{\n  \"id\": \"06002-m\",\n  \"type\": \"Minicard\"\n}",
+  "GUID": "8a6044",
   "Grid": true,
   "GridProjection": false,
   "Hands": true,
-  "HideWhenFaceDown": true,
+  "HideWhenFaceDown": false,
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
@@ -37,25 +37,24 @@
   "LuaScriptState": "",
   "MeasureMovement": false,
   "Name": "Card",
-  "Nickname": "Sacred Woods",
+  "Nickname": "Mandy Thompson",
   "SidewaysCard": false,
-  "Snap": true,
+  "Snap": false,
   "Sticky": true,
   "Tags": [
-    "Location",
-    "ScenarioCard"
+    "Minicard"
   ],
   "Tooltip": true,
   "Transform": {
-    "posX": -30.24,
-    "posY": 1.534,
-    "posZ": 0,
+    "posX": -36.308,
+    "posY": 1.561,
+    "posZ": -0.367,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
-    "scaleX": 1,
+    "scaleX": 0.6,
     "scaleY": 1,
-    "scaleZ": 1
+    "scaleZ": 0.6
   },
   "Value": 0,
   "XmlUI": ""

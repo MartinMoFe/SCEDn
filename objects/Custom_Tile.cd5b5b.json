@@ -5,9 +5,6 @@
     "z": 0
   },
   "Autoraise": true,
-  "Bag": {
-    "Order": 0
-  },
   "ColorDiffuse": {
     "b": 1,
     "g": 1,
@@ -15,20 +12,20 @@
   },
   "CustomImage": {
     "CustomTile": {
-      "Stackable": false,
+      "Stackable": true,
       "Stretch": true,
       "Thickness": 0.1,
       "Type": 2
     },
     "ImageScalar": 1,
-    "ImageSecondaryURL": "",
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/14280472534262036296/D1D6263AF1FBA9EAD5AEB07499504108CC06E944/",
+    "ImageSecondaryURL": "https://steamusercontent-a.akamaihd.net/ugc/10649578136733475513/9A226B45DAAB7778722E33106A44C78EE4E7AD6B/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/1758068501357164917/1D06F1DC4D6888B6F57124BD2AFE20D0B0DA15A8/",
     "WidthScale": 0
   },
   "Description": "",
   "DragSelectable": true,
   "GMNotes": "",
-  "GUID": "2ec235",
+  "GUID": "cd5b5b",
   "Grid": true,
   "GridProjection": false,
   "Hands": false,
@@ -36,27 +33,25 @@
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
-  "LuaScript": "require(\"BoundaryBeyondHelper\")",
+  "LuaScript": "",
   "LuaScriptState": "",
-  "MaterialIndex": -1,
   "MeasureMovement": false,
-  "MeshIndex": -1,
+  "Memo": "clueDoom",
   "Name": "Custom_Tile",
-  "Nickname": "Boundary Beyond Helper",
-  "Number": 0,
-  "Snap": true,
+  "Nickname": "",
+  "Snap": false,
   "Sticky": true,
   "Tooltip": true,
   "Transform": {
-    "posX": -27.91,
-    "posY": 1.481,
-    "posZ": -39.682,
+    "posX": -61.2,
+    "posY": 1.55,
+    "posZ": -19.308,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
-    "scaleX": 2.21,
-    "scaleY": 0.46,
-    "scaleZ": 2.42
+    "scaleX": 0.25,
+    "scaleY": 1,
+    "scaleZ": 0.25
   },
   "Value": 0,
   "XmlUI": ""

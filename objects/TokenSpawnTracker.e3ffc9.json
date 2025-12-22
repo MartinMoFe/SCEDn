@@ -22,7 +22,7 @@
   "LayoutGroupSortIndex": 0,
   "Locked": true,
   "LuaScript": "require(\"tokens/TokenSpawnTracker\")",
-  "LuaScriptState": "{\"cards\":{\"b5e340\":true}}",
+  "LuaScriptState": "{\"cards\":{\"b5e340\":true,\"baec21\":true}}",
   "MeasureMovement": false,
   "Name": "Checker_white",
   "Nickname": "Token Spawn Tracker",

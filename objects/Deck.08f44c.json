@@ -5,7 +5,17 @@
     "z": 0
   },
   "Autoraise": true,
-  "CardID": 235765,
+  "ColorDiffuse": {
+    "b": 0.71324,
+    "g": 0.71324,
+    "r": 0.71324
+  },
+  "ContainedObjects_order": [
+    "LostinTime.9aad5f",
+    "ATearinTime.bfddb7",
+    "WindowtoAnotherTime.9613d4"
+  ],
+  "ContainedObjects_path": "Deck.08f44c",
   "CustomDeck": {
     "2357": {
       "BackIsHidden": true,
@@ -17,20 +27,28 @@
       "UniqueBack": false
     }
   },
-  "Description": "Hex.",
+  "DeckIDs": [
+    235733,
+    235732,
+    235765
+  ],
+  "Description": "",
   "DragSelectable": true,
-  "GMNotes_path": "Explorationdeck.b349c9/WindowtoAnotherTime.9613d4.gmnotes",
-  "GUID": "9613d4",
+  "GMNotes": "",
+  "GUID": "08f44c",
   "Grid": true,
   "GridProjection": false,
+  "Hands": false,
+  "HideWhenFaceDown": true,
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
   "LuaScript": "",
   "LuaScriptState": "",
   "MeasureMovement": false,
-  "Name": "Card",
-  "Nickname": "Window to Another Time",
+  "Name": "Deck",
+  "Nickname": "",
+  "SidewaysCard": false,
   "Snap": true,
   "Sticky": true,
   "Tags": [
@@ -38,9 +56,9 @@
   ],
   "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
+    "posX": -57.442,
+    "posY": 1.585,
+    "posZ": -9.769,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,

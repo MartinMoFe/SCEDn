@@ -1,21 +1,20 @@
-local CoroutineLib                  = require("util/CoroutineLib")
-local MythosAreaApi                 = require("mythos/MythosAreaApi")
-local GUIDReferenceApi              = require("core/GUIDReferenceApi")
-local PlayAreaApi                   = require("playarea/PlayAreaApi")
-local SearchLib                     = require("util/SearchLib")
-local VictoryDisplayApi             = require("mythos/VictoryDisplayApi")
+local CoroutineLib          = require("util/CoroutineLib")
+local GUIDReferenceApi      = require("core/GUIDReferenceApi")
+local MythosAreaApi         = require("mythos/MythosAreaApi")
+local PlayAreaApi           = require("playarea/PlayAreaApi")
+local PlayermatApi          = require("playermat/PlayermatApi")
+local SearchLib             = require("util/SearchLib")
+local VictoryDisplayApi     = require("mythos/VictoryDisplayApi")
 
-local FIRST_BUTTON_POSITION         = Vector(0, 1, -1.5)
-local DELTA                         = Vector(0, 0, 1)
-local ONE_CARD_HELPER_TEMPLATE_GUID = "3592d8"
-local EXPLORE_HELPER                = "8355c3"
-local COLOR_BLUE                    = { 0.5, 0.5, 1 }
-local COLOR_RED                     = { 0.8, 0.3, 0.3 }
-local ROTATION_VERTICAL             = { 0, 270, 0 }
-local ROTATION_HORIZONTAL           = { 0, 180, 0 }
-local SET_ASIDE_POSITION_2          = { x = -8.56, y = 1.53, z = 2 }
-
-DEBUG = true
+local FIRST_BUTTON_POSITION = Vector(0, 1, -1.5)
+local DELTA                 = Vector(0, 0, 1)
+local EXPLORE_HELPER        = "8355c3"
+local COLOR_BLUE            = { 0.5, 0.5, 1 }
+local COLOR_RED             = { 0.8, 0.3, 0.3 }
+local ROTATION_VERTICAL     = { 0, 270, 0 }
+local ROTATION_HORIZONTAL   = { 0, 180, 0 }
+local SET_ASIDE_POSITION_2  = { x = -8.56, y = 1.53, z = 2 }
+local SET_ASIDE_POSITION    = { x = -8.56, y = 1.53, z = 0 }
 
 
 function onLoad()
@@ -41,7 +40,7 @@ function onLoad()
   buttonPosition = buttonPosition + DELTA
   self.createButton({
     label = "Replace explored location",
-    click_function = "doStuff",
+    click_function = "placeExploredLocation",
     function_owner = self,
     position = buttonPosition,
     rotation = { 0, 0, 0 },
@@ -80,7 +79,6 @@ function onLoad()
     font_color = { 1, 1, 1 },
     tooltip = ""
   })
-  onLoadTests()
 end
 
 -- Clicked functions
@@ -92,32 +90,87 @@ function highlightAncient(_, playerColor)
     obj.highlightOn('White', 5)
     table.insert(ancientLocations, obj)
   end
-  if #ancientLocations > 0 then
+  if #ancientLocations == 10 then
+    printToAll('There is one Ancient location.')
+  elseif #ancientLocations > 1 then
     printToAll('There are ' .. tostring(#ancientLocations) .. ' Ancient locations.')
   end
 end
 
-function toggleIndividualHelpers(_, playerColor)
-  -- Search for present-day locations
-  if helpersVisible == false then
-    for _, obj in ipairs(getLocations('Present')) do
-      createOneHelper(obj)
-      self.editButton({
-        index = 1,
-        label = "Hide Locations Helper",
-        color = COLOR_RED
-      })
-    end
-  elseif helpersVisible == true then
-    removeAllHelper()
-    self.editButton({
-      index = 1,
-      label = "Replace explored location",
-      color = COLOR_BLUE
-    })
+function placeExploredLocation(_, playerColor)
+  -- Find a explored location and place it in place of a Present Day location
+  -- Move the present location out of the way
+
+  local ancientLocationExplored = getVisibleAncientLocation()
+  if ancientLocationExplored == nil then
+    printToAll('No Ancient location found in the explore helper.')
+    return
   end
 
-  helpersVisible = not helpersVisible
+  local symbol = getSymbol(ancientLocationExplored)
+
+  -- Search the Present location
+  local presentLocations = getLocations('Present')
+  local foundPresent = nil
+  for _, present in ipairs(presentLocations) do
+    if getSymbol(present) == symbol then
+      foundPresent = present
+      break
+    end
+  end
+  if not foundPresent then
+    printToAll('No Present-Day location with symbol ' .. symbol .. ' on the table.')
+    return
+  end
+
+  -- The operation can be DONE
+
+  if type(ancientLocationExplored) == 'table' then
+    -- The card can't be moved because it is in a deck, first take it out
+    ancientLocationExplored = takeOutVisibleAncientLocation()
+  end
+
+  assert(type(ancientLocationExplored) == 'userdata')
+  assert(ancientLocationExplored.tag == 'Card')
+
+  -- Lift things , see the other file
+  local posToPlace = foundPresent.getPosition()
+  local thingsAbove = SearchLib.onObject(foundPresent)
+  liftObjects(thingsAbove, 3)
+  foundPresent.setPositionSmooth(SET_ASIDE_POSITION)
+  printToAll(foundPresent.getName() .. " set aside, so its connections don't confuse the user.")
+  ancientLocationExplored.setPositionSmooth(posToPlace)
+  printToAll(ancientLocationExplored.getName() .. " placed in its place. Clues spawned.")
+end
+
+function toggleMarkSymbols(_, playerColor)
+  -- Remove lines
+  if printedSymbols == true then
+    removeLines(indexes)
+    printedSymbols = false
+    self.editButton({
+      index = 2,
+      label = "Print symbols on table",
+      color = COLOR_BLUE
+    })
+    return
+  end
+
+  for _, object in ipairs(getLocations()) do
+    local symbol = getSymbol(object)
+    local pos = object.getPosition()
+    if symbol ~= nil then
+      newIndexes = drawSymbol(pos, symbol)
+      indexes = append(indexes, newIndexes)
+    end
+  end
+
+  printedSymbols = true
+  self.editButton({
+    index = 2,
+    label = "Remove symbols on table",
+    color = COLOR_RED
+  })
 end
 
 function placeActAgenda3(_, playerColor)
@@ -168,14 +221,16 @@ function placeActAgenda3(_, playerColor)
     end
     aboveTrash   = trash.getPosition() + Vector(0, 0.8, 0)
 
-    -- We are ready
+    -- █▀█ █▀▀ ▄▀█ █▀▄ █▄█
+    -- █▀▄ ██▄ █▀█ █▄▀ ░█░ to start Act 2b setup
 
     act3done     = true
 
-    -- Take out the bag near a reference position { x = 0, y = 2.5 }. Tint the bag white (it is black against black)
+    -- Take out the bag near a reference position. Tint the bag white (it is black against black)
+    local bagPos = chest.getPosition() + Vector(0, 0, -5)
     local bagObj = chest.takeObject({
       guid = bagData.guid,
-      position = PlayAreaApi.gridToWorld({ x = 0, y = 2.5 }),
+      position = bagPos,
       smooth = true
     })
     bagObj.setColorTint({ r = 1, g = 1, b = 1 })
@@ -184,7 +239,7 @@ function placeActAgenda3(_, playerColor)
     -- █▀█ █▀▀ █▀▄▀█ █▀▀ █▀▄▀█ █▄▄ █▀▀ █▀█
     -- █▀▄ ██▄ █░▀░█ ██▄ █░▀░█ █▄█ ██▄ █▀▄
 
-    local symbolPosition = {}
+    local symbolPosition = {} -- This is a list of the removed locations, that have to be replaced
 
     -- █▀█ █▀▀ █▀▄▀█ █▀█ █░█ █▀▀   ▀█▀ █▀█   █░█ █ █▀▀
     -- █▀▄ ██▄ █░▀░█ █▄█ ▀▄▀ ██▄   ░█░ █▄█   ▀▄▀ █ █▄▄
@@ -198,7 +253,6 @@ function placeActAgenda3(_, playerColor)
         symbolPosition[getSymbol(location)] = location.getPosition()
         PlayAreaApi.maybeUntrackLocation(location)
         VictoryDisplayApi.placeCard(location)
-        printToAll(location.getName() .. ' was placed on the Victory Display.')
         CoroutineLib.yieldSeconds(0.5)
       else
         message = "This card has still some clues, we don't remove it: " .. location.getName()
@@ -206,7 +260,7 @@ function placeActAgenda3(_, playerColor)
       end
     end
 
-    CoroutineLib.yieldSeconds(0.5)
+    CoroutineLib.yieldSeconds(0.2)
 
     -- █▀█ █▀▀ █▀▄▀█ █▀█ █░█ █▀▀   █▀█ █▀█ █▀▀ █▀ █▀▀ █▄░█ ▀█▀
     -- █▀▄ ██▄ █░▀░█ █▄█ ▀▄▀ ██▄   █▀▀ █▀▄ ██▄ ▄█ ██▄ █░▀█ ░█░
@@ -222,11 +276,11 @@ function placeActAgenda3(_, playerColor)
       -- update the rembering list
     end
 
+
     -- search the exploration deck for a location with a matching location symbol
     -- in the upper-left corner and place it on top of that location, taking its place.
 
     for symbol, position in pairs(symbolPosition) do
-      log('Searching ' .. symbol)
       local success = false
       for _, obj in ipairs(explorationDeck.getObjects()) do
         local symbol2 = getSymbol(obj)
@@ -237,51 +291,12 @@ function placeActAgenda3(_, playerColor)
         end
       end
       if not success then
-        log('Couldnt find the ' .. symbol .. ' in the exploration deck.')
+        printToAll('Couldnt find the ' .. symbol .. ' in the exploration deck. It should be there.')
       end
     end
-
-    CoroutineLib.yieldSeconds(0.5)
-    -- Remove Act deck and Agenda deck
-    local agendaPos = MythosAreaApi.getAgendaPosition()
-    local search1 = SearchLib.atPosition(agendaPos, "isCardOrDeck")
-    local actPos = MythosAreaApi.getActPosition()
-    local searc2 = SearchLib.atPosition(actPos, "isCardOrDeck")
-    for _, objects in ipairs({ search1, searc2 }) do
-      for j, object in ipairs(objects) do
-        object.setPositionSmooth(aboveTrash)
-        object.setRotationSmooth(ROTATION_HORIZONTAL)
-      end
-    end
-
-    -- wait until the bag is on the table
-    Wait.condition(function()
-      if not bagObj then
-        print("Inner object is not a bag")
-        return
-      end
-
-      -- now inspect the bag contents
-      local bagContents = bagObj.getObjects()
-      for _, item in ipairs(bagContents) do
-        if item.nickname == "The Return Trip" then
-          bagObj.takeObject({
-            guid     = item.guid,
-            position = MythosAreaApi.getActPosition(),
-            smooth   = true
-          })
-        elseif item.nickname == "Time Collapsing" then
-          local dest = getObjectFromGUID("652ff3").getPosition()
-          bagObj.takeObject({
-            guid     = item.guid,
-            position = MythosAreaApi.getAgendaPosition(),
-            smooth   = true
-          })
-        end
-      end
-    end, function() return bagObj.resting end) -- wait until the bag is placed
-
-    printToAll("Placed new Act 3 and Agenda 3.")
+    
+    PlayermatApi.removeClues("All")
+    CoroutineLib.yieldSeconds(0.2)
 
     -- █▀█ ▄▀█ █▀▄ █▀▄▀█ █▀▀
     -- █▀▀ █▀█ █▄▀ █░▀░█ ██▄
@@ -310,101 +325,100 @@ function placeActAgenda3(_, playerColor)
         break -- stop after finding Padma Amrita
       end
     end
-    if success then printToAll('Padme was not found in the Set-Aside chest.') end
-    printToAll('Lose all your clues.', 'Green')
+    if success then
+      printToAll('Padme placed in Templo Mayor.', 'Yellow')
+    elseif not success then
+      printToAll('Padme was not found in the Set-Aside chest.')
+    end
+
+    -- Remove Act deck and Agenda deck
+    local agendaPos = MythosAreaApi.getAgendaPosition()
+    local search1 = SearchLib.atPosition(agendaPos, "isCardOrDeck")
+    local actPos = MythosAreaApi.getActPosition()
+    local search2 = SearchLib.atPosition(actPos, "isCardOrDeck")
+    for _, objects in ipairs({ search1, search2 }) do
+      for j, object in ipairs(objects) do
+        object.setPositionSmooth(aboveTrash)
+        CoroutineLib.yieldSeconds(0.1)
+      end
+    end
+    printToAll('Old Act and Agenda decks removed.')
+
+    -- Place new Act and Agenda
+    local bagContents = bagObj.getObjects()
+    for _, item in ipairs(bagContents) do
+      if item.nickname == "The Return Trip" then
+        bagObj.takeObject({
+          guid     = item.guid,
+          position = MythosAreaApi.getActPosition(),
+          rotation = ROTATION_HORIZONTAL,
+          smooth   = true
+        })
+      elseif item.nickname == "Time Collapsing" then
+        local dest = getObjectFromGUID("652ff3").getPosition()
+        bagObj.takeObject({
+          guid     = item.guid,
+          position = MythosAreaApi.getAgendaPosition(),
+          rotation = ROTATION_HORIZONTAL,
+          smooth   = true
+        })
+      end
+    end
+
+    printToAll("Placed new Act 3 and Agenda 3.")
+    CoroutineLib.yieldSeconds(0.3)
+
+
+    showForcedEffect()
   end
 
   CoroutineLib.start(placeActAgenda3coroutine)
 end
 
-function toggleMarkSymbols(_, playerColor)
-  -- Remove lines
-  if printedSymbols == true then
-    removeLines(indexes)
-    printedSymbols = false
-    self.editButton({
-      index = 2,
-      label = "Print symbols on table",
-      color = COLOR_BLUE
-    })
-    return
-  end
+-- Location finder and inspectors
 
-  for _, object in ipairs(getLocations()) do
-    local symbol = getSymbol(object)
-    local pos = object.getPosition()
-    if symbol ~= nil then
-      newIndexes = drawSymbol(pos, symbol)
-      indexes = append(indexes, newIndexes)
-    end
-  end
-
-  printedSymbols = true
-  self.editButton({
-    index = 2,
-    label = "Remove symbols on table",
-    color = COLOR_RED
-  })
-end
-
-function doStuff()
-  -- find a explored location
-  -- place it in place of a Present Day location
-  log('doStuff')
-
-  local ancientLocationExplored = findEquivalentPresentLocationIn()
-
-  if ancientLocationExplored == nil then
-    printToAll('No Ancient location found in the explore helper.')
-    return
-  end
-
-  local symbol = getSymbol(ancientLocationExplored)
-
-  -- Search the Present location
-  local presentLocations = getLocations('Present')
-  log(presentLocations)
-  found = nil
-  for _, present in ipairs(presentLocations) do
-    log('getSymbol(present)')
-    log(getSymbol(present))
-    if getSymbol(present) == symbol then
-      found = present
-      break
-    end
-  end
-
-  -- lift things , see the other file
-  local posToPlace = found.getPosition()
-  ancientLocationExplored.setPositionSmooth(SET_ASIDE_POSITION)
-  printToAll(ancientLocationExplored.getName() .. " was set aside, so its connections don't confuse the user.")
-  found.setPositionSmooth(posToPlace)
-  
-end
-
--- Location finder and inspectors 
-
-
-function findEquivalentPresentLocationIn()
-  -- Looks at the explore helper, and searches for a visible location
+---@return tts__Object|nil: The visible card, either an object or a card
+function getVisibleAncientLocation()
+  -- Looks at the explore helper, and searches for a visible Ancient location
   local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
   local pos = exploreHelper.positionToWorld(Vector(-0.5887, 0.5, 0))
   local searchResult = SearchLib.atPosition(pos, "isCardOrDeck")
-  log(searchResult)
 
   -- check if a deck was found
   for _, obj in ipairs(searchResult) do
-    log(obj)
-    if obj.tag == 'Card' and not obj.is_face_down then
+    if obj.is_face_down then
+      return nil
+    elseif obj.tag == 'Card' then
       return obj
-  -- if no deck was found, return the first hit (a card)
-    elseif obj.tag == 'Deck' and obj.is_face_down then
-      return obj[#obj.getObjects()] -- last one upper one
+    elseif obj.tag == 'Deck' then
+      return obj.getObjects()[#obj.getObjects()] -- last one upper one
     end
   end
   return nil
 end
 
+---@return tts__Object|nil: The taken out card, a card
+function takeOutVisibleAncientLocation()
+  -- Takes out the first card of the explore discard, if its visible
+  -- Returns the taken card
+  local exploreHelper = getObjectFromGUID(EXPLORE_HELPER)
+  local pos = exploreHelper.positionToWorld(Vector(-0.5887, 0.5, 0))
+  local searchResult = SearchLib.atPosition(pos, "isDeck")
+
+  -- check if a deck was found
+  for _, obj in ipairs(searchResult) do
+    if obj.tag == 'Card' and not obj.is_face_down then
+      ---pass
+    elseif obj.tag == 'Deck' and not obj.is_face_down then
+      local take = obj.getObjects()[#obj.getObjects()] -- last one upper one
+      local card = obj.takeObject({ guid = take.guid })
+      return card
+    end
+  end
+  return nil
+end
+
+---@return table: table of TTSObject
 function getLocations(trait)
   assert(trait == 'Present' or trait == 'Ancient' or trait == nil, 'Error value in findLocations')
   local allObjects = getAllObjects()
@@ -448,34 +462,41 @@ function cardHasClues(card)
   return #searchResult > 0
 end
 
--- Create and destroy helpers
-
-function createOneHelper(card)
-  local template = getObjectFromGUID("3592d8")
-  local helper = template.clone({
-    position = card.getPosition() + Vector(0, 0.5, 0)
-  })
-  helper.interactable = false
-
-  helper.addTag("BoundaryHelper")
-
-  Wait.frames(function()
-    if helper then
-      helper.call("init", card)
+function showForcedEffect()
+  local DATA = {
+    ["04174"] =
+    "Forced - After Templo Mayor enters play: Shuffle the encounter discard pile into the encounter deck. Discard cards from the top of the encounter deck until a Serpent enemy is discarded. Spawn that enemy here.",
+    ["04175"] =
+    "Forced - After Templo Mayor enters play: Shuffle your discard pile into your deck. Discard cards from the top of your deck until a weakness is discarded. Draw that weakness.",
+    ["04176"] =
+    "Forced - After Temples of Tenochtitlán enters play: Each investigator at this location takes 1 direct damage.",
+    ["04177"] = "Forced - After Temples of Tenochtitlán enters play: Place 1 doom on the nearest enemy.",
+    ["04178"] =
+    "Forced - After Chapultepec Hill enters play: Each investigator at this location discards 2 random cards from his or her hand.",
+    ["04181"] = "Forced - After Canals of Tenochtitlán enters play: Place 4 resources on it.",
+    ["04182"] =
+    "Forced - After Lake Xochimilco enters play: Each investigator at this location loses all of his or her remaining actions.",
+    ["04183"] =
+    "Forced - After Lake Xochimilco enters play: Each investigator at this location takes 1 direct horror.",
+    ["04184"] =
+    "Forced - After Sacred Woods enters play: Each investigator at this location discards the top 10 cards of his or her deck.",
+  }
+  local locations = getLocations('Ancient')
+  for _, location in ipairs(locations) do
+    local rawNotes = nil
+    if type(location) == 'table' then -- This object is inside a deck
+      rawNotes = location.gm_notes or "{}"
+    else
+      rawNotes = location.getGMNotes() or "{}"
     end
-  end, 2)
-  return helper
-end
-
-function removeAllHelper()
-  local this
-  this = getAllObjects()
-  for _, el in ipairs(this) do
-    if el.hasTag('BoundaryHelper') then
-      el.destruct()
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id']
+    if DATA[id] then
+      printToAll(DATA[id], 'Orange')
+      location.highlightOn('Orange', 5)
     end
   end
-end
+end 
 
 -- Helper functions
 
@@ -605,25 +626,6 @@ function removeLines(indexes)
   end
 
   Global.setVectorLines(remaining)
-end
-
-
-function onLoadTests()
-  if debug == false then return end
-  function coroutineTest()
-    getSymbol(getObjectFromGUID("c8f441"))
-    getSymbol(getObjectFromGUID("d71f61"))
-    getSymbol(getObjectFromGUID("158c7c"))
-    getSymbol(getObjectFromGUID("941f46"))
-    getSymbol(getObjectFromGUID("22f371"))
-    getSymbol(getObjectFromGUID("db1ed3"))
-    log('END OF TEST 1')
-    toggleMarkSymbols()
-    toggleMarkSymbols()
-    log('END OF TEST2')
-    doStuff()
-  end
-  coroutineTest()
 end
 
 function append(table1, table2)
