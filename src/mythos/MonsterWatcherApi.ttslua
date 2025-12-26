@@ -1,0 +1,30 @@
+do
+    local MonsterWatcherApi = {}
+
+    local function getMonsterWatcher()
+        return getObjectFromGUID("87e529")
+    end
+
+    function MonsterWatcherApi.getEnemiesInPlayArea()
+        return getMonsterWatcher().call('getEnemiesInPlayArea')
+    end
+
+    function MonsterWatcherApi.getEnemiesInThreatArea(matColor)
+        return getMonsterWatcher().call('getEnemiesInThreatArea', { matColor = matColor })
+    end
+
+    function MonsterWatcherApi.getThreatAreaObjects(matColor)
+        return getMonsterWatcher().call('getThreatAreaObjects', { matColor = matColor })
+    end
+
+    function MonsterWatcherApi.scanPlayArea()
+        return getMonsterWatcher().call('scanPlayArea')
+    end
+
+    function MonsterWatcherApi.highlightObjects(objects, color, duration)
+        log('inside')
+        getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })
+    end
+
+    return MonsterWatcherApi
+end
