@@ -26,7 +26,14 @@ MassiveDecal = {
     scale = { 2.25, 2.3, 1 }
 }
 
-MassiveDecalFlipped = copyTable(MassiveDecal)
+MassiveDecalFlipped = {
+    name = "MassiveDecal",
+    url =
+    "https://steamusercontent-a.akamaihd.net/ugc/13297467573837376059/77675BE5EC5399FD2A038AEFFC34D745CCFB074F/",
+    position = Vector(0, 0.36, 0.45),
+    rotation = { 90, 180, 0 },
+    scale = { 2.25, 2.3, 1 }
+}
 MassiveDecalFlipped.name = "MassiveDecalFlipped"
 MassiveDecalFlipped.position = Vector(0, -0.36, 0.45)
 MassiveDecalFlipped.rotation = { 270, 0, 0 }
@@ -40,12 +47,13 @@ HunterDecal = {
     scale = { 0.8, 0.8, 0.8 }
 }
 
-HunterDecalFlipped  = {
-    name = "HunterDecalFlipped",
+
+HunterDecalFlipped = {
+    name = "HunterDecal",
     url =
     "https://steamusercontent-a.akamaihd.net/ugc/14622504693633913562/246DCDBEE8B6B75EC420062038BE8E7D5EFFA326/",
-    position = Vector(-0.5, -0.36, 0.5),
-    rotation = { 270, 0, 0 },
+    position = Vector(-0.5, 0.36, 0.5),
+    rotation = { 90, 180, 0 },
     scale = { 0.8, 0.8, 0.8 }
 }
 HunterDecalFlipped.name = "HunterDecalFlipped"
@@ -109,8 +117,6 @@ function placeDecal(objAndParameters)
     elseif parameterWord == 'blockedLocation' then
         if not hasDecal(obj, BlockedLocation.name) then table.insert(decals, BlockedLocation) end
     end
-
-    log(HunterDecalFlipped)
 
     obj.setDecals(decals)
 

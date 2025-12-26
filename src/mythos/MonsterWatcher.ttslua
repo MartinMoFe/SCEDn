@@ -1,4 +1,3 @@
-
 local GUIDReferenceApi = require("core/GUIDReferenceApi")
 local PlayermatApi     = require("playermat/PlayermatApi")
 local SearchLib        = require("util/SearchLib")
@@ -25,7 +24,7 @@ AgendaFacedownEnemies  = { -- Some enemies are Agenda or Act cards
 -- █── █──█ █──█ █▀▀
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
-local BLUE_ENEMY = { r = 0.267, g = 0.467, b = 0.631 }
+local BLUE_ENEMY       = { r = 0.267, g = 0.467, b = 0.631 }
 
 function onLoad(savedData)
     self.interactable = true
@@ -33,7 +32,7 @@ function onLoad(savedData)
     newPhase = nil
 
     timerID = Wait.time(scanGameChange, 2, -1)
-   
+
     self.addContextMenuItem("Destroy This", function(playerColor)
         Wait.stop(timerID)
         printToAll('This object: ' .. self.getName() .. ' was auto-destroyed.')
@@ -65,7 +64,6 @@ function scanGameChange()
     elseif newPhase == 3 then
         showEnemyInfo(BLUE_ENEMY, 'Green')
     end
-    
 end
 
 function showEnemyInfo(colorPrint, colorHighlight)
@@ -79,8 +77,6 @@ function showEnemyInfo(colorPrint, colorHighlight)
         local adding = getEnemiesInThreatArea(matColor)
         for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
     end
-    
-    log(colorHighlight)
 
     local num = #enemiesInPlayArea
     if num > 1 then
@@ -224,9 +220,18 @@ end
 -- Generic
 
 function highlightObjects(objects, color, duration)
+    log('full inside highlightObjects')
+    log(objects)
     for _, obj in ipairs(objects) do
         obj.highlightOn(color, duration)
     end
+end
+
+function highlightObjectsCall(params)
+    local objects = params.objects
+    local color = params.color
+    local duration = params.duration
+    highlightObjects(objects, color, duration)
 end
 
 function getObjectByName(name)

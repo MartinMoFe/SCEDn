@@ -1,24 +1,9 @@
-local zones          = require("playermat/Zones")
-local SearchLib      = require("util/SearchLib")
-local DecalPlacerApi = require("mythos/DecalPlacerApi")
+local DecalPlacerApi    = require("mythos/DecalPlacerApi")
+local MonsterWatcherApi = require("mythos/MonsterWatcherApi")
 
 
--- █▀▀ █ █▄░█ █▀▄   █▀▀ █▄░█ █▀▀ █▀▄▀█ █ █▀▀ █▀
--- █▀░ █ █░▀█ █▄▀   ██▄ █░▀█ ██▄ █░▀░█ █ ██▄ ▄█
--- FIND ENEMIES: Cards that are enemies only only when face-down
+-- We are reusing the funtions inside monster-watcher
 
-FaceDownEnemies             = { -- Some enemies are Agenda or Act cards that are Enemies in the metadata
-    ['04137a'] = true,          --Maria DeSilva
-    ['04122'] = true,           -- Harlan Earstone
-    ['04130a'] = true,          -- The other guy
-    ['04209'] = true,           -- The winged serpent
-}
-AgendaFacedownEnemies       = { -- Some enemies are Agenda or Act cards
-    ["03241"] = true,           -- Empire of the Dead
-    ['01121a'] = true,          --The Masked Hunter
-    ['50026a'] = true,          -- Nagorath
-    ['11537a'] = true,          -- Seafloor Leviathan
-}
 
 -- █▀▄▀█ █▀▀ █▀ █▀ ▄▀█ █▀▀ █▀▀ █▀
 -- █░▀░█ ██▄ ▄█ ▄█ █▀█ █▄█ ██▄ ▄█
@@ -67,13 +52,14 @@ EnemyMessage                = {
     ["01170"]  = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Wizard of the Order.' },
     ["50042"]  = {
         ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Corpse-Taker.',
-        ['3.9'] = 'Forced - At the end of the enemy phase: Corpse-Taker moves once toward Rivertown or Main Path. If Corpse-Taker is already at Rivertown or Main Path, move all doom from Corpse-Taker to the current agenda, instead.'
+        ['3.9'] =
+        'Forced - At the end of the enemy phase: Corpse-Taker moves once toward Rivertown or Main Path. If Corpse-Taker is already at Rivertown or Main Path, move all doom from Corpse-Taker to the current agenda, instead.'
     },
     ["01157"]  = { ["2.9"] = 'Forced - At the end of each investigators turn: Ready Umôrdhoth.' },
     ["02141"]  = { ["3.1"] = 'Forced - At the start of the enemy phase: Reveal a random token from the chaos bag. If the revealed token has a ? symbol, ready Hunting Horror.' },
     ["02058"]  = { ["3.1"] = 'Forced - When the enemy phase begins: Ready The Experiment.' },
     ["02329"]  = { ["3.1"] = 'Forced - When Interstellar Traveler enters a location: Flip 1 clue on that location to its doom side and place it on Interstellar Traveler, or place 1 doom on Interstellar Traveler if there are no clues on that location.' },
-    ["11537"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
+    ["11537a"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
     ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: This enemy attacks the investigator with the lowest  at a connecting location. If no attack was made, Slitherer in Darkness moves to the flooded location nearest the Moving Platform.' },
     ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: Increase the flood level of its location. If you cannot, place 1 doom on Medusa.' },
     ["11637"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready and unengaged: It moves to its prey\'s location.' },
@@ -124,35 +110,40 @@ AgendaMassiveEnemiesFlipped = {
 -- List of hunter enemies
 
 HunterEnemies               = {
-    ['01181'] = true,
-    ['01180'] = true,
-    ['01175'] = true,
-    ['01157'] = true,
     ['01116'] = true,
+    ['01157'] = true,
     ['01159'] = true,
     ['01172'] = true,
+    ['01175'] = true,
+    ['01180'] = true,
+    ['01181'] = true,
     ['02078'] = true,
     ['02090'] = true,
     ['03060'] = true,
+    ['04062'] = true,
     ['04079'] = true,
+    ['04083'] = true,
+    ['04095'] = true,
+    ['04186'] = true,
     ['04220'] = true,
-    ['50022'] = true,
-    ['11533'] = true,
+    ['04296'] = true,
     ['11513'] = true,
+    ['11533'] = true,
+    ['11535'] = true,
     ['11574'] = true,
     ['11575'] = true,
+    ['11606'] = true,
+    ['11671'] = true,
+    ['11724'] = true,
+    ['11725'] = true,
     ['11726'] = true,
+    ['11727'] = true,
+    ['11728'] = true,
+    ['11733'] = true,
+    ['11744'] = true,
     ['11747'] = true,
     ['11751'] = true,
-    ['11744'] = true,
-    ['11733'] = true,
-    ['11724'] = true,
-    ['11727'] = true,
-    ['11725'] = true,
-    ['11671'] = true,
-    ['11606'] = true,
-    ['11535'] = true,
-    ['11728'] = true,
+    ['50022'] = true,
 
 }
 HunterEnemiesFlipped        = { -- This metadata says enemy
@@ -215,8 +206,8 @@ LocationsBlockedBack        = {
 }
 
 
--- █▀▀ █▀▀█ █▀▀▄ █▀▀ 
--- █── █──█ █──█ █▀▀ 
+-- █▀▀ █▀▀█ █▀▀▄ █▀▀
+-- █── █──█ █──█ █▀▀
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
 local BLUE_ENEMY = { r = 0.267, g = 0.467, b = 0.631 }
@@ -234,15 +225,20 @@ function onLoad(savedData)
         printToAll('This object: ' .. self.getName() .. ' was auto-destroyed.')
         self.destruct()
     end)
+
+    -- Test this functions
+    MonsterWatcherApi.getEnemiesInPlayArea()
+    MonsterWatcherApi.getEnemiesInThreatArea(nil)
+    MonsterWatcherApi.getThreatAreaObjects(nil)
+    MonsterWatcherApi.scanPlayArea()
+    MonsterWatcherApi.highlightObjects(nil, nil, nil)
 end
 
 function scanGameChange()
     local phaseTracker = getObjectByName('Phase Tracker')
 
     if not phaseTracker then
-        log('Not phase tracker')
         Wait.stop(timerID)
-        broadcastToAll('Destroyed complex watcher', 'Red')
         self.destruct()
     end
 
@@ -301,7 +297,7 @@ function showAllTreacheryInfo(params)
         local msg = getTreacheryMessage(treachery, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
-            highlightObjects({ treachery }, colorPrint, 10)
+            MonsterWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
         end
     end
 
@@ -315,7 +311,7 @@ function showAllTreacheryInfo(params)
             local msg = getTreacheryMessage(treachery, phaseNumber)
             if msg then
                 printToAll(msg, logColor)
-                highlightObjects({ treachery }, colorPrint, 10)
+                MonsterWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
             end
         end
     end
@@ -326,11 +322,11 @@ function showAllEnemyInfo(params)
     local colorPrint = params.colorPrint
 
     -- Retrieve objects
-    local enemiesInPlayArea = getEnemiesInPlayArea()
+    local enemiesInPlayArea = MonsterWatcherApi.getEnemiesInPlayArea()
     local matColors = Player.getAvailableColors()
     local enemiesInThreatArea = {}
     for _, matColor in ipairs(matColors) do
-        local adding = getEnemiesInThreatArea(matColor)
+        local adding = MonsterWatcherApi.getEnemiesInThreatArea(matColor)
         for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
     end
 
@@ -338,7 +334,7 @@ function showAllEnemyInfo(params)
         local msg = getEnemyMessage(enemy, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
-            highlightObjects({ enemy }, colorPrint, 10)
+            MonsterWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
         end
     end
 
@@ -346,7 +342,7 @@ function showAllEnemyInfo(params)
         local msg = getEnemyMessage(enemy, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
-            highlightObjects({ enemy }, colorPrint, 10)
+            MonsterWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
         end
     end
 end
@@ -369,8 +365,8 @@ end
 
 function placeEnemyDecalsWisely()
     -- get all enemies in the map and threat areas
-    local enemies = getEnemiesInPlayArea()
-    local adding = getEnemiesInThreatArea('All')
+    local enemies = MonsterWatcherApi.getEnemiesInPlayArea()
+    local adding = MonsterWatcherApi.getEnemiesInThreatArea('All')
     for _, v in ipairs(adding) do
         table.insert(enemies, v)
     end
@@ -393,13 +389,12 @@ end
 
 function placeLocationDecalsWisely()
     local locations = getLocationsInPlayArea()
-    log("LOG:Placing location decals wisely. Found " .. tostring(#locations) .. " locations in play area.")
+    --log("LOG:Placing location decals wisely. Found " .. tostring(#locations) .. " locations in play area.")
     for _, location in ipairs(locations) do
         local rawNotes = location.getGMNotes() or "{}"
         local md = JSON.decode(rawNotes) or {}
         local id = md['id'] or ''
         if LocationsBlockedBack[id] then
-            log('IIinside:')
             DecalPlacerApi.placeDecal(location, 'blockedLocation')
         end
     end
@@ -407,54 +402,10 @@ end
 
 -- Threat area helper
 
-function getThreatAreaPositions(matColor)
-    -- Returns a table with Vectors
-    local positions = {}
-
-    for i = 1, 4 do
-        local position = zones.getZonePosition(matColor, "Threat" .. i)
-        table.insert(positions, position)
-    end
-
-    return positions
-end
-
-function getThreatAreaObjects(matColor)
-    -- Returns a table of objects
-    local objects = {}
-    for _, pos in ipairs(getThreatAreaPositions(matColor)) do
-        local thisObj = SearchLib.atPosition(pos, "isCardOrDeck")
-        if #thisObj > 0 then
-            table.insert(objects, thisObj[1])
-        end
-    end
-    return objects
-end
-
-function getEnemiesInThreatArea(matColor)
-    -- returns a table of objects
-    -- only enemies that are face up (some custom scenarios can make you draw facedown enemies)
-    local enemies = {}
-    if matColor == 'All' then
-        local colors = Player.getAvailableColors()
-    else
-        local colors = { matColor }
-    end
-
-    local colors = (matColor == 'All') and Player.getAvailableColors() or { matColor }
-    for _, color in ipairs(colors) do
-        local threats = getThreatAreaObjects(color)
-        for _, obj in ipairs(threats) do
-            if isVisibleEnemy(obj) then table.insert(enemies, obj) end
-        end
-    end
-    return enemies
-end
-
 function getTreacheriesInThreatArea(matColor)
     -- returns a table of objects
     local treacheries = {}
-    local threats = getThreatAreaObjects(matColor)
+    local threats = MonsterWatcherApi.getThreatAreaObjects(matColor)
     for _, obj in ipairs(threats) do
         if isVisibleTreachery(obj) then table.insert(treacheries, obj) end
     end
@@ -463,44 +414,12 @@ end
 
 -- PlayArea helper
 
-function scanPlayArea()
-    -- Returns all objects in the PlayArea (the central zone)
-    local zoneGUID = "a2f932"
-    local zone = getObjectFromGUID(zoneGUID)
-
-    if not zone then
-        log("Zone not found (GUID " .. zoneGUID .. ")")
-        return
-    end
-
-    if zone.tag ~= "Scripting" then
-        log("Object is not a ScriptingTrigger zone. Tag: " .. zone.tag)
-        return
-    end
-
-    -- Obtener los objetos dentro de la zona
-    local objs = zone.getObjects()
-    return objs
-end
-
-function getEnemiesInPlayArea()
-    -- returns a table of objects
-    local enemies = {}
-    local objs = scanPlayArea()
-    for _, obj in ipairs(objs) do
-        if isVisibleEnemy(obj) then
-            table.insert(enemies, obj)
-        end
-    end
-    return enemies
-end
-
 function getTreacheriesInPlayArea()
     -- returns a table of objects
     -- Some treacheries may be in play area, like exploding spores
     -- returns a table of objects
     local treacheries = {}
-    local objs = scanPlayArea()
+    local objs = MonsterWatcherApi.scanPlayArea()
     for _, obj in ipairs(objs) do
         if isVisibleTreachery(obj) then
             table.insert(treacheries, obj)
@@ -512,7 +431,7 @@ end
 function getLocationsInPlayArea()
     -- returns a table of objects
     local locations = {}
-    local objs = scanPlayArea()
+    local objs = MonsterWatcherApi.scanPlayArea()
     for _, obj in ipairs(objs) do
         if isFaceupLocation(obj) then
             table.insert(locations, obj)
@@ -560,39 +479,6 @@ function getLocationMessage(obj, phaseNumber, isFaceUp)
     end
 end
 
--- Identify card wisely
-
-function isVisibleEnemy(obj)
-    -- Receives an object, takes its metadata and checks if it's an faceup or visible enemy
-    -- This is a long function, because it checks the type of the card
-    -- And if its visible, and there are many strange combinations
-    -- Returns boolean
-    local rawNotes = obj.getGMNotes() or "{}"
-    local md = JSON.decode(rawNotes) or {}
-    local type = md['type'] or ''
-    if type == 'Location' then
-        -- most objects in the playarea are objects, the fastest is to say false immediately
-        return false
-    elseif type == 'Enemy' and not obj.is_face_down then
-        return true
-    elseif type == 'Enemy' and obj.is_face_down then
-        local id = md['id'] or ''
-        if FaceDownEnemies[id] then return true end
-        return false
-    elseif type == 'Agenda' and obj.is_face_down then
-        local id = md['id'] or ''
-        local isSpecial = AgendaFacedownEnemies[id] or false
-        log(id .. ' is special agenda facedown enemy: ' .. tostring(isSpecial))
-        if isSpecial then return true end
-    elseif type == 'Agenda' and not obj.is_face_down then
-        return false
-    elseif type == 'Act' then
-        return false
-    end
-
-    return false
-end
-
 function isVisibleTreachery(obj)
     -- Returns boolean
     local rawNotes = obj.getGMNotes() or "{}"
@@ -629,12 +515,6 @@ function isFacedownLocation(obj)
 end
 
 -- Generic
-
-function highlightObjects(objects, color, duration)
-    for _, obj in ipairs(objects) do
-        obj.highlightOn(color, duration)
-    end
-end
 
 function getObjectByName(name)
     for _, obj in ipairs(getObjects()) do
