@@ -231,7 +231,7 @@ function onLoad(savedData)
     MonsterWatcherApi.getEnemiesInThreatArea(nil)
     MonsterWatcherApi.getThreatAreaObjects(nil)
     MonsterWatcherApi.scanPlayArea()
-    MonsterWatcherApi.highlightObjects(nil, nil, nil)
+    --    MonsterWatcherApi.highlightObjects(nil, nil, nil)
 end
 
 function scanGameChange()

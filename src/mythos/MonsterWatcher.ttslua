@@ -24,12 +24,13 @@ AgendaFacedownEnemies  = { -- Some enemies are Agenda or Act cards
 -- █── █──█ █──█ █▀▀
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
-local BLUE_ENEMY       = { r = 0.267, g = 0.467, b = 0.631 }
+local BLUE_ENEMY       = { r = 0.267, g = 0.667, b = 0.731 }
 
 function onLoad(savedData)
     self.interactable = true
     lastPhase = nil
     newPhase = nil
+    fakeMinis = {}
 
     timerID = Wait.time(scanGameChange, 2, -1)
 
@@ -39,8 +40,6 @@ function onLoad(savedData)
         self.destruct()
     end)
 end
-
---
 
 function scanGameChange()
     local phaseTracker = getObjectByName('Phase Tracker')
@@ -60,8 +59,9 @@ function scanGameChange()
 
     lastPhase = newPhase
     if newPhase == 2 then
-        createTemporaryTokens()
+        duplicateFakeMinis()
     elseif newPhase == 3 then
+        destroyFakeMinis()
         showEnemyInfo(BLUE_ENEMY, 'Green')
     end
 end
@@ -92,10 +92,6 @@ function showEnemyInfo(colorPrint, colorHighlight)
         printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
     end
     highlightObjects(enemiesInThreatArea, colorHighlight, 5)
-end
-
-function createTemporaryTokens()
-    -- I want to mark on the map some positions.
 end
 
 -- Threat area helper
@@ -144,14 +140,14 @@ function getEnemiesInThreatArea(matColor)
     return enemies
 end
 
--- function getSingleEnemy()
---     -- If there is only one enemy in play area, return it
---     local enemies = getEnemiesInPlayArea()
---     if #enemies == 1 then
---         return enemies[1]
---     end
---     return nil
--- end
+function getSingleEnemy()
+    -- If there is only one enemy in play area, return it
+    local enemies = getEnemiesInPlayArea()
+    if #enemies == 1 then
+        return enemies[1]
+    end
+    return nil
+end
 
 -- PlayArea helper
 
@@ -178,17 +174,66 @@ function getEnemiesInPlayArea()
     return enemies
 end
 
--- function getMinicardsInPlayArea()
---     -- returns a table of objects
---     local minis = {}
---     local objs = scanPlayArea()
---     for _, obj in ipairs(objs) do
---         if obj.hasTag("Minicard") then
---             table.insert(minis, obj)
---         end
---     end
---     return minis
--- end
+-- Minis helper
+
+function getMinicardsInPlayArea()
+    -- returns a table of objects
+    local minis = {}
+    local objs = scanPlayArea()
+    for _, obj in ipairs(objs) do
+        if obj.hasTag("Minicard") then
+            table.insert(minis, obj)
+        end
+    end
+    return minis
+end
+
+function duplicateFakeMinis()
+    fakeMinis = {}
+
+    for _, obj in ipairs(getMinicardsInPlayArea()) do
+        local data = obj.getData()
+
+        local s = obj.getScale()
+
+        data.Scale = {
+            x = s.x * 0.9,
+            y = s.y * 0.9,
+            z = s.z * 0.9,
+        }
+
+        data.Tags = data.Tags or {}
+        for i = #data.Tags, 1, -1 do
+            if data.Tags[i] == "Minicard" then
+                table.remove(data.Tags, i)
+            end
+        end
+
+        table.insert(data.Tags, "DuplicateMinicard")
+
+        local dup = spawnObjectData({
+            data = data,
+            position = obj.getPosition(),
+            rotation = { 0, 270, 180 }
+        })
+        dup.interactable = false
+
+        table.insert(fakeMinis, dup)
+    end
+end
+
+function destroyFakeMinis()
+    if not fakeMinis then return end
+
+    for i, obj in ipairs(fakeMinis) do
+        if obj and obj.destruct then
+            obj:destruct()
+        end
+    end
+
+    -- reset the table
+    fakeMinis = {}
+end
 
 -- Identify card wisely
 
@@ -220,8 +265,6 @@ end
 -- Generic
 
 function highlightObjects(objects, color, duration)
-    log('full inside highlightObjects')
-    log(objects)
     for _, obj in ipairs(objects) do
         obj.highlightOn(color, duration)
     end
@@ -242,3 +285,4 @@ function getObjectByName(name)
     end
     return nil
 end
+

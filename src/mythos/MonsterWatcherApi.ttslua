@@ -22,7 +22,6 @@ do
     end
 
     function MonsterWatcherApi.highlightObjects(objects, color, duration)
-        log('inside')
         getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })
     end
 
