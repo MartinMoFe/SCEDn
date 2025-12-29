@@ -1,6 +1,6 @@
 
 
-function onLoad(saved_data)
+function onLoad(saved_data) 
     if saved_data ~= "" then
         local data = JSON.decode(saved_data) or {}
 
@@ -14,11 +14,24 @@ function onLoad(saved_data)
         numberViewTokens = nil
     end
 
-    self.addContextMenuItem("Search View Tokens", searchTokens)
-    self.addContextMenuItem("Freeze View Tokens", freezeViewTokens)
+    self.addContextMenuItem("Search View Tokens", searchViewMoverTokens)
+    self.addContextMenuItem("Freeze View Tokens", freezeViewMoverTokens)
+
+    self.createButton({
+        label          = "Find + Freeze Views",
+        click_function = "searchAndFreeze",
+        function_owner = self,
+        position       = { 0, 0.2, 0 },
+        rotation       = { 0, 0, 0 },
+        width          = 2200,
+        height         = 500,
+        font_size      = 250,
+    })
+
     addHotkey("Next View", function(player_color)
         moveCamera(player_color)
     end)
+
 
 end
 
@@ -31,7 +44,13 @@ function onSave()
     return JSON.encode(data)
 end
 
-function searchTokens()
+--- Finds view tokens and immediately freezes them
+function searchAndFreeze()
+    searchViewMoverTokens()
+    freezeViewMoverTokens()
+end
+
+function searchViewMoverTokens()
     viewTokens = {}
     numberViewTokens = nil
 
@@ -46,14 +65,21 @@ function searchTokens()
     end
 end
 
-function freezeViewTokens()
+--- Freezes all view tokens:
+--- - makes them non-interactable
+--- - hides tooltip text (name + description)
+--- - shrinks them to 1/20th size
+--- Uses the global `viewTokens` (list of GUIDs).
+function freezeViewMoverTokens()
     if not viewTokens then return end
 
     for _, guid in ipairs(viewTokens) do
         local obj = getObjectFromGUID(guid)
         if obj then
-            -- make non-interactable
             obj.interactable = false
+
+            obj.setName("")
+            obj.setDescription("")
 
             -- shrink (factor 20)
             local s = obj.getScale()
