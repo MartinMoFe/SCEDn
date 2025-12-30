@@ -6,7 +6,6 @@ local Zones            = require("playermat/Zones")
 -- FIND ENEMIES: Cards that are enemies only only when face-down
 -- Here we list them by their id in the metadata
 -- These cases are explicitly defined here because they are not in the metadata
-
 FaceDownEnemies        = { -- Some enemies are Agenda or Act cards that are Enemies in the metadata
     ['04137a'] = true,     -- Maria DeSilva
     ['04122'] = true,      -- Harlan Earstone
@@ -20,25 +19,46 @@ AgendaFacedownEnemies  = { -- Some enemies are Agenda or Act cards
     ['11537a'] = true,     -- Seafloor Leviathan
 }
 
+
+---------------------------
+--- CONSTANTS
+------------------------------
+
+local BLUE_ENEMY       = { r = 0.267, g = 0.667, b = 0.731 }
+
+
 -- █▀▀ █▀▀█ █▀▀▄ █▀▀
 -- █── █──█ █──█ █▀▀
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
-local BLUE_ENEMY       = { r = 0.267, g = 0.667, b = 0.731 }
-
 function onLoad(savedData)
     self.interactable = true
-    lastPhase = nil
-    newPhase = nil
-    fakeMinis = {}
+    lastPhase         = nil
+    newPhase          = nil
+    fakeMinis         = {}
 
-    timerID = Wait.time(scanGameChange, 2, -1)
+    timerID           = Wait.time(scanGameChange, 1.2, -1)
 
-    self.addContextMenuItem("Destroy This", function(playerColor)
-        Wait.stop(timerID)
-        printToAll('This object: ' .. self.getName() .. ' was auto-destroyed.')
-        self.destruct()
+    self.addContextMenuItem("Disable Monster Watcher", function(playerColor)
+        destroyMonsterWatcher()
     end)
+end
+
+function destroyMonsterWatcher()
+    if timerID then
+        Wait.stop(timerID)
+        timerID = nil
+    end
+
+    printToAll("Monster Watcher was disabled.", { 1, 0.2, 0.2 })
+    self.destruct()
+end
+
+function onDestroy()
+    if timerID then
+        Wait.stop(timerID)
+        timerID = nil
+    end
 end
 
 function scanGameChange()
@@ -66,10 +86,9 @@ function scanGameChange()
     end
 end
 
+-- This function shows how many enemies are in play area and in the threat areas
 function showEnemyInfo(colorPrint, colorHighlight)
-    -- This function shows how many enemies are in play area and in the threat areas
 
-    -- Retrieve objects
     local enemiesInPlayArea = getEnemiesInPlayArea()
     local matColors = PlayermatApi.getUsedMatColors()
     local enemiesInThreatArea = {}
@@ -91,7 +110,7 @@ function showEnemyInfo(colorPrint, colorHighlight)
     elseif num == 1 then
         printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
     end
-    highlightObjects(enemiesInThreatArea, colorHighlight, 5)
+    highlightObjects(enemiesInThreatArea, colorHighlight, 10)
 end
 
 -- Threat area helper
@@ -242,8 +261,7 @@ function isVisibleEnemy(obj)
     -- This is a long function, because it checks the type of the card
     -- And if its visible, and there are many strange combinations
     -- Returns boolean
-    local rawNotes = obj.getGMNotes() or "{}"
-    local md = JSON.decode(rawNotes) or {}
+    local md = getMd(obj)
     local type = md['type'] or ''
     if type == 'Location' then
         -- most objects in the playarea are objects, the fastest is to say false immediately
@@ -262,7 +280,9 @@ function isVisibleEnemy(obj)
     return false
 end
 
+--------------------
 -- Generic
+--------------------
 
 function highlightObjects(objects, color, duration)
     for _, obj in ipairs(objects) do
@@ -277,12 +297,57 @@ function highlightObjectsCall(params)
     highlightObjects(objects, color, duration)
 end
 
-function getObjectByName(name)
-    for _, obj in ipairs(getObjects()) do
-        if obj.getName() == name then
-            return obj
+---Find the first object whose name matches.
+---Case-sensitive by default.
+---@param name string
+---@param opts table|nil  -- { caseInsensitive = true }
+---@return tts__Object|nil
+function getObjectByName(name, opts)
+    assert(name, "getObjectByName: name is required")
+    opts = opts or {}
+
+    local target = name
+    local caseInsensitive = opts.caseInsensitive == true
+
+    if caseInsensitive then
+        target = string.lower(name)
+    end
+
+    for _, obj in ipairs(getAllObjects()) do
+        local objName = obj.getName() or ""
+
+        if caseInsensitive then
+            if string.lower(objName) == target then
+                return obj
+            end
+        else
+            if objName == target then
+                return obj
+            end
         end
     end
+
     return nil
+end
+
+---Safely read GM notes JSON and return a table (never nil).
+---@param obj tts__Object
+---@return table
+function getMd(obj)
+    assert(obj, "getMd: obj is required")
+
+    local raw = obj.getGMNotes() or ""
+
+    if raw == "" then
+        return {}
+    end
+
+    local ok, data = pcall(JSON.decode, raw)
+
+    if not ok or type(data) ~= "table" then
+        return {}
+    end
+
+    return data
 end
 
