@@ -290,9 +290,11 @@ function showAllCardsInfo(phaseNumber)
 end
 
 function showAllTreacheryInfo(params)
+    log("showAllTreacheryInfo")
     local phaseNumber = params.phaseNumber
     local colorPrint = params.colorPrint
     local playAreaTreacheries = getTreacheriesInPlayArea()
+    print('There are '..tostring(#playAreaTreacheries) .. ' in the Play Area.')
     for _, treachery in ipairs(playAreaTreacheries) do
         local msg = getTreacheryMessage(treachery, phaseNumber)
         if msg then
@@ -307,6 +309,7 @@ function showAllTreacheryInfo(params)
     for _, matColor in ipairs(matColors) do
         local logColor = COLORS[matColor] or { 1, 1, 1 }
         local treacheries = getTreacheriesInThreatArea(matColor)
+        print('There are ' .. tostring(#treacheries) .. ' in the Threat Area.')
         for _, treachery in ipairs(treacheries) do
             local msg = getTreacheryMessage(treachery, phaseNumber)
             if msg then

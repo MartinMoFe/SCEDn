@@ -216,10 +216,13 @@ function duplicateFakeMinis()
         local s = obj.getScale()
 
         data.Scale = {
-            x = s.x * 0.9,
-            y = s.y * 0.9,
-            z = s.z * 0.9,
+            x = s.x * 0.8,
+            y = s.y * 0.8,
+            z = s.z * 0.8,
         }
+
+        local pos = obj.getPosition()
+        pos.y = pos.y - 0.05
 
         data.Tags = data.Tags or {}
         for i = #data.Tags, 1, -1 do
