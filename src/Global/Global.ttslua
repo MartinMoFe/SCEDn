@@ -3389,11 +3389,7 @@ end
 function updateTableSetup(newSetupName, oldSetupName)
   spawnData = spawnData or collectPlayermatSpawnData()
   if not spawnData then return end
-  log("newSetupName1")
   if newSetupName == oldSetupName then return end
-  log("newSetupName2")
-  log(newSetupName)
-  log(oldSetupName)
   -- determine new data
   local tableSetupData = TABLE_SETUP_DATA[newSetupName]
   if not tableSetupData then return end
