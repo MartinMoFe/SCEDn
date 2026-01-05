@@ -83,6 +83,10 @@ function scanGameChange()
     elseif newPhase == 3 then
         destroyFakeMinis()
         showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
+    elseif newPhase == 4 then
+        destroyFakeMinis()
+    elseif newPhase == 1 then
+        destroyFakeMinis()
     end
 end
 
@@ -218,37 +222,41 @@ function getMinicardsInPlayArea()
 end
 
 function duplicateFakeMinis()
-    fakeMinis = {}
 
     for _, obj in ipairs(getMinicardsInPlayArea()) do
         local data = obj.getData()
 
         local s = obj.getScale()
-
-        data.Scale = {
+        local newScale = {
             x = s.x * 0.8,
-            y = s.y * 0.8,
+            y = s.y * 0.2,
             z = s.z * 0.8,
         }
 
         local pos = obj.getPosition()
         pos.y = pos.y - 0.05
 
+        -- clean & retag
         data.Tags = data.Tags or {}
         for i = #data.Tags, 1, -1 do
             if data.Tags[i] == "Minicard" then
                 table.remove(data.Tags, i)
             end
         end
-
         table.insert(data.Tags, "DuplicateMinicard")
+
+        -- IMPORTANT: update transform scale
+        data.Transform = data.Transform or {}
+        data.Transform.scale = newScale
 
         local dup = spawnObjectData({
             data = data,
-            position = obj.getPosition(),
+            position = pos,
             rotation = { 0, 270, 180 }
         })
+
         dup.interactable = false
+        dup.setLock(true)
 
         table.insert(fakeMinis, dup)
     end
@@ -263,7 +271,6 @@ function destroyFakeMinis()
         end
     end
 
-    -- reset the table
     fakeMinis = {}
 end
 

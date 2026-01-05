@@ -1,5 +1,5 @@
 local DecalPlacerApi    = require("mythos/DecalPlacerApi")
-local MonsterWatcherApi = require("mythos/MonsterWatcherApi")
+local EnemyWatcherApi = require("mythos/EnemyWatcherApi")
 
 
 -- We are reusing the funtions inside monster-watcher
@@ -278,8 +278,8 @@ function showAllCardsInfo(phaseNumber)
 
     for i, phaseString in ipairs(apair) do
         showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] }) --
-        showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
-        showAllLocationInfo({ phaseNumber = phaseString, colorPrint = 'White' })
+        -- showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
+        -- showAllLocationInfo({ phaseNumber = phaseString, colorPrint = 'White' })
     end
 end
 
@@ -291,7 +291,7 @@ function showAllTreacheryInfo(params)
         local msg = getTreacheryMessage(treachery, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
-            MonsterWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
+            EnemyWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
         end
     end
 
@@ -305,7 +305,7 @@ function showAllTreacheryInfo(params)
             local msg = getTreacheryMessage(treachery, phaseNumber)
             if msg then
                 printToAll(msg, logColor)
-                MonsterWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
+                EnemyWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
             end
         end
     end
@@ -316,12 +316,12 @@ function showAllEnemyInfo(params)
     local colorPrint = params.colorPrint
 
     -- Retrieve objects in play area
-    local enemiesInPlayArea = MonsterWatcherApi.getEnemiesInPlayArea()
+    local enemiesInPlayArea = EnemyWatcherApi.getEnemiesInPlayArea()
     -- Retrieve objects in threat area
     local matColors = Player.getAvailableColors()
     local enemiesInThreatArea = {}
     for _, matColor in ipairs(matColors) do
-        local adding = MonsterWatcherApi.getEnemiesInThreatArea(matColor)
+        local adding = EnemyWatcherApi.getEnemiesInThreatArea(matColor)
         for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
     end
 
@@ -329,7 +329,7 @@ function showAllEnemyInfo(params)
         local msg = getEnemyMessage(enemy, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
-            MonsterWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
+            EnemyWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
         end
     end
 
@@ -337,7 +337,7 @@ function showAllEnemyInfo(params)
         local msg = getEnemyMessage(enemy, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
-            MonsterWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
+            EnemyWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
         end
     end
 end
@@ -360,8 +360,8 @@ end
 
 function placeEnemyDecalsWisely()
     -- get all enemies in the map and threat areas
-    local enemies = MonsterWatcherApi.getEnemiesInPlayArea()
-    local adding = MonsterWatcherApi.getEnemiesInThreatArea('All')
+    local enemies = EnemyWatcherApi.getEnemiesInPlayArea()
+    local adding = EnemyWatcherApi.getEnemiesInThreatArea('All')
     for _, v in ipairs(adding) do
         table.insert(enemies, v)
     end
@@ -399,7 +399,7 @@ end
 
 function getTreacheriesInThreatArea(matColor)
     -- returns a table of objects
-    local treacheries = MonsterWatcherApi.getThreatAreaObjects(matColor)
+    local treacheries = EnemyWatcherApi.getThreatAreaObjects(matColor)
     for _, obj in ipairs(treacheries) do
         if isVisibleTreachery(obj) then table.insert(treacheries, obj) end
     end
@@ -413,7 +413,7 @@ function getTreacheriesInPlayArea()
     -- Some treacheries may be in play area, like exploding spores
     -- returns a table of objects
     local treacheries = {}
-    local objs = MonsterWatcherApi.scanPlayArea()
+    local objs = EnemyWatcherApi.scanPlayArea()
     for _, obj in ipairs(objs) do
         if isVisibleTreachery(obj) then
             table.insert(treacheries, obj)
@@ -425,7 +425,7 @@ end
 function getLocationsInPlayArea()
     -- returns a table of objects
     local locations = {}
-    local objs = MonsterWatcherApi.scanPlayArea()
+    local objs = EnemyWatcherApi.scanPlayArea()
     for _, obj in ipairs(objs) do
         if isFaceupLocation(obj) then
             table.insert(locations, obj)
@@ -444,7 +444,7 @@ function getTreacheryMessage(obj, phaseNumber)
     local md = JSON.decode(rawNotes) or {}
     local id = md['id'] or ''
     local messages = TreacheryMessage[id] or nil
-    MonsterWatcherApi.getMd(obj)
+    EnemyWatcherApi.getMd(obj)
     if messages then
         return messages[phaseNumber] or nil
     end

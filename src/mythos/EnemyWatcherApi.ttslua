@@ -1,33 +1,33 @@
 do
-    local MonsterWatcherApi = {}
+    local EnemyWatcherApi = {}
 
     local function getMonsterWatcher()
         return getObjectFromGUID("87e529")
     end
 
-    function MonsterWatcherApi.getEnemiesInPlayArea()
+    function EnemyWatcherApi.getEnemiesInPlayArea()
         return getMonsterWatcher().call('getEnemiesInPlayArea')
     end
 
-    function MonsterWatcherApi.getEnemiesInThreatArea(matColor)
+    function EnemyWatcherApi.getEnemiesInThreatArea(matColor)
         return getMonsterWatcher().call('getEnemiesInThreatArea', matColor)
     end
 
-    function MonsterWatcherApi.getThreatAreaObjects(matColor)
+    function EnemyWatcherApi.getThreatAreaObjects(matColor)
         return getMonsterWatcher().call('getThreatAreaObjects', matColor)
     end
 
-    function MonsterWatcherApi.scanPlayArea()
+    function EnemyWatcherApi.scanPlayArea()
         return getMonsterWatcher().call('scanPlayArea')
     end
 
-    function MonsterWatcherApi.highlightObjects(objects, color, duration)
+    function EnemyWatcherApi.highlightObjects(objects, color, duration)
         getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })
     end
 
-    function MonsterWatcherApi.getMd(object)
+    function EnemyWatcherApi.getMd(object)
         getMonsterWatcher().call('getMd', object)
     end
 
-    return MonsterWatcherApi
+    return EnemyWatcherApi
 end

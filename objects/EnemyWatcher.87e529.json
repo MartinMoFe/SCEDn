@@ -33,7 +33,7 @@
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": true,
-  "LuaScript": "require(\"mythos/MonsterWatcher\")",
+  "LuaScript": "require(\"mythos/EnemyWatcher\")",
   "LuaScriptState": "",
   "MeasureMovement": false,
   "Name": "Custom_Tile",
