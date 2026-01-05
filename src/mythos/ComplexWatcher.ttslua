@@ -210,7 +210,7 @@ LocationsBlockedBack        = {
 -- █── █──█ █──█ █▀▀
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
-local BLUE_ENEMY = { r = 0.267, g = 0.467, b = 0.631 }
+local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
 
 function onLoad(savedData)
     self.interactable = true
@@ -226,12 +226,6 @@ function onLoad(savedData)
         self.destruct()
     end)
 
-    -- Test this functions
-    MonsterWatcherApi.getEnemiesInPlayArea()
-    MonsterWatcherApi.getEnemiesInThreatArea(nil)
-    MonsterWatcherApi.getThreatAreaObjects(nil)
-    MonsterWatcherApi.scanPlayArea()
-    --    MonsterWatcherApi.highlightObjects(nil, nil, nil)
 end
 
 function scanGameChange()
@@ -290,11 +284,9 @@ function showAllCardsInfo(phaseNumber)
 end
 
 function showAllTreacheryInfo(params)
-    log("showAllTreacheryInfo")
     local phaseNumber = params.phaseNumber
     local colorPrint = params.colorPrint
     local playAreaTreacheries = getTreacheriesInPlayArea()
-    print('There are '..tostring(#playAreaTreacheries) .. ' in the Play Area.')
     for _, treachery in ipairs(playAreaTreacheries) do
         local msg = getTreacheryMessage(treachery, phaseNumber)
         if msg then
@@ -309,7 +301,6 @@ function showAllTreacheryInfo(params)
     for _, matColor in ipairs(matColors) do
         local logColor = COLORS[matColor] or { 1, 1, 1 }
         local treacheries = getTreacheriesInThreatArea(matColor)
-        print('There are ' .. tostring(#treacheries) .. ' in the Threat Area.')
         for _, treachery in ipairs(treacheries) do
             local msg = getTreacheryMessage(treachery, phaseNumber)
             if msg then
@@ -324,8 +315,9 @@ function showAllEnemyInfo(params)
     local phaseNumber = params.phaseNumber
     local colorPrint = params.colorPrint
 
-    -- Retrieve objects
+    -- Retrieve objects in play area
     local enemiesInPlayArea = MonsterWatcherApi.getEnemiesInPlayArea()
+    -- Retrieve objects in threat area
     local matColors = Player.getAvailableColors()
     local enemiesInThreatArea = {}
     for _, matColor in ipairs(matColors) do
@@ -407,9 +399,8 @@ end
 
 function getTreacheriesInThreatArea(matColor)
     -- returns a table of objects
-    local treacheries = {}
-    local threats = MonsterWatcherApi.getThreatAreaObjects(matColor)
-    for _, obj in ipairs(threats) do
+    local treacheries = MonsterWatcherApi.getThreatAreaObjects(matColor)
+    for _, obj in ipairs(treacheries) do
         if isVisibleTreachery(obj) then table.insert(treacheries, obj) end
     end
     return treacheries
@@ -453,6 +444,7 @@ function getTreacheryMessage(obj, phaseNumber)
     local md = JSON.decode(rawNotes) or {}
     local id = md['id'] or ''
     local messages = TreacheryMessage[id] or nil
+    MonsterWatcherApi.getMd(obj)
     if messages then
         return messages[phaseNumber] or nil
     end

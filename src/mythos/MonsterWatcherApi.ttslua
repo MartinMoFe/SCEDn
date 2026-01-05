@@ -10,11 +10,11 @@ do
     end
 
     function MonsterWatcherApi.getEnemiesInThreatArea(matColor)
-        return getMonsterWatcher().call('getEnemiesInThreatArea', { matColor = matColor })
+        return getMonsterWatcher().call('getEnemiesInThreatArea', matColor)
     end
 
     function MonsterWatcherApi.getThreatAreaObjects(matColor)
-        return getMonsterWatcher().call('getThreatAreaObjects', { matColor = matColor })
+        return getMonsterWatcher().call('getThreatAreaObjects', matColor)
     end
 
     function MonsterWatcherApi.scanPlayArea()
@@ -23,6 +23,10 @@ do
 
     function MonsterWatcherApi.highlightObjects(objects, color, duration)
         getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })
+    end
+
+    function MonsterWatcherApi.getMd(object)
+        getMonsterWatcher().call('getMd', object)
     end
 
     return MonsterWatcherApi

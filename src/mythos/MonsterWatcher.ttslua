@@ -82,7 +82,7 @@ function scanGameChange()
         duplicateFakeMinis()
     elseif newPhase == 3 then
         destroyFakeMinis()
-        showEnemyInfo(BLUE_ENEMY, 'Green')
+        showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
     end
 end
 
@@ -116,9 +116,19 @@ end
 -- Threat area helper
 
 function getThreatAreaPositions(matColor)
+    assert(type(matColor) == "string", "matColor must be a string")
+
+    local valid = {
+        White  = true,
+        Green  = true,
+        Red    = true,
+        Orange = true
+    }
+
+    assert(valid[matColor], "matColor must be one of: White, Green, Red, Orange")
     -- Returns a table with Vectors
     local positions = {}
-
+    
     for i = 1, 4 do
         local position = Zones.getZonePosition(matColor, "Threat" .. i)
         table.insert(positions, position)
