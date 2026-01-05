@@ -3051,7 +3051,7 @@ end
 
 function confirmCustomTableSetup(player)
   local inputId     = "InputDialog_scrollableInput"
-  
+
   -- get text values and remove whitespace (leading and trailing)
   local text        = UI.getAttribute(inputId, "text"):gsub("^%s+", ""):gsub("%s+$", "")
   local defaultText = UI.getAttribute(inputId, "defaultText"):gsub("^%s+", ""):gsub("%s+$", "")
@@ -3389,14 +3389,16 @@ end
 function updateTableSetup(newSetupName, oldSetupName)
   spawnData = spawnData or collectPlayermatSpawnData()
   if not spawnData then return end
+
   if newSetupName == oldSetupName then return end
+
   -- determine new data
   local tableSetupData = TABLE_SETUP_DATA[newSetupName]
   if not tableSetupData then return end
 
   -- update playercount
   PlayAreaApi.setInvestigatorCount(tableSetupData.playerCount)
-  
+
   function tableSetupCoroutine()
     -- if the current layout does not have a shared bag area, remove it
     if not tableSetupData.sharedBagArea then
@@ -5068,8 +5070,4 @@ function inArea(point, bounds)
     and point.x > bounds.lowerRight.x
     and point.z < bounds.upperLeft.z
     and point.z > bounds.lowerRight.z)
-end
-
-function myPref()
-  updateTableSetup("Rotated (2P)", "Classic (4P)")
 end
