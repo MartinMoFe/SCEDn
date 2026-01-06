@@ -37,41 +37,12 @@ function onLoad(savedData)
     newPhase          = nil
     fakeMinis         = {}
 
-    timerID           = Wait.time(scanGameChange, 1.2, -1)
-
-    self.addContextMenuItem("Disable Monster Watcher", function(playerColor)
-        destroyMonsterWatcher()
-    end)
 end
 
-function destroyMonsterWatcher()
-    if timerID then
-        Wait.stop(timerID)
-        timerID = nil
-    end
-
-    printToAll("Monster Watcher was disabled.", { 1, 0.2, 0.2 })
-    self.destruct()
-end
-
-function onDestroy()
-    if timerID then
-        Wait.stop(timerID)
-        timerID = nil
-    end
-end
-
-function scanGameChange()
-    local phaseTracker = getObjectByName('Phase Tracker')
-
-    if not phaseTracker then
-        log('Not phase tracker')
-        Wait.stop(timerID)
-        broadcastToAll('Destroyed watcher', 'Red')
-        self.destruct()
-    end
-
-    newPhase = phaseTracker.getVar('phaseId')
+function informChange(phase)
+    log("function informChange(phase)")
+    -- This function is called from outside
+    newPhase = phase
 
     if newPhase == lastPhase then
         return
@@ -94,13 +65,6 @@ end
 function showEnemyInfo(colorPrint, colorHighlight)
 
     local enemiesInPlayArea = getEnemiesInPlayArea()
-    local matColors = PlayermatApi.getUsedMatColors()
-    local enemiesInThreatArea = {}
-    for _, matColor in ipairs(matColors) do
-        local adding = getEnemiesInThreatArea(matColor)
-        for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
-    end
-
     local num = #enemiesInPlayArea
     if num > 1 then
         printToAll('There are ' .. tostring(num) .. ' enemies in the map.', colorPrint)
@@ -108,13 +72,22 @@ function showEnemyInfo(colorPrint, colorHighlight)
         printToAll('There is ' .. tostring(num) .. ' enemy in the map.', colorPrint)
     end
     highlightObjects(enemiesInPlayArea, colorHighlight, 10)
-    local num = #enemiesInThreatArea
+
+
+    local matColors = PlayermatApi.getUsedMatColors()
+    local enemiesInThreatArea = {}
+    for _, matColor in ipairs(matColors) do
+        local adding = getEnemiesInThreatArea(matColor)
+        for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
+    end
+    num = #enemiesInThreatArea
     if num > 1 then
         printToAll('There are ' .. tostring(num) .. ' enemies engaged.', colorPrint)
     elseif num == 1 then
         printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
     end
     highlightObjects(enemiesInThreatArea, colorHighlight, 10)
+    
 end
 
 -- Threat area helper
@@ -229,14 +202,14 @@ function duplicateFakeMinis()
         local s = obj.getScale()
         local newScale = {
             x = s.x * 0.8,
-            y = s.y * 0.2,
+            y = s.y * 0.8,
             z = s.z * 0.8,
         }
 
+        
         local pos = obj.getPosition()
-        pos.y = pos.y - 0.05
+        pos.y = pos.y - 0.02
 
-        -- clean & retag
         data.Tags = data.Tags or {}
         for i = #data.Tags, 1, -1 do
             if data.Tags[i] == "Minicard" then
@@ -245,14 +218,12 @@ function duplicateFakeMinis()
         end
         table.insert(data.Tags, "DuplicateMinicard")
 
-        -- IMPORTANT: update transform scale
-        data.Transform = data.Transform or {}
-        data.Transform.scale = newScale
 
         local dup = spawnObjectData({
             data = data,
             position = pos,
-            rotation = { 0, 270, 180 }
+            rotation = { 0, 270, 180 },
+            scale = newScale
         })
 
         dup.interactable = false
@@ -304,8 +275,14 @@ end
 -- Generic
 --------------------
 
+---@param objects tts__Object[]   # list of objects to highlight
+---@param color string|table      # TTS color string, e.g. "Red", "Green", "Blue", or hex
+---@param duration number         # seconds the highlight lasts
 function highlightObjects(objects, color, duration)
-    for _, obj in ipairs(objects) do
+    assert(type(objects) == "table", "highlightObjects: objects must be a table")
+    assert(type(duration) == "number", "highlightObjects: duration must be a number")
+
+    for i, obj in ipairs(objects) do
         obj.highlightOn(color, duration)
     end
 end
@@ -320,33 +297,16 @@ end
 ---Find the first object whose name matches.
 ---Case-sensitive by default.
 ---@param name string
----@param opts table|nil  -- { caseInsensitive = true }
 ---@return tts__Object|nil
-function getObjectByName(name, opts)
+function getObjectByName(name)
     assert(name, "getObjectByName: name is required")
-    opts = opts or {}
-
     local target = name
-    local caseInsensitive = opts.caseInsensitive == true
-
-    if caseInsensitive then
-        target = string.lower(name)
-    end
-
     for _, obj in ipairs(getAllObjects()) do
         local objName = obj.getName() or ""
-
-        if caseInsensitive then
-            if string.lower(objName) == target then
-                return obj
-            end
-        else
-            if objName == target then
-                return obj
-            end
+        if objName == target then
+            return obj
         end
     end
-
     return nil
 end
 

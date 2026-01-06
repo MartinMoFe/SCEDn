@@ -110,11 +110,7 @@ do
   ---@param zoneName string Name of the zone to get the position for. See Zones object documentation for a list of valid zones.
   ---@return tts__Vector|nil: Global position table, or nil if an invalid player color or zone is specified
   function Zones.getZonePosition(matColor, zoneName)
-    log('VERY VERY INSIDE')
-    log(matColor)
-    log(zoneName)
     if zoneData[matColor] then
-      log('VERY VERY INSIDEAFDSFASDAFDA')
       return PlayermatApi.transformLocalPosition(zoneData[matColor][zoneName], matColor)
     end
     return nil

@@ -26,7 +26,11 @@ do
     end
 
     function EnemyWatcherApi.getMd(object)
-        getMonsterWatcher().call('getMd', object)
+        return getMonsterWatcher().call('getMd', object)
+    end
+
+    function EnemyWatcherApi.getObjectByName(object)
+        return getMonsterWatcher().call('getObjectByName', object)
     end
 
     return EnemyWatcherApi

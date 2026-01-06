@@ -231,7 +231,8 @@
     "EnemyWatcher.87e529",
     "ComplexWatcher.87e530",
     "DecalPlacer.778507",
-    "ViewController.ca8428"
+    "ViewController.ca8428",
+    "PhaseTrackerController.d0c8fb"
   ],
   "PlayArea": 1,
   "SaveName": "Arkham SCE - 4.5.2",

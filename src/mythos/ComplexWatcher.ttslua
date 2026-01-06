@@ -1,6 +1,7 @@
 local DecalPlacerApi    = require("mythos/DecalPlacerApi")
 local EnemyWatcherApi = require("mythos/EnemyWatcherApi")
 
+local PHASE_TRACKER_GUID = "d0c8fa"
 
 -- We are reusing the funtions inside monster-watcher
 
@@ -216,27 +217,46 @@ function onLoad(savedData)
     self.interactable = true
     lastPhase = nil
     newPhase = nil
+    phaseTracker = getObjectFromGUID(PHASE_TRACKER_GUID)
 
 
-    timerID = Wait.time(scanGameChange, 2, -1)
+    -- timerID = Wait.time(scanGameChange, 2, -1)
+    timerID = nil
 
-    self.addContextMenuItem("Destroy This", function(playerColor)
-        Wait.stop(timerID)
-        printToAll('This object: ' .. self.getName() .. ' was auto-destroyed.')
-        self.destruct()
+    self.addContextMenuItem("Disable Monster Watcher", function(playerColor)
+        destroyComplexWatcher()
     end)
 
 end
 
-function scanGameChange()
-    local phaseTracker = getObjectByName('Phase Tracker')
-
-    if not phaseTracker then
+function destroyComplexWatcher()
+    if timerID then
         Wait.stop(timerID)
-        self.destruct()
+        timerID = nil
     end
 
-    newPhase = phaseTracker.getVar('phaseId')
+    printToAll("Complex Watcher was disabled.", { 1, 0.2, 0.2 })
+    self.destruct()
+end
+
+function onDestroy()
+    if timerID then
+        Wait.stop(timerID)
+        timerID = nil
+    end
+end
+
+function scanGameChange()
+    if not phaseTracker then
+        log('Somehow disapeared')
+        phaseTracker = getObjectFromGUID(PHASE_TRACKER_GUID)
+    end
+
+    if not phaseTracker then
+        log('XXXXX: Not found phase Tracker')
+        log('Stopped timer')
+        Wait.stop(timerID)
+    end
 
     if newPhase == lastPhase then
         return
@@ -248,6 +268,7 @@ function scanGameChange()
 
     if newPhase == 2 then
         placeLocationDecalsWisely()
+        placeEnemyDecalsWisely()
     elseif newPhase == 3 then
         placeEnemyDecalsWisely()
     end
@@ -278,7 +299,7 @@ function showAllCardsInfo(phaseNumber)
 
     for i, phaseString in ipairs(apair) do
         showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] }) --
-        -- showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
+        showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
         -- showAllLocationInfo({ phaseNumber = phaseString, colorPrint = 'White' })
     end
 end
@@ -384,7 +405,6 @@ end
 
 function placeLocationDecalsWisely()
     local locations = getLocationsInPlayArea()
-    --log("LOG:Placing location decals wisely. Found " .. tostring(#locations) .. " locations in play area.")
     for _, location in ipairs(locations) do
         local rawNotes = location.getGMNotes() or "{}"
         local md = JSON.decode(rawNotes) or {}
@@ -474,6 +494,8 @@ function getLocationMessage(obj, phaseNumber, isFaceUp)
     end
 end
 
+-- is visible
+
 function isVisibleTreachery(obj)
     -- Returns boolean
     local rawNotes = obj.getGMNotes() or "{}"
@@ -509,13 +531,3 @@ function isFacedownLocation(obj)
     end
 end
 
--- Generic
-
-function getObjectByName(name)
-    for _, obj in ipairs(getObjects()) do
-        if obj.getName() == name then
-            return obj
-        end
-    end
-    return nil
-end
