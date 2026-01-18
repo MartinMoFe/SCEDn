@@ -22,7 +22,7 @@
       "Stackable": false
     }
   },
-  "Description": "This Watcher knows how many enemies there are, and can communicate it.",
+  "Description": "This Watcher knows how many enemies there are, and can create ghostly duplicates of the Minicards, to keep track of movement.\nIt requires of the phase tracker, to comunicate the enemies in the Enemy phase and duplicate minicards in the Investigation Phase.",
   "DragSelectable": true,
   "GMNotes": "",
   "GUID": "87e529",
@@ -42,8 +42,8 @@
   "Sticky": true,
   "Tooltip": true,
   "Transform": {
-    "posX": 73.7,
-    "posY": 1.15,
+    "posX": 73,
+    "posY": 1.50,
     "posZ": -16,
     "rotX": 0,
     "rotY": 270,

@@ -6,20 +6,26 @@ do
     end
 
     function EnemyWatcherApi.getEnemiesInPlayArea()
-        return getMonsterWatcher().call('getEnemiesInPlayArea')
+        return getMonsterWatcher().getVar('enemies')
+    end
+    
+        function EnemyWatcherApi.getEnemiesInThreatAreas()
+            return getMonsterWatcher().getVar('enemiesT')
+        end
+
+    function EnemyWatcherApi.getTreacheriesInPlayArea()
+        return getMonsterWatcher().getVar('treacheries')
     end
 
-    function EnemyWatcherApi.getEnemiesInThreatArea(matColor)
-        return getMonsterWatcher().call('getEnemiesInThreatArea', matColor)
+    function EnemyWatcherApi.getTreacheriesInThreatAreas()
+        return getMonsterWatcher().getVar('treacheriesT')
     end
 
-    function EnemyWatcherApi.getThreatAreaObjects(matColor)
-        return getMonsterWatcher().call('getThreatAreaObjects', matColor)
-    end
 
-    function EnemyWatcherApi.scanPlayArea()
-        return getMonsterWatcher().call('scanPlayArea')
-    end
+
+
+
+
 
     function EnemyWatcherApi.highlightObjects(objects, color, duration)
         getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })

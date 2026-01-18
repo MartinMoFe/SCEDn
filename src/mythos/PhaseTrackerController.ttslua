@@ -8,7 +8,6 @@ local PhaseTrackerApi = require("playarea/PhaseTrackerApi")
 
 -- GUID of the existing Phase Tracker
 local PHASE_TRACKER_GUID = "d0c8fa"
-
 local phaseTracker = nil
 
 -- Helper to ensure we always have the tracker
@@ -54,21 +53,22 @@ end
 -- Expects a NUMBER (ex: 1, 2, 3, 4).
 -- This object keeps its own phase state, intended to stay in sync
 -- with the main Phase Tracker object.
-function updatePhase(phase)
-    assert(type(phase) == "number",
-        "updatePhase: expected number, got " .. type(phase))
+function updatePhase(phaseArg)
+    assert(type(phaseArg) == "number",
+        "updatePhase: expected number, got " .. type(phaseArg))
 
-    assert(phase >= 1 and phase <= 4,
+    assert(phaseArg >= 1 and phaseArg <= 4,
         "updatePhase: phase must be between 1 and 4")
 
-    currentPhase = phase
-    informEnemyWatcher(phase)
+    currentPhase = phaseArg
+    informEnemyWatcher(phaseArg)    
 end
 
 -- add this new function
-function informEnemyWatcher(phase)
-    local obj = getObjectFromGUID("87e529")
-    if obj then obj.call("informChange", phase) end
+function informEnemyWatcher(phaseArg)
+    local obj1 = getObjectFromGUID("87e529")
+    if obj1 then obj1.call("respondToChange", phaseArg) end
+    local obj2 = getObjectFromGUID("87e530")
+    if obj2 then obj2.call("respondToChange", phaseArg) end
 end
-
 

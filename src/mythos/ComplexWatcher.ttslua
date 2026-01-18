@@ -1,8 +1,6 @@
 local DecalPlacerApi    = require("mythos/DecalPlacerApi")
 local EnemyWatcherApi = require("mythos/EnemyWatcherApi")
 
-local PHASE_TRACKER_GUID = "d0c8fa"
-
 -- We are reusing the funtions inside monster-watcher
 
 
@@ -72,6 +70,11 @@ EnemyMessage                = {
     ["11535"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on a player card at this enemy\'s location. Then, discard Hunting Parasite.' },
     ["11721"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on another non-Elite enemy at this location. Then, discard Stowaway Drone.' },
     ["01179"]  = { ["4.9"] = 'Forced - At the end of the round: Heal 2 damage from Relentless Dark Young.' },
+    ["53077"]  = {
+        ["3.7"]   =
+        'Forced - After Tindalos Alpha attacks you: Shuffle a non-story asset you control into your deck, moving all damage and horror from that asset to your investigator. Discard Tindalos Alpha.',
+        ["3.9"] = 'Forced - At the end of the enemy phase: Discard Tindalos Alpha.'
+    },
 }
 
 -- ENEMY ATTRIBUTES
@@ -100,6 +103,7 @@ MassiveEnemies              = {
 }
 MassiveEnemiesFlipped       = { -- This metadata says enemy
     ['04209'] = true,           -- The winged serpent is massive only when flipped
+    ['53046'] = true,           -- The winged serpent from Return
 }
 AgendaMassiveEnemiesFlipped = {
     ['11537a'] = true, -- The leviathan is only massive when flipped
@@ -145,10 +149,12 @@ HunterEnemies               = {
     ['11747'] = true,
     ['11751'] = true,
     ['50022'] = true,
-
+    ['10063'] = true,
+    ['53078'] = true,
 }
-HunterEnemiesFlipped        = { -- This metadata says enemy
-    ['04209'] = true
+HunterEnemiesFlipped        = {
+    ['04209'] = true,
+    ['53046'] = true,
 }
 AgendaHunterEnemiesFlipped  = {
     ['01121a'] = true, --The Masked Hunter
@@ -168,11 +174,11 @@ AloofEnemies                = {
     ['04086'] = true,
     ['04257'] = true,
     ['04258'] = true,
-    ['04220'] = true,
     ['11551'] = true,
     ['11728'] = true,
     ['07038'] = true,
-    ['11721'] = true
+    ['11721'] = true,
+    ['53079'] = true,
 }
 
 -- █░░ █▀█ █▀▀ ▄▀█ ▀█▀ █ █▀█ █▄░█
@@ -212,85 +218,71 @@ LocationsBlockedBack        = {
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
 local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
+local BLUE_TREACHERY = { r = 0.300, g = 0.700, b = 0.800 }
 
 function onLoad(savedData)
     self.interactable = true
     lastPhase = nil
     newPhase = nil
-    phaseTracker = getObjectFromGUID(PHASE_TRACKER_GUID)
-
-
-    -- timerID = Wait.time(scanGameChange, 2, -1)
-    timerID = nil
-
-    self.addContextMenuItem("Disable Monster Watcher", function(playerColor)
-        destroyComplexWatcher()
-    end)
 
 end
 
-function destroyComplexWatcher()
-    if timerID then
-        Wait.stop(timerID)
-        timerID = nil
-    end
+---@param phaseArg integer  -- Fase actual: 1=Mitos, 2=Investigación, 3=Enemigos, 4=Mantenimiento
+function respondToChange(phaseArg)
+    log("=== respondToChange called ===")
+    log("Received phaseArg: " .. tostring(phaseArg) .. " (type: " .. type(phaseArg) .. ")")
 
-    printToAll("Complex Watcher was disabled.", { 1, 0.2, 0.2 })
-    self.destruct()
-end
+    assert(type(phaseArg) == "number", "informChange: phaseArg debe ser un número")
+    assert(phaseArg >= 1 and phaseArg <= 4, "informChange: phaseArg fuera de rango (1-4)")
 
-function onDestroy()
-    if timerID then
-        Wait.stop(timerID)
-        timerID = nil
-    end
-end
+    log("Assertions passed successfully")
+    log("Previous lastPhase value: " .. tostring(lastPhase))
 
-function scanGameChange()
-    if not phaseTracker then
-        log('Somehow disapeared')
-        phaseTracker = getObjectFromGUID(PHASE_TRACKER_GUID)
-    end
-
-    if not phaseTracker then
-        log('XXXXX: Not found phase Tracker')
-        log('Stopped timer')
-        Wait.stop(timerID)
-    end
+    newPhase = phaseArg
+    log("newPhase set to: " .. newPhase)
 
     if newPhase == lastPhase then
+        log("newPhase == lastPhase (" .. newPhase .. " == " .. lastPhase .. "), returning early")
         return
     end
 
+    log("Phase changed from " .. tostring(lastPhase) .. " to " .. newPhase)
     lastPhase = newPhase
-
-    showAllCardsInfo(newPhase)
+    log("lastPhase updated to: " .. lastPhase)
 
     if newPhase == 2 then
-        placeLocationDecalsWisely()
+        log("Calling placeEnemyDecalsWisely() for phase 2")
         placeEnemyDecalsWisely()
     elseif newPhase == 3 then
+        log("Calling placeEnemyDecalsWisely() for phase 3")
         placeEnemyDecalsWisely()
     end
+
+    log("Calling showAllCardsInfo with lastPhase: " .. lastPhase)
+    showAllCardsInfo(lastPhase)
+
+    log("=== respondToChange completed ===")
 end
 
 -- Show things, according to phase number
 
+---@param phaseNumber integer  -- Fase principal (1 a 4)
 function showAllCardsInfo(phaseNumber)
     local colorPrint = { {}, {} }
+    local slightRed = { r = 0.8, g = 0.2, b = 0.2 }
 
     if phaseNumber == 1 then
         colorPrint[1] = { r = 0.902, g = 0.827, b = 0.298 }
-        colorPrint[2] = { r = 0.8, g = 0.2, b = 0.2 }
+        colorPrint[2] = slightRed
         apair = { '4.9', '1.1' }
     elseif phaseNumber == 2 then
-        colorPrint[1] = { r = 0.8, g = 0.2, b = 0.2 }
+        colorPrint[1] = slightRed
         colorPrint[2] = { r = 0.533, g = 0.788, b = 0.6 }
         apair = { '1.9', '2.1' }
     elseif phaseNumber == 3 then
         colorPrint[1] = { r = 0.533, g = 0.788, b = 0.6 }
         colorPrint[2] = BLUE_ENEMY
-        apair = { '2.9', '3.1' }
+        apair = { '2.9', '3.1' , '3.7'}
     elseif phaseNumber == 4 then
         colorPrint[1] = BLUE_ENEMY
         colorPrint[2] = { r = 0.902, g = 0.827, b = 0.298 }
@@ -298,37 +290,8 @@ function showAllCardsInfo(phaseNumber)
     end
 
     for i, phaseString in ipairs(apair) do
-        showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] }) --
-        showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
-        -- showAllLocationInfo({ phaseNumber = phaseString, colorPrint = 'White' })
-    end
-end
-
-function showAllTreacheryInfo(params)
-    local phaseNumber = params.phaseNumber
-    local colorPrint = params.colorPrint
-    local playAreaTreacheries = getTreacheriesInPlayArea()
-    for _, treachery in ipairs(playAreaTreacheries) do
-        local msg = getTreacheryMessage(treachery, phaseNumber)
-        if msg then
-            printToAll(msg, colorPrint)
-            EnemyWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
-        end
-    end
-
-    -- Then in threat area of the mats
-    local COLORS = { White = Color.White, Orange = Color.Orange, Green = Color.Green, Red = Color.Red }
-    local matColors = Player.getAvailableColors()
-    for _, matColor in ipairs(matColors) do
-        local logColor = COLORS[matColor] or { 1, 1, 1 }
-        local treacheries = getTreacheriesInThreatArea(matColor)
-        for _, treachery in ipairs(treacheries) do
-            local msg = getTreacheryMessage(treachery, phaseNumber)
-            if msg then
-                printToAll(msg, logColor)
-                EnemyWatcherApi.highlightObjects({ treachery }, colorPrint, 10)
-            end
-        end
+        showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] }) 
+        showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = BLUE_TREACHERY })
     end
 end
 
@@ -339,12 +302,7 @@ function showAllEnemyInfo(params)
     -- Retrieve objects in play area
     local enemiesInPlayArea = EnemyWatcherApi.getEnemiesInPlayArea()
     -- Retrieve objects in threat area
-    local matColors = Player.getAvailableColors()
-    local enemiesInThreatArea = {}
-    for _, matColor in ipairs(matColors) do
-        local adding = EnemyWatcherApi.getEnemiesInThreatArea(matColor)
-        for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
-    end
+    local enemiesInThreatAreas = EnemyWatcherApi.getEnemiesInThreatAreas()
 
     for _, enemy in ipairs(enemiesInPlayArea) do
         local msg = getEnemyMessage(enemy, phaseNumber)
@@ -354,7 +312,7 @@ function showAllEnemyInfo(params)
         end
     end
 
-    for _, enemy in ipairs(enemiesInThreatArea) do
+    for _, enemy in ipairs(enemiesInThreatAreas) do
         local msg = getEnemyMessage(enemy, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
@@ -363,16 +321,28 @@ function showAllEnemyInfo(params)
     end
 end
 
-function showAllLocationInfo(params)
+function showAllTreacheryInfo(params)
     local phaseNumber = params.phaseNumber
     local colorPrint = params.colorPrint
 
-    -- Play area
-    local locationsInPlayArea = getLocationsInPlayArea()
-    for _, location in ipairs(locationsInPlayArea) do
-        local msg = getLocationMessage(location, phaseNumber, location.is_face_down)
+    -- Retrieve objects in play area
+    local treacheriesInPlayArea = EnemyWatcherApi.getTreacheriesInPlayArea()
+    -- Retrieve objects in threat area
+    local treacheriesInThreatAreas = EnemyWatcherApi.getTreacheriesInThreatAreas()
+
+    for _, enemy in ipairs(treacheriesInPlayArea) do
+        local msg = getTreacheryMessage(enemy, phaseNumber)
         if msg then
             printToAll(msg, colorPrint)
+            EnemyWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
+        end
+    end
+
+    for _, enemy in ipairs(treacheriesInThreatAreas) do
+        local msg = getTreacheryMessage(enemy, phaseNumber)
+        if msg then
+            printToAll(msg, colorPrint)
+            EnemyWatcherApi.highlightObjects({ enemy }, colorPrint, 10)
         end
     end
 end
@@ -380,9 +350,14 @@ end
 -- Place Decals
 
 function placeEnemyDecalsWisely()
+    log(">>> placeEnemyDecalsWisely called")
+
+    -- Add logs at key points in your function
+    log("Number of enemies: " .. #getEnemies())
+    log("Decals placed: " .. decalCount)
     -- get all enemies in the map and threat areas
     local enemies = EnemyWatcherApi.getEnemiesInPlayArea()
-    local adding = EnemyWatcherApi.getEnemiesInThreatArea('All')
+    local adding = EnemyWatcherApi.getEnemiesInThreatAreas()
     for _, v in ipairs(adding) do
         table.insert(enemies, v)
     end
@@ -415,46 +390,6 @@ function placeLocationDecalsWisely()
     end
 end
 
--- Threat area helper
-
-function getTreacheriesInThreatArea(matColor)
-    -- returns a table of objects
-    local treacheries = EnemyWatcherApi.getThreatAreaObjects(matColor)
-    for _, obj in ipairs(treacheries) do
-        if isVisibleTreachery(obj) then table.insert(treacheries, obj) end
-    end
-    return treacheries
-end
-
--- PlayArea helper
-
-function getTreacheriesInPlayArea()
-    -- returns a table of objects
-    -- Some treacheries may be in play area, like exploding spores
-    -- returns a table of objects
-    local treacheries = {}
-    local objs = EnemyWatcherApi.scanPlayArea()
-    for _, obj in ipairs(objs) do
-        if isVisibleTreachery(obj) then
-            table.insert(treacheries, obj)
-        end
-    end
-    return treacheries
-end
-
-function getLocationsInPlayArea()
-    -- returns a table of objects
-    local locations = {}
-    local objs = EnemyWatcherApi.scanPlayArea()
-    for _, obj in ipairs(objs) do
-        if isFaceupLocation(obj) then
-            table.insert(locations, obj)
-        elseif isFacedownLocation(obj) then
-            table.insert(locations, obj)
-        end
-    end
-    return locations
-end
 
 -- Message retrieval
 
@@ -494,40 +429,4 @@ function getLocationMessage(obj, phaseNumber, isFaceUp)
     end
 end
 
--- is visible
-
-function isVisibleTreachery(obj)
-    -- Returns boolean
-    local rawNotes = obj.getGMNotes() or "{}"
-    local md = JSON.decode(rawNotes) or {}
-    local type = md['type'] or ''
-    if type == 'Treachery' and not obj.is_face_down then
-        return true
-    end
-    return false
-end
-
-function isFaceupLocation(obj)
-    local rawNotes = obj.getGMNotes() or "{}"
-    local md = JSON.decode(rawNotes) or {}
-    local id = md['id'] or ''
-    local type = md['type'] or ''
-    if type == 'Location' and not obj.is_face_down then
-        return true
-    elseif type == 'Agenda' then
-        -- some locations might be in the agenda
-        -- yet to implement
-        return false
-    end
-end
-
-function isFacedownLocation(obj)
-    local rawNotes = obj.getGMNotes() or "{}"
-    local md = JSON.decode(rawNotes) or {}
-    local id = md['id'] or ''
-    local type = md['type'] or ''
-    if type == 'Location' and obj.is_face_down then
-        return true
-    end
-end
 

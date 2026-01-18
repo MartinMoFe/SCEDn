@@ -1,22 +1,23 @@
-local GUIDReferenceApi = require("core/GUIDReferenceApi")
-local PlayermatApi     = require("playermat/PlayermatApi")
-local SearchLib        = require("util/SearchLib")
-local Zones            = require("playermat/Zones")
+local GUIDReferenceApi      = require("core/GUIDReferenceApi")
+local PlayermatApi          = require("playermat/PlayermatApi")
+local SearchLib             = require("util/SearchLib")
+local Zones                 = require("playermat/Zones")
 
 -- FIND ENEMIES: Cards that are enemies only only when face-down
 -- Here we list them by their id in the metadata
 -- These cases are explicitly defined here because they are not in the metadata
-FaceDownEnemies        = { -- Some enemies are Agenda or Act cards that are Enemies in the metadata
-    ['04137a'] = true,     -- Maria DeSilva
-    ['04122'] = true,      -- Harlan Earstone
-    ['04130a'] = true,     -- Henry Deveau
-    ['04209'] = true,      -- The Winged Serpent
+local FaceDownEnemies       = {  -- Some enemies are Agenda or Act cards that are Enemies in the metadata
+    ['04137a'] = true,           -- Maria DeSilva
+    ['04122'] = true,            -- Harlan Earstone
+    ['04130a'] = true,           -- Henry Deveau
+    ['04209'] = true,            -- The Winged Serpent
+    ['53046'] = true,           -- The Winged Serpent Return
 }
-AgendaFacedownEnemies  = { -- Some enemies are Agenda or Act cards
-    ["03241"] = true,      -- Empire of the Dead
-    ['01121a'] = true,     -- The Masked Hunter
-    ['50026a'] = true,     -- Nagorath
-    ['11537a'] = true,     -- Seafloor Leviathan
+local AgendaFacedownEnemies = {  -- Some enemies are Agenda or Act cards
+    ["03241"] = true,            -- Empire of the Dead
+    ['01121a'] = true,           -- The Masked Hunter
+    ['50026a'] = true,           -- Nagorath
+    ['11537a'] = true,           -- Seafloor Leviathan
 }
 
 
@@ -24,7 +25,7 @@ AgendaFacedownEnemies  = { -- Some enemies are Agenda or Act cards
 --- CONSTANTS
 ------------------------------
 
-local BLUE_ENEMY       = { r = 0.267, g = 0.667, b = 0.731 }
+local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
 
 
 -- █▀▀ █▀▀█ █▀▀▄ █▀▀
@@ -36,11 +37,13 @@ function onLoad(savedData)
     lastPhase         = nil
     newPhase          = nil
     fakeMinis         = {}
-
+    enemies           = {}
+    treacheries       = {}
+    enemiesT          = {}
+    treacheriesT      = {}
 end
 
-function informChange(phase)
-    log("function informChange(phase)")
+function respondToChange(phase)
     -- This function is called from outside
     newPhase = phase
 
@@ -50,6 +53,8 @@ function informChange(phase)
 
     lastPhase = newPhase
     if newPhase == 2 then
+        showHealthSanityInfo()
+        destroyFakeMinis()
         duplicateFakeMinis()
     elseif newPhase == 3 then
         destroyFakeMinis()
@@ -58,13 +63,15 @@ function informChange(phase)
         destroyFakeMinis()
     elseif newPhase == 1 then
         destroyFakeMinis()
+        showHealthSanityInfo()
     end
 end
 
 -- This function shows how many enemies are in play area and in the threat areas
 function showEnemyInfo(colorPrint, colorHighlight)
+    scanAndStore()
 
-    local enemiesInPlayArea = getEnemiesInPlayArea()
+    local enemiesInPlayArea = enemies or {}
     local num = #enemiesInPlayArea
     if num > 1 then
         printToAll('There are ' .. tostring(num) .. ' enemies in the map.', colorPrint)
@@ -73,13 +80,7 @@ function showEnemyInfo(colorPrint, colorHighlight)
     end
     highlightObjects(enemiesInPlayArea, colorHighlight, 10)
 
-
-    local matColors = PlayermatApi.getUsedMatColors()
-    local enemiesInThreatArea = {}
-    for _, matColor in ipairs(matColors) do
-        local adding = getEnemiesInThreatArea(matColor)
-        for _, element in ipairs(adding) do table.insert(enemiesInThreatArea, element) end
-    end
+    local enemiesInThreatArea = enemiesT
     num = #enemiesInThreatArea
     if num > 1 then
         printToAll('There are ' .. tostring(num) .. ' enemies engaged.', colorPrint)
@@ -87,7 +88,60 @@ function showEnemyInfo(colorPrint, colorHighlight)
         printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
     end
     highlightObjects(enemiesInThreatArea, colorHighlight, 10)
-    
+end
+
+function showHealthSanityInfo()
+    if type(PlayermatApi) ~= "table" then
+        log("[EnemyWatcher][ERROR] PlayermatApi missing or invalid")
+        return
+    end
+
+    if type(PlayermatApi.getUsedMatColors) ~= "function" then
+        log("[EnemyWatcher][ERROR] getUsedMatColors not found")
+        return
+    end
+
+    if type(PlayermatApi.getCounterValue) ~= "function" then
+        log("[EnemyWatcher][ERROR] getCounterValue not found")
+        return
+    end
+
+    local usedColors = PlayermatApi.getUsedMatColors()
+    if type(usedColors) ~= "table" then
+        log("[EnemyWatcher][ERROR] getUsedMatColors did not return a table")
+        return
+    end
+
+    for _, matColor in ipairs(usedColors) do
+        if type(matColor) ~= "string" then
+            log("[EnemyWatcher][ERROR] matColor is not a string")
+            return
+        end
+
+        local investigatorName = PlayermatApi.getInvestigatorName(matColor)
+        if type(investigatorName) ~= "string" then
+            log("[EnemyWatcher][ERROR] Invalid investigator name for matColor " .. matColor)
+            return
+        end
+
+        local health = PlayermatApi.getCounterValue(matColor, "DamageCounter")
+        if type(health) ~= "number" then
+            log("[EnemyWatcher][ERROR] Invalid health counter for " .. investigatorName)
+            return
+        end
+
+        local sanity = PlayermatApi.getCounterValue(matColor, "HorrorCounter")
+        if type(sanity) ~= "number" then
+            log("[EnemyWatcher][ERROR] Invalid sanity counter for " .. investigatorName)
+            return
+        end
+
+        local message = "[" ..
+        Color.fromString(matColor):toHex() ..
+        "]" .. investigatorName .. "[-]" .. ": Damage " .. health .. " / Horror " .. sanity
+
+        printToAll(message)
+    end
 end
 
 -- Threat area helper
@@ -105,7 +159,7 @@ function getThreatAreaPositions(matColor)
     assert(valid[matColor], "matColor must be one of: White, Green, Red, Orange")
     -- Returns a table with Vectors
     local positions = {}
-    
+
     for i = 1, 4 do
         local position = Zones.getZonePosition(matColor, "Threat" .. i)
         table.insert(positions, position)
@@ -126,58 +180,69 @@ function getThreatAreaObjects(matColor)
     return objects
 end
 
-function getEnemiesInThreatArea(matColor)
-    -- returns a table of objects
-    -- only enemies that are face up (some custom scenarios can make you draw facedown enemies)
-    local enemies = {}
-    colors = {}
-    if matColor == 'All' then
-        colors = Player.getAvailableColors()
-    else
-        colors = { matColor }
-    end
-
-    for _, color in ipairs(colors) do
-        local threats = getThreatAreaObjects(color)
-        for _, obj in ipairs(threats) do
-            if isVisibleEnemy(obj) then table.insert(enemies, obj) end
-        end
-    end
-    return enemies
-end
-
-function getSingleEnemy()
-    -- If there is only one enemy in play area, return it
-    local enemies = getEnemiesInPlayArea()
-    if #enemies == 1 then
-        return enemies[1]
-    end
-    return nil
-end
-
 -- PlayArea helper
 
+-- Scans the central PlayArea zone and returns all objects within it.
+-- @return {table} Table of GameObject references in the zone
 function scanPlayArea()
     -- Returns all objects in the PlayArea (the central zone)
     local zone = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "PlayAreaZone")
 
     if not zone then
-        return
+        log("[EnemyWatcher][ERROR] PlayAreaZone not found")
+        return {}
     end
 
     return zone.getObjects()
 end
 
-function getEnemiesInPlayArea()
-    -- returns a table of objects
-    local enemies = {}
+-- @return table Table containing all GameObject references from all threat areas
+-- @usage local threatObjects = scanThreatAreas()
+function scanThreatAreas()
+    local matColors = PlayermatApi.getUsedMatColors()
+    if type(matColors) ~= "table" then return {} end
+
+    local objectsInThreat = {}
+    for _, matColor in ipairs(matColors) do
+        local adding = getThreatAreaObjects(matColor)
+        for _, element in ipairs(adding) do table.insert(objectsInThreat, element) end
+    end
+    return objectsInThreat
+end
+
+--- Scans the Play Area and updates cached enemy and treachery lists.
+--- Populates the globals:
+---   enemies      : tts__Object[]
+---   treacheries  : tts__Object[]
+function scanAndStore()
+    assert(type(isVisibleTreachery) == "function", "isVisibleTreachery missing")
+    enemies = {}
+    treacheries = {}
+
     local objs = scanPlayArea()
+    if not objs then return end
+
     for _, obj in ipairs(objs) do
         if isVisibleEnemy(obj) then
             table.insert(enemies, obj)
+        elseif isVisibleTreachery(obj) then
+            table.insert(treacheries, obj)
         end
     end
-    return enemies
+
+    enemiesT = {}
+    treacheriesT = {}
+
+    local objs = scanThreatAreas()
+    if not objs then return end
+
+    for _, obj in ipairs(objs) do
+        if isVisibleEnemy(obj) then
+            table.insert(enemiesT, obj)
+        elseif isVisibleTreachery and isVisibleTreachery(obj) then
+            table.insert(treacheriesT, obj)
+        end
+    end
 end
 
 -- Minis helper
@@ -195,7 +260,6 @@ function getMinicardsInPlayArea()
 end
 
 function duplicateFakeMinis()
-
     for _, obj in ipairs(getMinicardsInPlayArea()) do
         local data = obj.getData()
 
@@ -206,7 +270,7 @@ function duplicateFakeMinis()
             z = s.z * 0.8,
         }
 
-        
+
         local pos = obj.getPosition()
         pos.y = pos.y - 0.02
 
@@ -247,6 +311,10 @@ end
 
 -- Identify card wisely
 
+--- Determines whether an object represents a visible enemy.
+--- Face-down enemies may still be visible depending on metadata tables.
+---@param obj tts__Object
+---@return boolean
 function isVisibleEnemy(obj)
     -- Receives an object, takes its metadata and checks if it's an faceup or visible enemy
     -- This is a long function, because it checks the type of the card
@@ -269,6 +337,40 @@ function isVisibleEnemy(obj)
     end
 
     return false
+end
+
+--- Determines whether an object represents a visible treachery card.
+---@param obj tts__Object
+---@return boolean
+function isVisibleTreachery(obj)
+    if not obj then return false end
+
+    local md = getMd(obj)
+    return md.type == "Treachery" and not obj.is_face_down
+end
+
+function isFaceupLocation(obj)
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local type = md['type'] or ''
+    if type == 'Location' and not obj.is_face_down then
+        return true
+    elseif type == 'Agenda' then
+        -- some locations might be in the agenda
+        -- yet to implement
+        return false
+    end
+end
+
+function isFacedownLocation(obj)
+    local rawNotes = obj.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    local type = md['type'] or ''
+    if type == 'Location' and obj.is_face_down then
+        return true
+    end
 end
 
 --------------------
@@ -330,4 +432,3 @@ function getMd(obj)
 
     return data
 end
-
