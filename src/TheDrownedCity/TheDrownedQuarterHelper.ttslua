@@ -1,0 +1,106 @@
+local CoroutineLib            = require("util/CoroutineLib")
+local DeckLib                 = require("util/DeckLib")
+local GUIDReferenceApi        = require("core/GUIDReferenceApi")
+local MythosAreaApi           = require("mythos/MythosAreaApi")
+local PlayAreaApi             = require("playarea/PlayAreaApi")
+
+local coralReefsGUID          = "6495e9"
+local seaFloorsGUID           = "d3e15d"
+local drownedAcropolisesGUID  = "516712"
+local floodTokenPoolGUID      = "5c6098"
+local trash                   = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "Trash")
+
+local decksToRemoveExtra      = { coralReefsGUID, drownedAcropolisesGUID }
+
+local drownedQuarterPositions = {
+  { x = -1, y = 1 },
+  { x = 0,  y = 1 },
+  { x = 1,  y = 1 },
+  { x = 1,  y = 0 },
+  { x = 1,  y = -1 },
+  { x = 0,  y = -1 },
+  { x = -1, y = -1 },
+  { x = -1, y = 0 }
+}
+
+local floodTokensPositions    = {
+  Vector(-19.72, 1.52, 0),
+  Vector(-17.72, 1.52, 0),
+  Vector(-15.72, 1.52, 0),
+  Vector(-13.72, 1.52, 0)
+}
+
+function onLoad()
+  self.createButton({
+    label          = "Western",
+    click_function = "westernSetup",
+    function_owner = self,
+    position       = { 0, 0.11, -0.5 },
+    height         = 150,
+    width          = 460,
+    scale          = { x = 2, y = 2, z = 2 },
+    font_color     = { r = 0, g = 0, b = 0 },
+    color          = { r = 1, g = 1, b = 1 }
+  })
+
+  self.createButton({
+    label          = "Eastern",
+    click_function = "easternSetup",
+    function_owner = self,
+    position       = { 0, 0.11, 0.5 },
+    height         = 150,
+    width          = 460,
+    scale          = { x = 2, y = 2, z = 2 },
+    font_color     = { r = 0, g = 0, b = 0 },
+    color          = { r = 1, g = 1, b = 1 }
+  })
+end
+
+function setup(direction)
+  local seaFloorsDeck = getObjectFromGUID(seaFloorsGUID)
+
+  for i = 1, 2 do
+    local deck = getObjectFromGUID(decksToRemoveExtra[i])
+    deck.shuffle()
+
+    local extraCard = deck.takeObject()
+    trash.putObject(extraCard)
+
+    DeckLib.placeOrMergeIntoDeck(deck.remainder, seaFloorsDeck.getPosition(), seaFloorsDeck.getRotation(), false, true)
+  end
+
+  function drownedQuarterSetupCoroutine()
+    CoroutineLib.yieldSeconds(1)
+
+    for i = 1, 8 do
+      seaFloorsDeck.takeObject({ position = PlayAreaApi.gridToWorld(drownedQuarterPositions[i]) })
+    end
+
+    CoroutineLib.yieldSeconds(1)
+
+    if direction == "east" then
+      local investigatorCount = PlayAreaApi.getInvestigatorCount()
+      local floodTokenPool = getObjectFromGUID(floodTokenPoolGUID)
+
+      for i = 1, investigatorCount do
+        floodTokenPool.takeObject({ position = floodTokensPositions[i] })
+      end
+
+      broadcastToAll("Place flood tokens at " .. investigatorCount .. " location(s) of your choice.", "White")
+    end
+
+    -- this setup has no encounter sets to shuffle in, so shuffle the deck here just in case
+    MythosAreaApi.getEncounterDeckObjects().draw.shuffle()
+  end
+
+  CoroutineLib.start(drownedQuarterSetupCoroutine)
+  self.destroy()
+end
+
+function westernSetup()
+  setup("west")
+end
+
+function easternSetup()
+  setup("east")
+end

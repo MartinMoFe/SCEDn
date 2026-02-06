@@ -1,0 +1,7 @@
+function tryRotate(_, flip, _, _, oldFlip)
+  if flip ~= oldFlip then
+    self.setState(2)
+    return false
+  end
+  return true
+end

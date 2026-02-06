@@ -1,0 +1,68 @@
+{
+  "AltLookAngle": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "Autoraise": true,
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "ContainedObjects_path": "Supply.a00f0b",
+  "CustomImage": {
+    "CustomToken": {
+      "MergeDistancePixels": 10,
+      "Stackable": false,
+      "StandUp": false,
+      "Thickness": 0.3
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/2028355744161230402/6486457CE96C04945473D4E079CBFFAF54C7EE1B/",
+    "WidthScale": 0
+  },
+  "Description": "",
+  "DragSelectable": true,
+  "GMNotes": "",
+  "GUID": "a00f0b",
+  "Grid": true,
+  "GridProjection": false,
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "IgnoreFoW": false,
+  "LayoutGroupSortIndex": 0,
+  "Locked": false,
+  "LuaScript": "",
+  "LuaScriptState": "",
+  "MeasureMovement": false,
+  "Memo": "supply",
+  "Name": "Custom_Token",
+  "Nickname": "Supply",
+  "Snap": false,
+  "States_path": {
+    "1": "Resource.910e09",
+    "2": "Ammo.00d19a",
+    "3": "Bounty.a5ce94",
+    "4": "Charge.a5ce94",
+    "5": "Evidence.a5ce94",
+    "6": "Secret.7a4a9a",
+    "8": "Offering.2b4348"
+  },
+  "Sticky": true,
+  "Tooltip": true,
+  "Transform": {
+    "posX": -58.42,
+    "posY": 1.602,
+    "posZ": 27.779,
+    "rotX": 0,
+    "rotY": 270,
+    "rotZ": 0,
+    "scaleX": 0.17,
+    "scaleY": 0.17,
+    "scaleZ": 0.17
+  },
+  "Value": 0,
+  "XmlUI": ""
+}

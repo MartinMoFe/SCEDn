@@ -1,0 +1,7 @@
+VALID_TOKENS = {
+  ["Bless"] = true
+}
+
+MAX_SEALED = 10
+
+require("playercards/CardsThatSealTokens")

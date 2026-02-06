@@ -1,0 +1,62 @@
+local SearchLib = require("util/SearchLib")
+
+local MIN_VALUE = 1
+local val = 1
+
+function onLoad()
+  self.createButton({
+    label          = "Rotate",
+    click_function = "doRotation",
+    function_owner = self,
+    position       = { 0, 0.11, -0.4 },
+    height         = 120,
+    width          = 450,
+    scale          = { x = 1.75, y = 1.75, z = 1.75 },
+    font_size      = 100
+  })
+
+  self.createButton({
+    label          = val,
+    click_function = "add_subtract",
+    function_owner = self,
+    position       = { 0, 0.11, 0.4 },
+    height         = 120,
+    width          = 250,
+    scale          = { x = 1.75, y = 1.75, z = 1.75 },
+    font_size      = 100
+  })
+end
+
+function add_subtract(_, _, isRightClick)
+  local mod = isRightClick and -1 or 1
+  new_value = math.max(val + mod, MIN_VALUE)
+  if val ~= new_value then
+    val = new_value
+    self.editButton({
+      index = 1,
+      label = tostring(val)
+    })
+  end
+end
+
+function doRotation(_, playercolor)
+  if IS_ROTATING then return end
+
+  IS_ROTATING = true
+  local body = getObjectFromGUID("a2f955")
+  if body == nil then
+    printToColor("Place Atlach-Nacha first, then try again", playercolor)
+  end
+
+  for i, obj in ipairs(SearchLib.inArea(body.getPosition(), nil, { 6, 6, 6 }, "isInteractable")) do
+    if obj ~= body and (obj.type == "Card" or obj.type == "Tile" or obj.type == "Generic") then
+      body.addAttachment(obj)
+    end
+  end
+
+  body.setRotationSmooth(body.getRotation() + Vector(0, 45 * val, 0), false, true)
+  Wait.time(function()
+    body.removeAttachments()
+    IS_ROTATING = false
+  end, 0.5)
+end

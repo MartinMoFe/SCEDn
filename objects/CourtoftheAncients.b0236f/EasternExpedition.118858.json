@@ -1,0 +1,53 @@
+{
+  "AltLookAngle": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "Autoraise": true,
+  "ColorDiffuse": {
+    "b": 0,
+    "g": 0.36652,
+    "r": 0.70588
+  },
+  "ContainedObjects_order": [
+    "FloodTokens.12508d",
+    "ActDeck.655139",
+    "AgendaDeck.667cea",
+    "FloodTokens.a759ec",
+    "PilgrimsEncounterSet.ddaa25"
+  ],
+  "ContainedObjects_path": "EasternExpedition.118858",
+  "Description": "",
+  "DragSelectable": true,
+  "GMNotes": "",
+  "GUID": "118858",
+  "Grid": true,
+  "GridProjection": false,
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "IgnoreFoW": false,
+  "LayoutGroupSortIndex": 0,
+  "Locked": false,
+  "LuaScript": "require(\"MemoryBag\")",
+  "LuaScriptState_path": "CourtoftheAncients.b0236f/EasternExpedition.118858.luascriptstate",
+  "MeasureMovement": false,
+  "Name": "Bag",
+  "Nickname": "Eastern Expedition",
+  "Snap": true,
+  "Sticky": true,
+  "Tooltip": true,
+  "Transform": {
+    "posX": 0,
+    "posY": 0,
+    "posZ": 0,
+    "rotX": 0,
+    "rotY": 270,
+    "rotZ": 0,
+    "scaleX": 1,
+    "scaleY": 1,
+    "scaleZ": 1
+  },
+  "Value": 0,
+  "XmlUI": ""
+}

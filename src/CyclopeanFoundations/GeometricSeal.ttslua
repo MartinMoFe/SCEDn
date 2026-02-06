@@ -1,0 +1,7 @@
+VALID_TOKENS = {
+  ["Tablet"] = true
+}
+
+MAX_SEALED = 1
+
+require("playercards/CardsThatSealTokens")

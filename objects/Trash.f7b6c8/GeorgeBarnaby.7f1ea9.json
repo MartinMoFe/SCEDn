@@ -1,0 +1,72 @@
+{
+  "AltLookAngle": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "Autoraise": true,
+  "CardID": 6601700,
+  "ColorDiffuse": {
+    "b": 0.71324,
+    "g": 0.71324,
+    "r": 0.71324
+  },
+  "CustomDeck": {
+    "66017": {
+      "BackIsHidden": true,
+      "BackURL": "https://steamusercontent-a.akamaihd.net/ugc/62583101345648392/BD122E7A188216C6AFECFC06990D5DE416B44B7E/",
+      "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/62583101345648332/0C1D6DDFAA7BFEBE426B0CC22856ECE17302E1DE/",
+      "NumHeight": 1,
+      "NumWidth": 1,
+      "Type": 0,
+      "UniqueBack": true
+    }
+  },
+  "CustomUIAssets": [
+    {
+      "Name": "font_arkhamicons",
+      "Type": 1,
+      "URL": "https://steamusercontent-a.akamaihd.net/ugc/16577956848173876106/49B31DA9BD35FC54A6B33926EA220FBBB2CAD038/"
+    }
+  ],
+  "Description": "The Lawyer",
+  "DragSelectable": true,
+  "GMNotes_path": "Trash.f7b6c8/GeorgeBarnaby.7f1ea9.gmnotes",
+  "GUID": "7f1ea9",
+  "Grid": true,
+  "GridProjection": false,
+  "Hands": true,
+  "HideWhenFaceDown": false,
+  "IgnoreFoW": false,
+  "LayoutGroupSortIndex": 0,
+  "Locked": false,
+  "LuaScript": "require(\"playercards/CardsWithPhaseButtons\")",
+  "LuaScriptState": "{\"isHelperEnabled\":true}",
+  "MeasureMovement": false,
+  "Name": "CardCustom",
+  "Nickname": "George Barnaby",
+  "SidewaysCard": true,
+  "Snap": true,
+  "Sticky": true,
+  "Tags": [
+    "CardWithAttachmentHelper",
+    "CardWithHelper",
+    "DoInUpkeep",
+    "Investigator",
+    "PlayerCard"
+  ],
+  "Tooltip": true,
+  "Transform": {
+    "posX": -55.013,
+    "posY": 1.564,
+    "posZ": -23.668,
+    "rotX": 0,
+    "rotY": 180,
+    "rotZ": 0,
+    "scaleX": 1.15,
+    "scaleY": 1,
+    "scaleZ": 1.15
+  },
+  "Value": 0,
+  "XmlUI": ""
+}
