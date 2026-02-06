@@ -3105,8 +3105,8 @@ function showClueSpendingUi(totalNeededClues)
   local playerCountWithClues  = 0
   local lastMatColorWithClues = nil
 
-  for _, matColor in ipairs(MAT_COLORS) do
-    if playerClueTable[matColor] ~= nil and playerClueTable[matColor] > 0 then
+  for matColor, clueCount in pairs(playerClueTable) do
+    if clueCount > 0 then
       playerCountWithClues  = playerCountWithClues + 1
       lastMatColorWithClues = matColor
     end
@@ -4231,6 +4231,12 @@ function onClick_defaultSettings()
 
   -- update UI
   updateOptionPanelState()
+
+  -- ensure correct language for UIs
+  Wait.frames(function()
+    i18n.updateGlobalUiLanguage()
+    i18n.updateAllObjectsUiLanguage()
+  end, 10)
 end
 
 -- splash scenario title on setup
@@ -5191,6 +5197,8 @@ end
 -- returns the colored steam name, investigator name or color
 ---@param playerColor string Color of the player
 function getColoredName(playerColor, uncolored)
+  if not playerColor then return "" end
+
   local displayName = playerColor
   if playerColor ~= "Grey" and Player[playerColor].steam_name then
     displayName = Player[playerColor].steam_name

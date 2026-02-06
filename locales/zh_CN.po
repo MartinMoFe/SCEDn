@@ -511,6 +511,11 @@ msgstr "占用“绿色”座位"
 msgid "NO_claim_red"
 msgstr "占用“红色”座位"
 
+msgid "NO_claim+tooltip"
+msgstr ""
+"Clicking this seat in the Navigation Overlay\n"
+"will now only swap the playercolor for you."
+
 msgid "NO_load_defaults"
 msgstr "载入预设"
 
@@ -642,7 +647,7 @@ msgstr "禁用"
 msgid "PMB_discardMove_button"
 msgstr "丢弃 / ➜"
 
-msgid "PMB_discardMove_button+tooltip"
+msgid "PMB_discardMove_button+tooltiptext"
 msgstr "右键点击以移至威胁区域"
 
 msgid "PMB_discard_button"
@@ -651,7 +656,7 @@ msgstr "丢弃"
 msgid "PMB_discard1_button"
 msgstr "丢弃1张牌"
 
-msgid "PMB_discard1_button+tooltip"
+msgid "PMB_discard1_button+tooltiptext"
 msgstr "从手牌中随机丢弃一张牌（隐私卡除外）"
 
 msgid "PMB_draw1_button"
@@ -660,7 +665,7 @@ msgstr "抽1张牌"
 msgid "PMB_upkeep_button"
 msgstr "补给"
 
-msgid "PMB_upkeep_button+tooltip"
+msgid "PMB_upkeep_button+tooltiptext"
 msgstr "右键点击以跳过获得资源和抽牌"
 
 # Mythos Area
