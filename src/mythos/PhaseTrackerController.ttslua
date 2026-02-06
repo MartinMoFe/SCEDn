@@ -1,0 +1,74 @@
+-- This object is required to create the HOTKEY
+-- Every time the phase changes, the PhaseTracker is destroyed and rebuild
+-- That way, a Hotkey can't be created
+-- So, we create it here
+-- This element also links the Phase Tracker and the Watchers
+
+local PhaseTrackerApi = require("playarea/PhaseTrackerApi")
+
+-- GUID of the existing Phase Tracker
+local PHASE_TRACKER_GUID = "d0c8fa"
+local phaseTracker = nil
+
+-- Helper to ensure we always have the tracker
+local function findPhaseTracker()
+    if not phaseTracker or not phaseTracker.getGUID then
+        phaseTracker = getObjectFromGUID(PHASE_TRACKER_GUID)
+    end
+    return phaseTracker
+end
+
+-- Called when the hotkey is pressed
+local function advanceOnHotkey(playerColor, isKeyUp)
+    -- Only trigger when key is *pressed*, not released
+    if isKeyUp then return end
+
+    if not findPhaseTracker() then
+        printToColor(
+            "PhaseTrackerController: Phase tracker not found!",
+            playerColor,
+            { 1, 0.2, 0.2 }
+        )
+        return
+    end
+
+    -- Call into the API — forwards phase normally
+    PhaseTrackerApi.advancePhase(false)
+end
+
+function onLoad()
+    -- Resolve tracker at load time
+    findPhaseTracker()
+
+    -- Add hotkey
+    addHotkey(
+        "Advance Phase",
+        advanceOnHotkey
+    )
+
+    currentPhase = nil
+end
+
+-- Updates the local phase variable.
+-- Expects a NUMBER (ex: 1, 2, 3, 4).
+-- This object keeps its own phase state, intended to stay in sync
+-- with the main Phase Tracker object.
+function updatePhase(phaseArg)
+    assert(type(phaseArg) == "number",
+        "updatePhase: expected number, got " .. type(phaseArg))
+
+    assert(phaseArg >= 1 and phaseArg <= 4,
+        "updatePhase: phase must be between 1 and 4")
+
+    currentPhase = phaseArg
+    informEnemyWatcher(phaseArg)    
+end
+
+-- add this new function
+function informEnemyWatcher(phaseArg)
+    local obj1 = getObjectFromGUID("87e529")
+    if obj1 then obj1.call("respondToChange", phaseArg) end
+    local obj2 = getObjectFromGUID("87e530")
+    if obj2 then obj2.call("respondToChange", phaseArg) end
+end
+
