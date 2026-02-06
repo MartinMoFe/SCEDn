@@ -1,0 +1,261 @@
+local PlayAreaApi          = require("playarea/PlayAreaApi")
+local SearchLib            = require("util/SearchLib")
+local TokenManagerApi      = require("tokens/TokenManagerApi")
+
+local beforeSetup          = true
+local ALL_LOCATIONS        = {
+  "Southside",
+  "Rivertown",
+  "Merchant District",
+  "French Hill",
+  "South Church",
+  "Uptown",
+  "Hangman's Hill",
+  "Silver Twilight Lodge"
+}
+
+local ID_TO_ENGLISH_NAME   = {
+  ["05292"] = "Rivertown",
+  ["05293"] = "Rivertown",
+  ["54051"] = "Rivertown",
+  ["05290"] = "French Hill",
+  ["05291"] = "French Hill",
+  ["54050"] = "French Hill",
+  ["05294"] = "Southside",
+  ["05295"] = "Southside",
+  ["54052"] = "Southside",
+  ["05296"] = "Uptown",
+  ["05297"] = "Uptown",
+  ["54053"] = "Uptown",
+  ["05298"] = "South Church",
+  ["05299"] = "South Church",
+  ["54054"] = "South Church",
+  ["05300"] = "Merchant District",
+  ["05301"] = "Merchant District",
+  ["54055"] = "Merchant District",
+  ["05302"] = "Hangman's Hill",
+  ["05304"] = "Hangman's Hill",
+  ["05303"] = "Silver Twilight Lodge",
+  ["05305"] = "Silver Twilight Lodge"
+}
+
+local RANDOMIZED_LOCATIONS = {
+  { name = "Southside",         deck = "4730c6" },
+  { name = "Rivertown",         deck = "3f6cb7" },
+  { name = "Merchant District", deck = "6ed4f6" },
+  { name = "French Hill",       deck = "8ff540" },
+  { name = "South Church",      deck = "e18226" },
+  { name = "Uptown",            deck = "08a5f6" }
+}
+
+local SET_ASIDE            = {
+  position = Vector(-2.52, 2, 14.87),
+  rotation = Vector(0, 270, 0)
+}
+
+local PLAYAREA             = {
+  position = Vector(-27.92, 4.04, -0.20),
+  rotation = Vector(0, 90, 0),
+  scale = { 37.63, 5.10, 37.19 }
+}
+
+function onSave()
+  return JSON.encode({ beforeSetup = beforeSetup, locationData = locationData })
+end
+
+function onLoad(savedData)
+  if savedData and savedData ~= "" then
+    local loadedData = JSON.decode(savedData)
+    beforeSetup      = loadedData.beforeSetup
+    locationData     = loadedData.locationData
+  end
+
+  -- shared button parameters
+  local bParams = {
+    function_owner = self,
+    height = 120,
+    width = 525,
+    scale = { x = 1.75, y = 1.75, z = 1.75 },
+    font_size = 75
+  }
+
+  -- setup button
+  bParams.label = "Set Up"
+  bParams.click_function = "setup"
+  bParams.position = { 0, 0.11, -0.6 }
+  self.createButton(bParams)
+
+  -- place clue button
+  bParams.label = "Place Clue"
+  bParams.click_function = "placeClue"
+  bParams.position = { 0, 0.11, 0 }
+  self.createButton(bParams)
+
+  -- add breaches button
+  bParams.label = "Add Breaches"
+  bParams.click_function = "addBreaches"
+  bParams.position = { 0, 0.11, 0.6 }
+  self.createButton(bParams)
+end
+
+function findBagLocations()
+  -- find Hangman's Hill and Silver Twilight Lodge
+  for i, obj in ipairs(SearchLib.inArea(PLAYAREA.position, PLAYAREA.rotation, PLAYAREA.scale, "isCard")) do
+    local md = JSON.decode(obj.getGMNotes()) or {}
+    if md.id then
+      if ID_TO_ENGLISH_NAME[md.id] == "Hangman's Hill" then
+        locationData["Hangman's Hill"] = { guid = obj.getGUID(), breach = 0 }
+      elseif ID_TO_ENGLISH_NAME[md.id] == "Silver Twilight Lodge" then
+        locationData["Silver Twilight Lodge"] = { guid = obj.getGUID(), breach = 0 }
+      end
+    end
+  end
+end
+
+function setup(_, playerColor, _)
+  locationData = {}
+  findBagLocations()
+
+  if locationData["Hangman's Hill"] or locationData["Silver Twilight Lodge"] then
+    setup2(playerColor)
+    return
+  end
+
+  Player[playerColor].showOptionsDialog("Choose setup", {
+      "Carl Sanford possesses the secrets of the universe",
+      "Annette Mason is possessed by evil"
+    },
+    function(_, index)
+      if index == 1 then
+        bag = getObjectFromGUID("92c6fc")
+      else
+        bag = getObjectFromGUID("d14543")
+      end
+      bag.call("buttonClick_place")
+      findBagLocations()
+      setup2(playerColor)
+    end
+  )
+end
+
+function setup2(playerColor)
+  Player[playerColor].showOptionsDialog("Use clickable counters for breaches?", { "Yes", "No" }, "Yes",
+    function(text)
+      for i, loc in ipairs(RANDOMIZED_LOCATIONS) do
+        local deck = getObjectFromGUID(loc.deck)
+        deck.shuffle()
+        local cardsToTake = #deck.getObjects() - 1
+        for j = 1, cardsToTake do
+          deck.takeObject({
+            position = SET_ASIDE.position,
+            rotation = SET_ASIDE.rotation
+          })
+        end
+        local locationCard = deck.remainder
+        local md = JSON.decode(locationCard.getGMNotes()) or {}
+        if md.id then
+          local englishName = ID_TO_ENGLISH_NAME[md.id]
+          locationData[englishName] = { guid = locationCard.guid, breach = 0 }
+        end
+      end
+
+      if text == "Yes" then
+        for i, v in ipairs(ALL_LOCATIONS) do
+          local location = locationData[v]
+          local locationCard = getObjectFromGUID(location.guid)
+          TokenManagerApi.spawnTokenGroup(locationCard, "resourceCounter", 1)
+        end
+      end
+
+      local numPlayers   = PlayAreaApi.getInvestigatorCount()
+      local numLocations = (numPlayers == 4) and 3 or 2
+      local numDraws     = (numPlayers == 4) and 3 or numPlayers
+
+      Wait.frames(function()
+        for i = 1, numDraws do
+          placeBreaches(numLocations)
+        end
+      end, 3)
+
+      self.editButton({
+        label          = "Random Location",
+        click_function = "broadCastRandomLocation",
+        function_owner = self,
+        position       = { 0, 0.11, -0.6 },
+        height         = 120,
+        width          = 525,
+        scale          = { x = 1.75, y = 1.75, z = 1.75 },
+        font_size      = 60
+      })
+    end)
+end
+
+function getRandomLocationName()
+  return ALL_LOCATIONS[math.random(1, #ALL_LOCATIONS)]
+end
+
+function broadCastRandomLocation()
+  local name = getRandomLocationName()
+  local location = locationData[name]
+  local locationCard = getObjectFromGUID(location.guid)
+  locationCard.highlightOn("Green", 3)
+  broadcastToAll(locationCard.getName())
+end
+
+function placeClue()
+  local name = getRandomLocationName()
+  local location = locationData[name]
+  local locationCard = getObjectFromGUID(location.guid)
+  broadcastToAll("Clue placed at: " .. locationCard.getName(), "White")
+  TokenManagerApi.addUseToCard(locationCard, "clue")
+end
+
+function addBreaches()
+  placeBreaches(PlayAreaApi.getInvestigatorCount() + 1)
+end
+
+function placeBreaches(numBreaches)
+  local shuffled = {}
+  for i, v in ipairs(ALL_LOCATIONS) do
+    local pos = math.random(1, #shuffled + 1)
+    table.insert(shuffled, pos, v)
+  end
+
+  printToAll("Breaches added to:", "White")
+  for j = 1, numBreaches do
+    broadcastToAll("- " .. shuffled[j], "White")
+    local location = locationData[shuffled[j]]
+    local locationCard = getObjectFromGUID(location.guid)
+    local foundBreaches, clickableResourceCounter = searchLocation(locationCard)
+    foundBreaches = foundBreaches + 1
+
+    if foundBreaches >= 4 then
+      locationCard.highlightOn("Red", 3)
+      broadcastToAll("Resolve Incursion manually!", "Orange")
+    else
+      locationCard.highlightOn("Yellow", 3)
+    end
+
+    if clickableResourceCounter then
+      clickableResourceCounter.call("updateVal", foundBreaches)
+    else
+      locationCard.resting = true
+      TokenManagerApi.spawnTokenGroup(locationCard, "resource", foundBreaches)
+    end
+  end
+end
+
+function searchLocation(locationCard)
+  local foundTokens = 0
+  for _, obj in ipairs(SearchLib.onObject(locationCard, "isTileOrToken")) do
+    local memo = obj.getMemo()
+    if memo == "resource" then
+      foundTokens = foundTokens + math.abs(obj.getQuantity())
+      obj.destruct()
+    elseif memo == "resourceCounter" then
+      foundTokens = obj.getVar("val")
+      return foundTokens, obj
+    end
+  end
+  return foundTokens, nil
+end

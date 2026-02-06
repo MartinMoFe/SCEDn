@@ -1,0 +1,16 @@
+function tryRotate(_, flip, _, _, oldFlip)
+  if flip ~= oldFlip then
+    self.setState(1)
+    return false
+  end
+  return true
+end
+
+VALID_TOKENS = {
+  ["Frost"] = true,
+  ["Cultist"] = true
+}
+
+MAX_SEALED = 10
+
+require("playercards/CardsThatSealTokens")

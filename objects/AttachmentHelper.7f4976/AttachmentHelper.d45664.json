@@ -1,0 +1,74 @@
+{
+  "AltLookAngle": {
+    "x": 0,
+    "y": 0,
+    "z": 0
+  },
+  "Autoraise": true,
+  "Bag": {
+    "Order": 0
+  },
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "CustomMesh": {
+    "CastShadows": true,
+    "ColliderURL": "https://steamusercontent-a.akamaihd.net/ugc/1754695414379239413/0B8E68F3B7311DCF2138FB701F78D1D93FBA4CAB/",
+    "Convex": true,
+    "CustomShader": {
+      "FresnelStrength": 0.107142858,
+      "SpecularColor": {
+        "b": 0.7463235,
+        "g": 0.812880337,
+        "r": 0.875
+      },
+      "SpecularIntensity": 0.05,
+      "SpecularSharpness": 4
+    },
+    "DiffuseURL": "https://steamusercontent-a.akamaihd.net/ugc/2369545213994757925/F90DA09AE75113984112B4AA2D1330DB35507D38/",
+    "MaterialIndex": 1,
+    "MeshURL": "https://steamusercontent-a.akamaihd.net/ugc/1754695414379239413/0B8E68F3B7311DCF2138FB701F78D1D93FBA4CAB/",
+    "NormalURL": "",
+    "TypeIndex": 6
+  },
+  "Description": "Drop cards here to display name, cost and skill icons.\n\nSee context menu for options.\n\nDrop this on another card to load the respective background if available.",
+  "DragSelectable": true,
+  "GMNotes": "",
+  "GUID": "d45664",
+  "Grid": true,
+  "GridProjection": false,
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "IgnoreFoW": false,
+  "LayoutGroupSortIndex": 0,
+  "Locked": false,
+  "LuaScript": "require(\"accessories/AttachmentHelper\")",
+  "LuaScriptState": "[[],true]",
+  "MaterialIndex": -1,
+  "MeasureMovement": false,
+  "MeshIndex": -1,
+  "Name": "Custom_Model_Bag",
+  "Nickname": "Attachment Helper",
+  "Number": 0,
+  "Snap": true,
+  "Sticky": true,
+  "Tags": [
+    "Asset"
+  ],
+  "Tooltip": true,
+  "Transform": {
+    "posX": 19.228,
+    "posY": 3.822,
+    "posZ": -19.636,
+    "rotX": 0,
+    "rotY": 270,
+    "rotZ": 0,
+    "scaleX": 0.8,
+    "scaleY": 1,
+    "scaleZ": 0.8
+  },
+  "Value": 0,
+  "XmlUI": ""
+}

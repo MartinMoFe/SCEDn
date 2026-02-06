@@ -1,0 +1,128 @@
+local CoroutineLib        = require("util/CoroutineLib")
+local DeckLib             = require("util/DeckLib")
+local GUIDReferenceApi    = require("core/GUIDReferenceApi")
+local MythosAreaApi       = require("mythos/MythosAreaApi")
+local PlayAreaApi         = require("playarea/PlayAreaApi")
+local TokenManagerApi     = require("tokens/TokenManagerApi")
+
+local mechanismsGUID      = "7eaf51"
+local chambersGUID        = "b20ec7"
+local starSpawnGUID       = "552c0f"
+local floodTokenPoolGUID  = "5c6098"
+local trash               = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "Trash")
+
+local grandVaultPositions = {
+  { x = -1, y = 1 },
+  { x = 0,  y = 1 },
+  { x = 1,  y = 1 },
+  { x = 1,  y = 0 },
+  { x = 1,  y = -1 },
+  { x = 0,  y = -1 },
+  { x = -1, y = -1 }
+}
+
+function onLoad()
+  self.createButton({
+    label          = "Power\nDiverted",
+    click_function = "divertedPower",
+    function_owner = self,
+    position       = { 0, 0.11, -0.35 },
+    height         = 230,
+    width          = 460,
+    scale          = { x = 2, y = 2, z = 2 },
+    font_color     = { r = 0, g = 0, b = 0 },
+    color          = { r = 1, g = 1, b = 1 }
+  })
+
+  self.createButton({
+    label          = "Wasn't",
+    click_function = "notDiverted",
+    function_owner = self,
+    position       = { 0, 0.11, 0.55 },
+    height         = 150,
+    width          = 460,
+    scale          = { x = 2, y = 2, z = 2 },
+    font_color     = { r = 0, g = 0, b = 0 },
+    color          = { r = 1, g = 1, b = 1 }
+  })
+end
+
+function setup(diverted)
+  function grandVaultSetupCoroutine()
+    -- set up Star Spawns
+    local starSpawns = getObjectFromGUID(starSpawnGUID)
+    local setAsideChest = MythosAreaApi.getSetAsideChest()
+    starSpawns.shuffle()
+
+    CoroutineLib.yieldSeconds(1)
+
+    for i = 1, 2 do
+      card = starSpawns.takeObject()
+      trash.putObject(card)
+    end
+
+    spawnObject({
+      type = "Bag",
+      position = starSpawns.getPosition(),
+      callback_function = function(spawned_object)
+        spawned_object.setName("Set-aside Star Spawns")
+        card = starSpawns.takeObject()
+        spawned_object.putObject(card)
+        spawned_object.putObject(starSpawns.remainder)
+        setAsideChest.putObject(spawned_object)
+      end
+    })
+    broadcastToAll("Set aside two Star Spawn enemies in bag in set-aside chest.", "White")
+
+    local mechanisms = getObjectFromGUID(mechanismsGUID)
+    mechanisms.shuffle()
+    CoroutineLib.yieldSeconds(1)
+    card = mechanisms.takeObject()
+    trash.putObject(card)
+
+    local chambersDeck = getObjectFromGUID(chambersGUID)
+    DeckLib.placeOrMergeIntoDeck(mechanisms, chambersDeck.getPosition(), chambersDeck.getRotation(), false, true)
+    CoroutineLib.yieldSeconds(1)
+
+    activatedLocations = {}
+    for i = 1, 7 do
+      location = chambersDeck.takeObject({ position = PlayAreaApi.gridToWorld(grandVaultPositions[i]) })
+      if diverted == "no" then
+        if i == 3 or i == 5 then
+          table.insert(activatedLocations, location)
+        end
+      end
+      if i == 7 then
+        table.insert(activatedLocations, location)
+      end
+    end
+
+    -- add resource tokens to activated locations
+    CoroutineLib.yieldSeconds(1)
+    if diverted == "no" then numActivatedLocations = 3 else numActivatedLocations = 1 end
+    for i = 1, numActivatedLocations do
+      TokenManagerApi.spawnToken(activatedLocations[i].getPosition() + Vector(0, 7, 0), "resource")
+    end
+    broadcastToAll("Activated location(s).", "White")
+
+    local floodTokenPool = getObjectFromGUID(floodTokenPoolGUID)
+
+    for i = 5, 7 do
+      floodTokenPool.takeObject({ position = PlayAreaApi.gridToWorld(grandVaultPositions[i]) + Vector(2, 0, -1.5) })
+    end
+
+    -- this setup has no encounter sets to shuffle in, so shuffle the deck here just in case
+    MythosAreaApi.getEncounterDeckObjects().draw.shuffle()
+  end
+
+  CoroutineLib.start(grandVaultSetupCoroutine)
+  self.destroy()
+end
+
+function divertedPower()
+  setup("yes")
+end
+
+function notDiverted()
+  setup("no")
+end

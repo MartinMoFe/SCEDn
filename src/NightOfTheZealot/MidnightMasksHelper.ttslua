@@ -1,0 +1,82 @@
+local MythosAreaApi = require("mythos/MythosAreaApi")
+local PlayAreaApi   = require("playarea/PlayAreaApi")
+
+LOCATIONS           = {
+  {
+    name = "Downtown",
+    guids = { "1aa7cb", "b5b8db" },
+    position = Vector({ -17.12, 1.6, 0 })
+  },
+  {
+    name = "Southside",
+    guids = { "076b61", "19e7d8" },
+    position = Vector({ -30.22, 1.6, 0 })
+  }
+}
+
+ACOLYTE_SPAWNS      = {
+  { -33.72, 1.6, 0 },
+  { -13.78, 1.6, 0 },
+  { -23.79, 1.6, -10.13 }
+}
+
+CULTISTS_GUID       = "69032d"
+
+SET_ASIDE           = {
+  position = Vector(-5.75, 1.54, 19.25),
+  rotation = Vector(0, 270, 0)
+}
+
+function onLoad()
+  self.createButton({
+    label          = "Set Up",
+    click_function = "setup",
+    function_owner = self,
+    position       = { 0, 0.11, 0 },
+    height         = 120,
+    width          = 500,
+    scale          = { x = 1.75, y = 1.75, z = 1.75 },
+    font_size      = 80
+  })
+end
+
+function setup()
+  if SETUP_DONE then return end
+  SETUP_DONE = true
+
+  for _, loc in ipairs(LOCATIONS) do
+    local chosen = math.random(2)
+    local guid = loc.guids[chosen]
+    local card = getObjectFromGUID(loc.guids[3 - chosen])
+    card.setPosition(SET_ASIDE.position)
+    card.setRotation({ 0, 270, 0 })
+    card = getObjectFromGUID(guid)
+    card.setPosition(loc.position)
+    card.setRotation({ 0, 270, 0 })
+  end
+
+  local numPlayers = PlayAreaApi.getInvestigatorCount()
+  if numPlayers > 1 then
+    local deck = MythosAreaApi.getEncounterDeckObjects().draw
+    local indexes = {}
+
+    for i, card in ipairs(deck.getObjects()) do
+      local md = JSON.decode(card.gm_notes) or {}
+      if md.id == "01169" then -- Acolyte
+        table.insert(indexes, card.index)
+      end
+    end
+
+    for i = numPlayers - 1, 1, -1 do
+      deck.takeObject({
+        index    = indexes[i],
+        position = ACOLYTE_SPAWNS[i],
+        rotation = { 0, 270, 0 },
+        smooth   = false
+      })
+    end
+  end
+
+  local CULTIST_DECK = getObjectFromGUID(CULTISTS_GUID)
+  CULTIST_DECK.shuffle()
+end

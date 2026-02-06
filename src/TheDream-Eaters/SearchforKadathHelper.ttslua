@@ -1,0 +1,369 @@
+local CoroutineLib      = require("util/CoroutineLib")
+local GUIDReferenceApi  = require("core/GUIDReferenceApi")
+local MythosAreaApi     = require("mythos/MythosAreaApi")
+local PlayAreaApi       = require("playarea/PlayAreaApi")
+local SearchLib         = require("util/SearchLib")
+local VictoryDisplayApi = require("mythos/VictoryDisplayApi")
+
+local SET_ASIDE         = {
+  position = Vector(-2.52, 2, 14.87),
+  rotation = Vector(0, 270, 0)
+}
+
+local RFG               = {
+  position = Vector(-6, 1.6, 14.9),
+  rotation = Vector(0, 270, 0)
+}
+
+local RIGHT             = Vector(0, 0, -2.5)
+local LEFT              = Vector(0, 0, 2.5)
+
+local LOCATIONS         = {
+  -- Skai
+  { name = "Ulthar",                         id = "06127", region = "Skai" },
+  { name = "Skai River",                     id = "06128", region = "Skai" },
+  { name = "Dylath-Leen",                    id = "06129", region = "Skai" },
+  -- Oriab
+  { name = "Baharna",                        id = "06136", region = "Oriab",           position = Vector(-36.77, 1.6, 0) },
+  { name = "Mt. Ngranek",                    id = "06137", region = "Oriab",           position = Vector(-43.37, 1.6, 0) },
+  { name = "Nameless Ruins",                 id = "06138", region = "Oriab",           position = Vector(-43.37, 1.6, 7.57) },
+  -- Mnar
+  { name = "Kadatheron",                     id = "06130", region = "Mnar",            position = Vector(-30.22, 1.6, 7.57) },
+  { name = "Sarnath",                        id = "06131", region = "Mnar",            position = Vector(-30.22, 1.6, 15.19) },
+  { name = "Ruins of Ib",                    id = "06132", region = "Mnar",            position = Vector(-36.77, 1.6, 15.19) },
+  -- Forbidden Lands
+  { name = "Ilek-Vad",                       id = "06133", region = "Forbidden Lands", position = Vector(-17.12, 1.6, 0) },
+  { name = "Forbidden Lands",                id = "06134", region = "Forbidden Lands", position = Vector(-17.12, 1.6, 7.57) },
+  { name = "Zulan-Thek",                     id = "06135", region = "Forbidden Lands", position = Vector(-17.12, 1.6, 15.19) },
+  -- Timeless Realm
+  { name = "Celephaïs",                      id = "06139", region = "Timeless Realm",  position = Vector(-30.22, 1.6, -15.28) },
+  { name = "Serannian",                      id = "06140", region = "Timeless Realm",  position = Vector(-23.68, 1.6, -15.28) },
+  { name = "Hazuth-Kleg",                    id = "06141", region = "Timeless Realm",  position = Vector(-36.77, 1.6, -15.28) },
+  { name = "Temple of Unattainable Desires", id = "06142", region = "Timeless Realm", },
+  { name = "City-Which-Appears-On-No-Map",   id = "06143", region = "Timeless Realm", }
+}
+
+local RFG_IDS           = {
+  ["06151"] = true, -- "Pack of Vooniths"
+  ["06145"] = true, -- "Cats of Ulthar"
+  ["06109"] = true, -- "Zoog Burrow"
+  ["06108"] = true, -- "Inconspicuous Zoog"
+  ["06107"] = true, -- "Stealthy Zoog"
+  ["06106"] = true, -- "Furtive Zoog"
+  ["06086"] = true, -- "The Crawling Mist"
+  ["06146"] = true, -- "Stalking Manticore"
+  ["06147"] = true, -- "Horde of Night"
+  ["06148"] = true  -- "Beings of Ib"
+}
+
+local visited           = {}
+
+local buttonParameters  = {
+  function_owner = self,
+  height         = 1000,
+  width          = 2100,
+  font_size      = 375,
+  scale          = Vector(0.5, 0.5, 0.5)
+}
+
+function updateSave()
+  self.script_state = JSON.encode({
+    locationDeckGuid = locationDeckGuid,
+    visited          = visited
+  })
+end
+
+function onLoad(saveData)
+  if saveData and saveData ~= "" then
+    local loadedData = JSON.decode(saveData)
+    locationDeckGuid = loadedData.locationDeckGuid
+    visited          = loadedData.visited or {}
+
+    if locationDeckGuid then
+      Wait.time(function() locationDeck = getObjectFromGUID(locationDeckGuid) end, 0.25)
+    end
+  end
+
+  self.addContextMenuItem("Reset state",
+    function()
+      locationDeckGuid = nil
+      visited          = {}
+      buttonCreation()
+      updateSave()
+    end
+  )
+
+  buttonCreation()
+
+  -- delay to allow mythos area and chest to spawn
+  Wait.time(function()
+    addDynamicPositions()
+    ready = true
+  end, 1)
+end
+
+function buttonCreation()
+  self.clearButtons()
+
+  for i, region in ipairs({ "Oriab", "Mnar", "Forbidden Lands", "Timeless Realm" }) do
+    local funcName                  = "setup_" .. string.lower(region):gsub(" ", "_")
+    _G[funcName]                    = function() maybeSetup(region) end
+    buttonParameters.click_function = funcName
+    buttonParameters.label          = region:gsub(" ", "\n")
+    buttonParameters.position       = Vector(0, 0.11, -3 + 1.2 * i)
+    buttonParameters.color          = visited[region] and { r = 0.5, g = 0.5, b = 0.5 } or { r = 1, g = 1, b = 1 }
+    self.createButton(buttonParameters)
+  end
+end
+
+function addDynamicPositions()
+  local chest = MythosAreaApi.getSetAsideChest()
+  for i, loc in ipairs(LOCATIONS) do
+    if (loc.name == "City-Which-Appears-On-No-Map" or loc.name == "Temple of Unattainable Desires") then
+      loc.position = chest.getPosition() + Vector(0, i - 10, 0)
+    end
+  end
+end
+
+function maybeSetup(region)
+  if not ready then
+    broadcastToAll("Still initializing, try again in a few seconds.")
+  elseif visited[region] then
+    broadcastToAll(region .. " was already visited.")
+  else
+    visited[region] = true
+    buttonCreation()
+    updateSave()
+    setup(region)
+  end
+end
+
+function setup(region)
+  function KadathCoroutine()
+    broadcastToAll("Moving to " .. region)
+
+    local encounterDeckObjects = MythosAreaApi.getEncounterDeckObjects()
+    if encounterDeckObjects.topCard and encounterDeckObjects.draw then
+      encounterDeckObjects.draw.putObject(encounterDeckObjects.topCard)
+      CoroutineLib.yieldCondition(function() return encounterDeckObjects.topCard == nil end, 2)
+    elseif encounterDeckObjects.topCard then
+      encounterDeckObjects.topCard.setRotation(encounterDeckObjects.topCard.getRotation():setAt("z", 180))
+    end
+
+    CoroutineLib.yieldSeconds(0.5)
+    MythosAreaApi.reshuffleEncounterDeck(true)
+    CoroutineLib.yieldSeconds(1.5)
+
+    -- remove clues from players
+    local masterClueCounter = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "MasterClueCounter")
+    if masterClueCounter ~= nil then
+      masterClueCounter.call("removeAllPlayerClues")
+    end
+
+    -- spawn locationDeck if not yet done
+    local chest = MythosAreaApi.getSetAsideChest()
+    if locationDeck == nil then
+      locationDeck = chest.takeObject({
+        guid     = "c5ed15", -- locations
+        smooth   = false,
+        position = SET_ASIDE.position,
+        rotation = SET_ASIDE.rotation
+      })
+      locationDeckGuid = locationDeck.getGUID()
+      CoroutineLib.yieldSeconds(0.5)
+    end
+
+    encounterDeckObjects = MythosAreaApi.getEncounterDeckObjects()
+
+    if region == "Timeless Realm" then
+      local card = chest.takeObject({ guid = "aa76f7" }) -- Crawling Mist
+      encounterDeckObjects.draw.putObject(card)
+      CoroutineLib.yieldCondition(function() return card == nil end, 2)
+      CoroutineLib.yieldSeconds(0.5)
+    end
+
+    cleanZone()
+    placeLocationsAndEnemies(region)
+    encounterDeckObjects.draw.shuffle()
+  end
+
+  CoroutineLib.start(KadathCoroutine)
+end
+
+function cleanZone()
+  -- clean the encounter deck
+  local encounterDeckObjects = MythosAreaApi.getEncounterDeckObjects()
+
+  -- clean the play area
+  local zone = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "PlayAreaZone")
+  local objects = zone.getObjects()
+  table.insert(objects, encounterDeckObjects.draw)
+
+  for _, obj in ipairs(objects) do
+    local handled = false
+
+    -- remove certain cards from game
+    if obj.type == "Card" then
+      local md = getMetadata(obj)
+      if md.id and RFG_IDS[md.id] then
+        obj.setRotation(RFG.rotation)
+        obj.setPosition(RFG.position)
+        handled = true
+      end
+    elseif obj.type == "Deck" then
+      removeCardsFromDeck(obj)
+    end
+
+    if not handled and obj.type == "Card" and obj.hasTag("ScenarioCard") then
+      local md = getMetadata(obj)
+      -- move enemies and treacheries to the encounter deck
+      if md.type == "Enemy" or md.type == "Treachery" then
+        encounterDeckObjects = MythosAreaApi.getEncounterDeckObjects()
+        encounterDeckObjects.draw.putObject(obj)
+        CoroutineLib.yieldCondition(function() return obj == nil end, 2)
+        CoroutineLib.yieldSeconds(0.5)
+      elseif obj.hasTag("Location") then
+        -- move locations to victory display or set aside
+        if md.locationFront and md.locationFront.victory and not obj.is_face_down and not cardHasClues(obj) then
+          PlayAreaApi.maybeUntrackLocation(obj)
+          VictoryDisplayApi.placeCard(obj)
+        else
+          obj.setPosition(SET_ASIDE.position + Vector(0, 1, 0))
+        end
+      end
+    end
+
+    -- delete clues and doom tokens
+    if obj.memo == "clueDoom" then
+      obj.destruct()
+    end
+  end
+
+  -- add in copies of Priest of A Thousand Masks
+  local chest = MythosAreaApi.getSetAsideChest()
+  for _, object in ipairs(chest.getObjects()) do
+    if object.guid == "678204" then
+      local priests = chest.takeObject({ index = object.index })
+      encounterDeckObjects.draw.putObject(priests)
+      CoroutineLib.yieldCondition(function() return priests == nil end, 2)
+      CoroutineLib.yieldSeconds(0.5)
+      break
+    end
+  end
+end
+
+-- loop in reverse since we are removing cards from the deck and that changes the index
+function removeCardsFromDeck(deck)
+  CoroutineLib.yieldFrames(10)
+  local deckInfo = deck.getObjects()
+  for i = #deckInfo, 1, -1 do
+    local card = deckInfo[i]
+    local md = getMetadata(card)
+    if md.id and RFG_IDS[md.id] then
+      deck.takeObject({
+        position = RFG.position,
+        rotation = RFG.rotation,
+        smooth   = false,
+        index    = card.index
+      })
+    end
+  end
+end
+
+function placeLocationsAndEnemies(region)
+  -- take locations from locationDeck if region matches
+  for i, loc in ipairs(LOCATIONS) do
+    if loc.region == region then
+      for j, card in ipairs(locationDeck.getObjects()) do
+        local md = getMetadata(card)
+        if md.id and md.id == loc.id then
+          locationDeck.takeObject({
+            position = loc.position,
+            rotation = Vector(0, 270, 0),
+            smooth   = false,
+            index    = card.index
+          })
+          break
+        end
+      end
+    end
+  end
+
+  CoroutineLib.yieldSeconds(1)
+
+  local chest = MythosAreaApi.getSetAsideChest()
+  local encounterDeckObjects = MythosAreaApi.getEncounterDeckObjects()
+  local encounterDeck = encounterDeckObjects.draw
+
+  if region == "Oriab" then
+    placeEnemyFromContainer("06152", "Nightriders", encounterDeck, "Mt. Ngranek", RIGHT)
+    if PlayAreaApi.getInvestigatorCount() >= 3 then
+      placeEnemyFromContainer("06152", "Nightriders", encounterDeck, "Nameless Ruins", LEFT)
+    end
+    broadcastToAll("Place each investigator at Baharna. Add swarm cards to enemies.")
+  elseif region == "Mnar" then
+    placeEnemyFromContainer("06148", "Beings of Ib", chest, "Ruins of Ib", RIGHT)
+    broadcastToAll("Place each investigator at Kadatheron. Add swarm cards to enemies.")
+  elseif region == "Forbidden Lands" then
+    placeEnemyFromContainer("06146", "Stalking Manticore", chest, "Forbidden Lands", RIGHT)
+    placeEnemyFromContainer("06147", "Horde of Night", chest, "Zulan-Thek", RIGHT)
+    broadcastToAll("Place each investigator at Ilek-Vad. Add swarm cards to enemies.")
+  elseif region == "Timeless Realm" then
+    placeEnemyFromContainer("06149", "Priest of a Thousand Masks", encounterDeck, "Hazuth-Kleg", LEFT)
+    if PlayAreaApi.getInvestigatorCount() >= 3 then
+      placeEnemyFromContainer("06149", "Priest of a Thousand Masks", encounterDeck, "Celephaïs", LEFT)
+    end
+    broadcastToAll("Place each investigator at Celephaïs.")
+  end
+  CoroutineLib.yieldSeconds(1)
+end
+
+function placeEnemyFromContainer(id, name, container, locationName, side)
+  if container ~= nil and container.getData().ContainedObjects then
+    local position = getLocationPositionByName(locationName) + side
+    local info = container.getObjects()
+    for i = #info, 1, -1 do
+      local card = info[i]
+      local md = getMetadata(card)
+      if md.id and md.id == id then
+        container.takeObject({
+          index    = card.index,
+          position = position,
+          rotation = Vector(0, 270, 0),
+          smooth   = false
+        })
+        CoroutineLib.yieldSeconds(0.5)
+        return
+      end
+    end
+  end
+  broadcastToAll("Couldn't find " .. name, "Orange")
+end
+
+-- Checks if a card has clues on it
+---@param card tts__Object Card to check for clues
+---@return boolean hasClues True if card has clues on it
+function cardHasClues(card)
+  local searchResult = SearchLib.onObject(card, "isClue")
+  return #searchResult > 0
+end
+
+function getMetadata(objectOrNotes)
+  if objectOrNotes == nil then return {} end
+  if type(objectOrNotes) == "string" then
+    return JSON.decode(objectOrNotes) or {}
+  elseif type(objectOrNotes) == "table" then
+    return JSON.decode(objectOrNotes["GMNotes"] or objectOrNotes["gm_notes"]) or {}
+  else
+    return JSON.decode(objectOrNotes.getGMNotes()) or {}
+  end
+end
+
+function getLocationPositionByName(locationName)
+  for _, data in ipairs(LOCATIONS) do
+    if data.name == locationName then
+      return data.position
+    end
+  end
+  return {}
+end

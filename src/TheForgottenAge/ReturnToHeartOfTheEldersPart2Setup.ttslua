@@ -1,0 +1,78 @@
+local SearchLib    = require("util/SearchLib")
+
+ASSEMBLY           = {
+  position = Vector(68, 2, 36),
+  rotation = Vector(0, 270, 180)
+}
+ASSEMBLY_OFFSET    = Vector(0, 0, -4)
+EXPLORATION        = Vector(-12, 1.64, 12)
+SET_ASIDE_POSITION = Vector(-7.06, 1.31, 19.43)
+
+function onLoad()
+  self.createButton({
+    label          = "Setup",
+    click_function = "setup",
+    function_owner = self,
+    position       = { 0, 0.3, 2 },
+    rotation       = { 0, 0, 0 },
+    height         = 300,
+    width          = 1000,
+    font_size      = 250,
+    color          = { 0, 0, 0 },
+    font_color     = { 1, 1, 1 }
+  })
+end
+
+function setup()
+  self.setPosition(SET_ASIDE_POSITION)
+  local objs = self.getObjects()
+  for i = #objs, 1, -1 do
+    local md = JSON.decode(objs[i].gm_notes) or {}
+    if md.id == "04222" then -- Vast Passages
+      self.takeObject({
+        position = ASSEMBLY.position,
+        rotation = ASSEMBLY.rotation,
+        smooth = false
+      })
+    else
+      self.takeObject({
+        position = ASSEMBLY.position + (ASSEMBLY_OFFSET * i),
+        rotation = ASSEMBLY.rotation,
+        smooth = false,
+        callback_function = function(obj) pickRandomCard(obj) end
+      })
+    end
+  end
+
+  Wait.time(setup_2, 1)
+end
+
+function setup_2()
+  local result = SearchLib.inArea(ASSEMBLY.position, ASSEMBLY.rotation, { x = 3, y = 3, z = 3 }, "isDeck")
+  if #result > 0 then
+    local exploreDeck = result[1]
+    exploreDeck.shuffle()
+    exploreDeck.setName("Exploration Deck")
+    exploreDeck.setPosition(getExploreDeckPosition())
+  end
+end
+
+function pickRandomCard(obj)
+  obj.shuffle()
+  obj.takeObject({
+    position = ASSEMBLY.position,
+    rotation = ASSEMBLY.rotation,
+    smooth = false
+  })
+  self.putObject(obj.remainder)
+end
+
+function getExploreDeckPosition()
+  -- use the explore helper if present
+  for _, obj in ipairs(getObjects()) do
+    if obj.getName() == "Explore Helper" then
+      return obj.positionToWorld(Vector(0.5887, 0.5, 0))
+    end
+  end
+  return EXPLORATION
+end
