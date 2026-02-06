@@ -79,7 +79,7 @@ function changeState(_, _, isRightClick)
     if phaseId == 1 then
       printToAll("------ NEW ROUND ------")
     end
-
+    printToAll("    ")
     broadcastToAll(PHASE_NAMES[phaseId])
 
     if moreDetails and phaseId == 2 then
@@ -115,4 +115,23 @@ function changeState(_, _, isRightClick)
     tracker.destruct()
     spawnObjectData({ data = data })
   end
+  communicateChange(phaseId)
+end
+
+
+-- Notifies the object with GUID d0c8fb that the phase changed
+-- Calls its function: updatePhase(phase)
+function communicateChange(phaseArg)
+  -- basic validation
+  assert(phaseArg ~= nil, "communicateChange: phase cannot be nil")
+
+  local guid = "d0c8fb"
+  local obj = getObjectFromGUID(guid)
+
+  if not obj then
+    print("communicateChange: object with GUID " .. guid .. " not found")
+    return
+  end
+
+  obj.call("updatePhase", phaseArg)
 end

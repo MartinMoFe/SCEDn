@@ -1,0 +1,45 @@
+do
+    local EnemyWatcherApi = {}
+
+    local function getMonsterWatcher()
+        return getObjectFromGUID("87e529")
+    end
+
+    function EnemyWatcherApi.getEnemiesInPlayArea()
+        return getMonsterWatcher().getVar('enemies')
+    end
+
+    function EnemyWatcherApi.getEnemiesInThreatAreas()
+        return getMonsterWatcher().getVar('enemiesT')
+    end
+
+    function EnemyWatcherApi.getTreacheriesInPlayArea()
+        return getMonsterWatcher().getVar('treacheries')
+    end
+
+    function EnemyWatcherApi.getTreacheriesInThreatAreas()
+        return getMonsterWatcher().getVar('treacheriesT')
+    end
+
+    function EnemyWatcherApi.getLocationsFaceup()
+        return getMonsterWatcher().getVar('locationsFaceup')
+    end
+
+    function EnemyWatcherApi.getLocationsFacedown()
+        return getMonsterWatcher().getVar('locationsFacedown')
+    end
+
+    function EnemyWatcherApi.highlightObjects(objects, color, duration)
+        getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })
+    end
+
+    function EnemyWatcherApi.getMd(object)
+        return getMonsterWatcher().call('getMd', object)
+    end
+
+    function EnemyWatcherApi.getObjectByName(object)
+        return getMonsterWatcher().call('getObjectByName', object)
+    end
+
+    return EnemyWatcherApi
+end

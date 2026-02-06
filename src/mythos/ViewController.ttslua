@@ -1,0 +1,141 @@
+function onLoad(saved_data) 
+    if saved_data ~= "" then
+        local data = JSON.decode(saved_data) or {}
+
+        viewTokens = data.viewTokens or {}
+        lookingAt  = data.lookingAt or nil
+        numberViewTokens = data.numberViewTokens or 0
+    else
+        -- defaults on first load
+        lookingAt  = nil
+        viewTokens = {}
+        numberViewTokens = 0
+    end
+
+    self.addContextMenuItem("Search View Tokens", searchViewMoverTokens)
+    self.addContextMenuItem("Freeze View Tokens", freezeViewMoverTokens)
+    self.addContextMenuItem("Freeze View Tokens", removeAllTokens)
+
+    self.createButton({
+        label          = "Find + Freeze Views",
+        click_function = "searchAndFreeze",
+        function_owner = self,
+        position       = { 0, 0.2, 0 },
+        rotation       = { 0, 0, 0 },
+        width          = 2200,
+        height         = 500,
+        font_size      = 250,
+    })
+
+    addHotkey("Next View", function(player_color)
+        moveCamera(player_color)
+    end)
+
+
+end
+
+function onSave()
+    local data = {
+        viewTokens = viewTokens,
+        lookingAt  = lookingAt
+    }
+
+    return JSON.encode(data)
+end
+
+--- Finds view tokens and immediately freezes them
+function searchAndFreeze()
+    searchViewMoverTokens()
+    freezeViewMoverTokens()
+end
+
+function searchViewMoverTokens()
+    viewTokens = {}
+    numberViewTokens = 0
+
+    for _, obj in ipairs(getAllObjects()) do
+        if obj.hasTag("ViewMoverToken") then
+            table.insert(viewTokens, obj.getGUID())
+        end
+    end
+    numberViewTokens = #viewTokens
+end
+
+--- Freezes all view tokens:
+--- - makes them non-interactable
+--- - hides tooltip text (name + description)
+--- - shrinks them to 1/20th size
+--- Uses the global `viewTokens` (list of GUIDs).
+function freezeViewMoverTokens()
+    if not viewTokens then return end
+
+    for _, guid in ipairs(viewTokens) do
+        local obj = getObjectFromGUID(guid)
+        if obj then
+            obj.interactable = false
+            obj.setLock(true)
+
+            obj.setName("")
+            obj.setDescription("")
+
+            -- shrink (factor 20)
+            local s = obj.getScale()
+            obj.setScale({
+                s.x / 20,
+                s.y / 20,
+                s.z / 20
+            })
+        end
+    end
+end
+
+function removeAllTokens()
+    if not viewTokens then return end
+    local num = #viewTokens
+
+    for _, guid in ipairs(viewTokens) do
+        local obj = getObjectFromGUID(guid)
+        if obj then
+            obj.destruct()
+        end
+    end
+    viewTokens = {}
+    log("Destroyed a total of "..num.." tokens")
+end
+
+function moveCamera(player_color)
+    if not viewTokens or #viewTokens == 0 then
+        log("No view tokens — run searchTokens() first.")
+        return
+    end
+
+    -- initialize if nil
+    if not lookingAt then
+        lookingAt = 1
+    end
+
+
+    -- move and wrap around
+    lookingAt = lookingAt + 1
+    if lookingAt > #viewTokens then
+        lookingAt = 1
+    elseif lookingAt < 1 then
+        lookingAt = #viewTokens
+    end
+
+    local guid = viewTokens[lookingAt]
+    local obj = getObjectFromGUID(guid)
+
+
+    if not obj then
+        return
+    end
+
+    -- Move White player's camera to this object
+    Player[player_color].lookAt({
+        position = obj.getPosition(),
+        pitch    = 90,
+        yaw      = 90,
+        distance = 22
+    })
+end
