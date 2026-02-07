@@ -1,8 +1,0 @@
-VALID_TOKENS = {
-  ["Elder Sign"] = true,
-  ["0"] = true
-}
-
-MAX_SEALED = 1
-
-require("playercards/CardsThatSealTokens")
