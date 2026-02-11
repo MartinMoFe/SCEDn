@@ -36,6 +36,8 @@ local LIGHT_BLUE = { r = 0.467, g = 0.867, b = 0.931 }
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
 function onLoad(savedData)
+    -- The list of objects is stored as a list of GUIDs,
+    -- but used as a list of references
     local function guidsToObjects(list)
         local objs = {}
         for _, guid in ipairs(list or {}) do
@@ -52,21 +54,22 @@ function onLoad(savedData)
         data = JSON.decode(savedData) or {}
     end
 
-    lastPhase    = data.lastPhase
-    newPhase     = data.newPhase
+    lastPhase         = data.lastPhase
+    newPhase          = data.newPhase
 
-    fakeMinis    = guidsToObjects(data.fakeMinis)
-    enemies      = guidsToObjects(data.enemies)
-    treacheries  = guidsToObjects(data.treacheries)
-    enemiesT     = guidsToObjects(data.enemiesT)
-    treacheriesT = guidsToObjects(data.treacheriesT)
-    locationsFaceup = guidsToObjects(data.locationsFaceup)
+    fakeMinis         = guidsToObjects(data.fakeMinis)
+    enemies           = guidsToObjects(data.enemies)
+    treacheries       = guidsToObjects(data.treacheries)
+    enemiesT          = guidsToObjects(data.enemiesT)
+    treacheriesT      = guidsToObjects(data.treacheriesT)
+    locationsFaceup   = guidsToObjects(data.locationsFaceup)
     locationsFacedown = guidsToObjects(data.locationsFacedown)
 end
 
 function onSave()
+    -- The list of objects is stored as a list of GUIDs,
+    -- but used as a list of references
     local function objectsToGuids(list)
-        if type(list) ~= "table" then return {} end
         local guids = {}
         for _, obj in ipairs(list) do
             if obj and obj.getGUID then
@@ -77,15 +80,15 @@ function onSave()
     end
 
     local data = {
-        lastPhase    = lastPhase,
-        newPhase     = newPhase,
+        lastPhase         = lastPhase,
+        newPhase          = newPhase,
 
-        fakeMinis    = objectsToGuids(fakeMinis),
-        enemies      = objectsToGuids(enemies),
-        treacheries  = objectsToGuids(treacheries),
-        enemiesT     = objectsToGuids(enemiesT),
-        treacheriesT = objectsToGuids(treacheriesT),
-        locationsFaceup = objectsToGuids(locationsFaceup),
+        fakeMinis         = objectsToGuids(fakeMinis),
+        enemies           = objectsToGuids(enemies),
+        treacheries       = objectsToGuids(treacheries),
+        enemiesT          = objectsToGuids(enemiesT),
+        treacheriesT      = objectsToGuids(treacheriesT),
+        locationsFaceup   = objectsToGuids(locationsFaceup),
         locationsFacedown = objectsToGuids(locationsFacedown),
     }
 
@@ -101,16 +104,14 @@ function respondToChange(phaseArg)
     end
 
     lastPhase = newPhase
-    if newPhase == 1 then   
+
+    if newPhase == 1 then
         destroyFakeMinis()
-        showHealthSanityInfo({ colorPrint = LIGHT_BLUE })
     elseif newPhase == 2 then
         destroyFakeMinis()
-        showHealthSanityInfo({ colorPrint =LIGHT_BLUE})
         duplicateFakeMinis()
     elseif newPhase == 3 then
         destroyFakeMinis()
-        showHealthSanityInfo({ colorPrint = LIGHT_BLUE })
         showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
     elseif newPhase == 4 then
         destroyFakeMinis()
@@ -144,32 +145,12 @@ function showHealthSanityInfo(params)
     if params == nil then
         params = {}
     end
-    
-    if type(PlayermatApi) ~= "table" then
-        log("[EnemyWatcher][ERROR] PlayermatApi missing or invalid")
-        return
-    end
-
-    if type(PlayermatApi.getUsedMatColors) ~= "function" then
-        log("[EnemyWatcher][ERROR] getUsedMatColors not found")
-        return
-    end
-
-    if type(PlayermatApi.getCounterValue) ~= "function" then
-        log("[EnemyWatcher][ERROR] getCounterValue not found")
-        return
-    end
 
     local usedColors = PlayermatApi.getUsedMatColors()
-    if type(usedColors) ~= "table" then
-        log("[EnemyWatcher][ERROR] getUsedMatColors did not return a table")
-        return
-    end
 
     local colorPrint = params.colorPrint or Color.White
 
     for _, matColor in ipairs(usedColors) do
-
         local investigatorName = PlayermatApi.getInvestigatorName(matColor)
 
         local health = PlayermatApi.getCounterValue(matColor, "DamageCounter")
@@ -252,14 +233,14 @@ end
 
 --- Scans the Play Area and updates cached enemy and treachery lists.
 --- Populates the globals:
----   enemies      : tts__Object[]
----   treacheries  : tts__Object[]
+--- enemies      : tts__Object[]
+--- treacheries  : tts__Object[]
 --- locationsFaceup  : tts__Object[]
 --- locationsFacedown  : tts__Object[]
 function scanAndStore()
     enemies = {}
     treacheries = {}
-    locationsFaceup = {} 
+    locationsFaceup = {}
     locationsFacedown = {}
 
     local allObjs = scanPlayArea()
@@ -281,7 +262,6 @@ function scanAndStore()
 
     enemiesT = {}
     treacheriesT = {}
-
 
     local objs = scanThreatAreas()
     if not objs then return end
@@ -311,20 +291,18 @@ end
 
 function duplicateFakeMinis()
     for _, obj in ipairs(getMinicardsInPlayArea()) do
-        log('duplicateFakeMinis123')
-        local data = obj.getData() -- Can this line fail
-        log('duplicateFakeMinis1234')
+        local data = obj.getData()
         local s = obj.getScale()
         local newScale = {
             x = s.x * 0.8,
-            y = s.y * 0.1,
+            y = s.y * 0.012,
             z = s.z * 0.8,
         }
-
 
         local pos = obj.getPosition()
         pos.y = pos.y - 0.02
 
+        data.nickname = ""
         data.Tags = data.Tags or {}
         for i = #data.Tags, 1, -1 do
             if data.Tags[i] == "Minicard" then
@@ -332,7 +310,6 @@ function duplicateFakeMinis()
             end
         end
         table.insert(data.Tags, "DuplicateMinicard")
-
 
         local dup = spawnObjectData({
             data = data,
