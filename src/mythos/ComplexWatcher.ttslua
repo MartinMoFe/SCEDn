@@ -40,6 +40,7 @@ TreacheryMessage            = {
     ["53072"] = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Stolen Mind.' },
     ["60204"] = { ["2.1"] = "Forced - When your turn begins: Discard 1 non-weakness card at random from your hand." },
     ["11750"] = { ["2.9"] = "Forced - When your turn ends, if you have no cards in hand: Discard Drawn to Darkness." },
+    ["11722"] = { ["2.9"] = "Forced - After you end your turn at a location with another investigator or a Stowaway enemy: Place 1 doom on Infected!" },
 
 }
 LocationFaceupMessage             = {
@@ -52,11 +53,12 @@ LocationFaceupMessage             = {
     ["11543"] = { ["2.9"] = 'Forced - After you end your turn at Drowned Acropolis: You must either increase the flood level of an adjacent location or take 1 damage.' },
     ["11544"] = { ["2.9"] = 'Forced - After you end your turn at Blasted Ruins: Increase its flood level.' },
     ["11545"] = { ["2.9"] = 'Forced - After you end your turn at Blasted Ruins: Increase its flood level.' },
+    ["11572"] = { ["2.9"] = "Forced - When your turn ends, if you are at this location: Test  (1). If you fail, you must either move to a connecting location or Mother attacks you." },
 }
 EnemyMessage                = {
     ["02087"]  = { ["1.1"] = 'Forced - When the engaged investigator draws a Hex or Pact card: Wizard of Yog-Sothoth attacks that investigator.' },
     ["01170"]  = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Wizard of the Order.' },
-    ["50042"]  = {
+    ["50042"]  = {  
         ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Corpse-Taker.',
         ['3.9'] =
         'Forced - At the end of the enemy phase: Corpse-Taker moves once toward Rivertown or Main Path. If Corpse-Taker is already at Rivertown or Main Path, move all doom from Corpse-Taker to the current agenda, instead.'
