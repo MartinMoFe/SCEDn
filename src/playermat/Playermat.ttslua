@@ -383,11 +383,12 @@ function doUpkeep(player, clickType)
 
   -- unexhaust cards in play zone, flip action tokens and find Forced Learning / cards that skip resource gains
   local forcedLearning     = false
+  local marcusSengstacke   = false
   local skipUpkeepResource = false
   local rot                = self.getRotation()
 
   -- check for Wracked by Nightmares
-  local wracked = false
+  local wracked            = false
   for _, obj in ipairs(searchThreatArea("isCard")) do
     if not obj.is_face_down then
       local cardMetadata = JSON.decode(obj.getGMNotes()) or {}
@@ -421,9 +422,12 @@ function doUpkeep(player, clickType)
           GlobalApi.maybeReadyCard(obj, rot, false)
         end
 
-        -- detect Forced Learning to handle card drawing accordingly
         if cardMetadata.id == "08031" then
+          -- detect Forced Learning to handle card drawing accordingly
           forcedLearning = true
+        elseif cardMetadata.id == "60362" then
+          -- Marcus Sengstacke adds 1 resource
+          marcusSengstacke = true
         end
 
         -- detect Dark Horse
@@ -511,14 +515,23 @@ function doUpkeep(player, clickType)
     drawCardsWithReshuffle(1)
   end
 
-  -- gain a resource (or two if playing non-parallel Jenny Barnes), with potential resource skipping
+  -- handle resource gaining
   if skipUpkeepResource == true then
     printToColor("Skipping Upkeep resource(s)", messageColor)
-  elseif activeInvestigatorData.id == "02003" or activeInvestigatorData.id == "02003-pb" then
-    updateCounter({ type = "ResourceCounter", modifier = 2 })
-    printToColor("Gaining 1 additional resource (Jenny)", messageColor)
   else
-    updateCounter({ type = "ResourceCounter", modifier = 1 })
+    local resourcesToGain = 1
+
+    if activeInvestigatorData.id == "02003" or activeInvestigatorData.id == "02003-pb" then
+      resourcesToGain = resourcesToGain + 1
+      printToColor("Gaining 1 additional resource (Jenny)", messageColor)
+    end
+
+    if marcusSengstacke then
+      resourcesToGain = resourcesToGain + 1
+      printToColor("Gaining 1 additional resource (Marcus Sengstacke)", messageColor)
+    end
+
+    updateCounter({ type = "ResourceCounter", modifier = resourcesToGain })
   end
 end
 
@@ -711,6 +724,11 @@ function flipTopCardFromDeck(additionalDelay)
       end
     end
   end, 0.1 + (additionalDelay or 0))
+end
+
+-- calls the DiscardOne function with correct parameter
+function doDiscardOneFromHotkey(clickedByColor)
+  doDiscardOne(Player[clickedByColor])
 end
 
 -- discard a random non-hidden card from hand
@@ -1735,23 +1753,25 @@ function maybeUpdateActiveInvestigator(card, md)
   if md.id == activeInvestigatorData.id then return end
 
   -- extract relevant data from the metadata
-  activeInvestigatorData.class = md.class
-  activeInvestigatorData.id = md.id
-  activeInvestigatorData.miniId = GlobalApi.getMiniId(md.id)
+  activeInvestigatorData.class           = md.class
+  activeInvestigatorData.id              = md.id
+  activeInvestigatorData.elderSignEffect = md.elderSignEffect
+  activeInvestigatorData.miniId          = GlobalApi.getMiniId(md.id)
+
+  -- update skill tracker
   ownedObjects.InvestigatorSkillTracker.call("updateStats", {
     md.willpowerIcons,
     md.intellectIcons,
     md.combatIcons,
     md.agilityIcons
   })
-  activeInvestigatorData.elderSignEffect = md.elderSignEffect
 
   maybeDrawBorderAroundMinicard()
 
   -- small delay to allow other objects to finish colliding
   Wait.time(updateTexture, 0.3)
 
-  newInvestigatorCallback(md.id)
+  newInvestigatorCallback(card, md.id)
 
   -- set proper scale for investigators
   local cardData = card.getData()
@@ -1833,7 +1853,7 @@ function spawnActionTokens()
 end
 
 -- does something for specific investigators when they are loaded
-function newInvestigatorCallback(newId)
+function newInvestigatorCallback(card, newId)
   updateMessageColor()
   Wait.frames(function() GlobalApi.updateActionTrackerName(matColor) end, 3)
   Wait.frames(function() GlobalApi.updateActionTrackerTokens(matColor) end, 5)
@@ -1872,6 +1892,20 @@ function newInvestigatorCallback(newId)
     spawnObjectForInvestigator(nil, "Subject 5U-21 Helper")
     printToColor("Subject 5U-21: Spawned a helper to track the classes of devoured cards near your playermat. " ..
       "Note that this and 'Ravenous' will work with the Attachment Helper from the option panel.", messageColor)
+  end
+
+  -- maybe spawn small attachment helper for investigator
+  if card.hasTag("CardWithAttachmentHelper") and GlobalApi.getOptionPanelState()["showAttachmentHelper"] then
+    local objs = getObjectsWithTag("AttachmentHelperBag")
+    if #objs > 0 then
+      local helper = objs[1].takeObject({
+        position = self.positionToWorld(Vector(-1.051, 0.11, 0.034)):setAt("y", 1.8),
+        rotation = self.getRotation(),
+        smooth   = false
+      })
+      helper.setScale({ 0.57, 0.65, 0.57 })
+      Wait.frames(function() helper.call("loadDataFromMetadata", { md = { id = newId } }) end, 3)
+    end
   end
 end
 
