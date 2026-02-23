@@ -29,6 +29,12 @@ do
         return getMonsterWatcher().getVar('locationsFacedown')
     end
 
+    function EnemyWatcherApi.getVisibleCardsMythosArea()
+        return getMonsterWatcher().getVar('mythosObjects')
+    end
+
+    -- Useful functions
+
     function EnemyWatcherApi.highlightObjects(objects, color, duration)
         getMonsterWatcher().call('highlightObjectsCall', { objects = objects, color = color, duration = duration })
     end

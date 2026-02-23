@@ -22,7 +22,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Arkham SCE: Decompose",
+      "label": "DE-COM-PO-SE",
       "type": "shell",
       "command": "python",
       "args": [

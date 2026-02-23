@@ -85,6 +85,13 @@ EnemyMessage                = {
         ["3.9"] = 'Forced - At the end of the enemy phase: Discard Tindalos Alpha.'
     },
 }
+MythosMessage = {
+    ["11683"] = { ["1.9"] = 'When doom is placed...' },
+    ["11690"] = { ["4.9"] = 'When the round ends...' },
+    ["11691a"] = { ["4.9"] = 'When the round ends...' },
+    ["11640"] = { ["4.9"] = 'When the round ends, reveal tokens...' },
+}
+
 
 -- ENEMY ATTRIBUTES
 -- This EffectWatcher is also the responsible to know what enemies are aloof, hunter or massive
@@ -295,9 +302,24 @@ function showAllCardsInfo(phaseNumber)
     end
 
     for i, phaseString in ipairs(apair) do
+        showAllMythosInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
         showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] }) 
         showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = BLUE_TREACHERY })
         showAllLocationInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
+    end
+end
+
+function showAllMythosInfo(params)
+    local phaseNumber = params.phaseNumber
+    local colorPrint = params.colorPrint
+
+    local mythosObjects = EnemyWatcherApi.getVisibleCardsMythosArea()
+
+    for _, object in ipairs(mythosObjects) do
+        local msg = getMythosMessage(object, phaseNumber)
+        if msg then
+            printToAll(msg, colorPrint)
+        end
     end
 end
 
@@ -456,11 +478,30 @@ function getTreacheryMessage(obj, phaseNumber)
     local md = JSON.decode(rawNotes) or {}
     local id = md['id'] or ''
     local messages = TreacheryMessage[id] or nil
-    EnemyWatcherApi.getMd(obj)
     if messages then
         return messages[phaseNumber] or nil
     end
     return nil
+end
+
+function getMythosMessage(obj, phaseNumber)
+    local rawNotes = "{}"
+    local md = {}
+    local id = ""
+
+    if type(obj) == "userdata" then
+        rawNotes = obj.getGMNotes() or "{}"
+        md = JSON.decode(rawNotes) or {}
+        id = md.id or ""
+
+    elseif type(obj) == "table" then
+        md = obj or {}
+        id = md.id or ""
+    else
+        error("Unsupported card type for ID extraction", 2)
+    end
+
+    local messages = MythosMessage[id]
 end
 
 function getEnemyMessage(obj, phaseNumber)
