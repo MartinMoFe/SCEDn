@@ -30,6 +30,7 @@ local AgendaActFacedownEnemies = { -- Some enemies are Agenda or Act cards in th
 
 local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
 local LIGHT_BLUE = { r = 0.467, g = 0.867, b = 0.931 }
+local INV_GREEN = { r = 0.531, g = 0.848, b = 0.598 }
 
 
 -- █▀▀ █▀▀█ █▀▀▄ █▀▀
@@ -110,7 +111,7 @@ function respondToChange(phaseArg)
   if newPhase == 1 then
     destroyFakeMinis()
   elseif newPhase == 2 then
-    showHealthSanityInfo()
+    showHealthSanityInfo({ colorPrint = INV_GREEN })
     destroyFakeMinis()
     duplicateFakeMinis()
   elseif newPhase == 3 then
@@ -234,7 +235,6 @@ end
 
 -- @return table Table containing all
 function scanMythosArea()
-
   mythosObjects = {}
 
   -- Step 1: Get Mythos Area object
@@ -416,7 +416,7 @@ function destroyFakeMinis()
 
   for _, obj in ipairs(fakeMinis) do
     if obj and obj.destruct then
-      pcall(function() obj.destruct() end)       -- in case the table was cleaned
+      pcall(function() obj.destruct() end) -- in case the table was cleaned
     end
   end
 
@@ -562,7 +562,7 @@ function getVisibleCardDeck(deck)
     log("getVisibleCardDeck::argument error")
     return nil
   end
-  
+
   -- If deck is face down, nothing is visible
   if deck.is_face_down then
     return nil

@@ -318,7 +318,6 @@ function showAllCardsInfo(phaseNumber)
 end
 
 function showAllMythosInfo(params)
-    log("function showAllMythosInfo(params)")
     local phaseNumber = params.phaseNumber
     local colorPrint = params.colorPrint
 
@@ -477,6 +476,9 @@ end
 
 -- Message retrieval
 
+--- @param obj userdata|table  TTS object or decoded metadata table
+--- @param phaseNumber number   Phase index used to select the message
+--- @return string|nil
 function getTreacheryMessage(obj, phaseNumber)
     -- Returns string or nil
     local rawNotes = obj.getGMNotes() or "{}"
@@ -489,6 +491,9 @@ function getTreacheryMessage(obj, phaseNumber)
     return nil
 end
 
+--- @param obj userdata|table  TTS object or decoded metadata table
+--- @param phaseNumber number   Phase index used to select the message
+--- @return string|nil
 function getMythosMessage(obj, phaseNumber)
     local rawNotes = "{}"
     local md = {}
@@ -505,7 +510,10 @@ function getMythosMessage(obj, phaseNumber)
         error("Unsupported card type for ID extraction", 2)
     end
 
-    local messages = MythosMessage[id]
+    local messages = MythosMessage[id] or nil
+    if messages then
+        return messages[phaseNumber]
+    end
 end
 
 function getEnemyMessage(obj, phaseNumber)

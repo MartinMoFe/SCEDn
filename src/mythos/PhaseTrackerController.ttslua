@@ -61,7 +61,7 @@ function updatePhase(phaseArg)
         "updatePhase: phase must be between 1 and 4")
 
     currentPhase = phaseArg
-    informEnemyWatcher(phaseArg)    
+    informEnemyWatcher(phaseArg)
 end
 
 -- add this new function
