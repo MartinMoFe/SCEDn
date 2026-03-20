@@ -165,6 +165,9 @@ function showHealthSanityInfo(params)
 
     printToAll(message, colorPrint)
   end
+  
+  printToAll("-------", colorPrint)
+
 end
 
 -- Threat area helper

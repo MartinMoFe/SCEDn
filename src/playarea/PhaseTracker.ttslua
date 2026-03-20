@@ -76,11 +76,9 @@ function changeState(_, _, isRightClick)
 
   -- broadcast if option is enabled
   if broadcastChange then
-    printToAll("    ")
     if phaseId == 1 then
       printToAll("------ NEW ROUND ------")
     end
-    printToAll("    ")
     broadcastToAll(PHASE_NAMES[phaseId])
 
     if moreDetails and phaseId == 2 then

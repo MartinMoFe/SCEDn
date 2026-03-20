@@ -39,9 +39,9 @@ TreacheryMessage      = {
     ["11665"] = { ["4.9"] = "Forced - When the round ends: Each investigator at this location takes 1 damage. Attach St. Elmo's Fire to an adjacent location (with investigators, if able)." },
     ["53072"] = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Stolen Mind.' },
     ["60204"] = { ["2.1"] = "Forced - When your turn begins: Discard 1 non-weakness card at random from your hand." },
+    ["71062"] = { ["2.9"] = "Forced - At the end of your turn: Test (3). If you fail, take 1 horror." },
     ["11750"] = { ["2.9"] = "Forced - When your turn ends, if you have no cards in hand: Discard Drawn to Darkness." },
     ["11722"] = { ["2.9"] = "Forced - After you end your turn at a location with another investigator or a Stowaway enemy: Place 1 doom on Infected!" },
-
 }
 LocationFaceupMessage = {
     ["02324"] = { ["4.9"] = 'Forced - At the end of the round: Either place 1 doom on Tear Through Space, or discard it.' },
@@ -64,21 +64,22 @@ EnemyMessage          = {
         'Forced - At the end of the enemy phase: Corpse-Taker moves once toward Rivertown or Main Path. If Corpse-Taker is already at Rivertown or Main Path, move all doom from Corpse-Taker to the current agenda, instead.'
     },
     ["01157"]  = { ["2.9"] = 'Forced - At the end of each investigators turn: Ready Umôrdhoth.' },
-    ["02141"]  = { ["3.1"] = 'Forced - At the start of the enemy phase: Reveal a random token from the chaos bag. If the revealed token has a ? symbol, ready Hunting Horror.' },
+    ["01179"]  = { ["4.9"] = 'Forced - At the end of the round: Heal 2 damage from Relentless Dark Young.' },
     ["02058"]  = { ["3.1"] = 'Forced - When the enemy phase begins: Ready The Experiment.' },
-    ["02329"]  = { ["3.1"] = 'Forced - When Interstellar Traveler enters a location: Flip 1 clue on that location to its doom side and place it on Interstellar Traveler, or place 1 doom on Interstellar Traveler if there are no clues on that location.' },
-    ["11537a"] = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
-    ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: This enemy attacks the investigator with the lowest  at a connecting location. If no attack was made, Slitherer in Darkness moves to the flooded location nearest the Moving Platform.' },
-    ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: Increase the flood level of its location. If you cannot, place 1 doom on Medusa.' },
-    ["11637"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready and unengaged: It moves to its prey\'s location.' },
+    ["02141"]  = { ["3.1"] = 'Forced - At the start of the enemy phase: Reveal a random token from the chaos bag. If the revealed token has a ? symbol, ready Hunting Horror.' },
     ["02294"]  = { ["3.9"] = 'Forced - At the end of the enemy phase, Devotee of the Key moves once toward Sentinel Peak. If Devotee of the Key is already at Sentinel Peak, discard it and add 2 doom to the current agenda, instead.' },
+    ["02329"]  = { ["3.1"] = 'Forced - When Interstellar Traveler enters a location: Flip 1 clue on that location to its doom side and place it on Interstellar Traveler, or place 1 doom on Interstellar Traveler if there are no clues on that location.' },
     ["03060"]  = { ["3.9"] = 'Forced - At the end of the enemy phase: Each investigator at Royal Emissarys location or a connecting location takes 1 horror.' },
     ["03221b"] = { ["3.9"] = 'Forced - At the end of the enemy phase: If The Organist is unengaged, move it 1 location away from the nearest investigator (to a location with no investigators, if possible). If it is engaged, disengage it instead.' },
     ["07038"]  = { ["3.9"] = 'Forced - At the end of the enemy phase: Add 1 curse token to the chaos bag.' },
-    ["11635"]  = { ["3.9"] = 'Forced - When the enemy phase ends, if there are no investigators at Colossal Tyrant\'s location: Deal 1 direct horror to each card with sanity at each adjacent location.' },
     ["11535"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on a player card at this enemy\'s location. Then, discard Hunting Parasite.' },
+    ["11537a"] = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
+    ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: Increase the flood level of its location. If you cannot, place 1 doom on Medusa.' },
+    ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: This enemy attacks the investigator with the lowest  at a connecting location. If no attack was made, Slitherer in Darkness moves to the flooded location nearest the Moving Platform.' },
+    ["11635"]  = { ["3.9"] = 'Forced - When the enemy phase ends, if there are no investigators at Colossal Tyrant\'s location: Deal 1 direct horror to each card with sanity at each adjacent location.' },
+    ["11637"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready and unengaged: It moves to its prey\'s location.' },
     ["11721"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on another non-Elite enemy at this location. Then, discard Stowaway Drone.' },
-    ["01179"]  = { ["4.9"] = 'Forced - At the end of the round: Heal 2 damage from Relentless Dark Young.' },
+    ["71051"]  = { ["3.9"] = "Forced - At the end of the enemy phase, if Declan Pearce is ready: Heal 1 damage from each enemy in play." },
     ["53077"]  = {
         ["3.7"] =
         'Forced - After Tindalos Alpha attacks you: Shuffle a non-story asset you control into your deck, moving all damage and horror from that asset to your investigator. Discard Tindalos Alpha.',
