@@ -225,14 +225,15 @@
     "CoreNightoftheZealot.64a613",
     "TheDrownedCity.938aab",
     "FilmFatale.45e513",
-    "Core2026BrethrenofAsh.elokoss"
+    "Core2026BrethrenofAsh.elokoss",
+    "EnemyWatcher.87e529",
+    "ComplexWatcher.87e530",
+    "DecalPlacer.778507",
+    "ViewController.ca8428",
+    "PhaseTrackerController.d0c8fb"
   ],
   "PlayArea": 1,
-<<<<<<< HEAD
   "SaveName": "Arkham SCE - 4.7.1",
-=======
-  "SaveName": "Arkham SCE - 4.6.1",
->>>>>>> 23ac07b2 (Funcionando etc)
   "Sky": "Sky_Museum",
   "SkyURL": "https://steamusercontent-a.akamaihd.net/ugc/12370276462640249866/7F87FD43B19AB396C8466C7E028C10FA7695F8C1/",
   "SnapPoints_path": "SnapPoints.json",

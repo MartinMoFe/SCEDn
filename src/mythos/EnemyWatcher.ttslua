@@ -2,7 +2,6 @@ local GUIDReferenceApi         = require("core/GUIDReferenceApi")
 local PlayermatApi             = require("playermat/PlayermatApi")
 local SearchLib                = require("util/SearchLib")
 local Zones                    = require("playermat/Zones")
-local MythosAreaApi            = require("mythos/MythosAreaApi")
 
 -- FIND ENEMIES: Cards that are enemies only only when face-down
 -- Here we list them by their id in the metadata
@@ -12,6 +11,7 @@ local FaceDownEnemies          = { -- Some enemies Enemies in the metadata, but 
   ['04122'] = true,                -- Harlan Earstone
   ['04130a'] = true,               -- Henry Deveau
   ['04209'] = true,                -- The Winged Serpent
+  ['71045'] = true,                -- Blooless Man
   --['04325b'] = true,          -- Ichtaca
 
 }
