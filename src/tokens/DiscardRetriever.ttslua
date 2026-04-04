@@ -1,0 +1,196 @@
+local PlayermatApi  = require("playermat/PlayermatApi")
+
+retrievableCardsIds = {
+  "04312", "04033", "11092",
+  "04272", "10118", "11085",
+  "11090", "06245", "09103"
+}
+
+
+--- @type string[]
+local foundRetrievableNames = {}
+local isScavenging = false
+local isAmuletActive = false
+
+
+function onLoad()
+  addPermanentEntries()
+end
+
+function onHover()
+  readDiscardPile()
+  generateContextMenu()
+end
+
+-- Context Menu
+
+function generateContextMenu()
+  self.clearContextMenu()
+
+  -- Permanent toggles
+  addPermanentEntries()
+
+  -- Cards stored as retrievable Cards, generate entries
+  for _, name in pairs(foundRetrievableNames) do
+    self.addContextMenuItem(name, function() pullCardFromDiscard(name) end)
+  end
+end
+
+-- This entries lead the context menu
+function addPermanentEntries()
+  self.addContextMenuItem("Toggle Scavenging", function() toggleScavenging() end)
+  self.addContextMenuItem("Toggle Wendy's Amulet", function() toggleAmulet() end)
+end
+
+function toggleScavenging()
+  isScavenging = not isScavenging
+  printToAll("Retrieving Items is now " .. (isScavenging and "active" or "inactive"), {1, 1, 1})
+end
+
+function toggleAmulet()
+  isAmuletActive = not isAmuletActive
+  printToAll("Retrieving Events is now " .. (isScavenging and "active" or "inactive"), { 1, 1, 1 })
+end
+
+-- seaches discard pile, reads and populates the foundRetrievable variable
+function readDiscardPile()
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local deckAreaObjects = PlayermatApi.getDeckAreaObjects(matColor)
+  foundRetrievableNames = {}
+
+  if not deckAreaObjects.discard then return end
+
+  
+  if deckAreaObjects.discard.type == 'Card' then
+    log("Yet to implement", 2)
+  elseif deckAreaObjects.discard.type == 'Deck' then
+    for _, card in ipairs(deckAreaObjects.discard.getObjects()) do
+      isRetrievableCard(card)
+    end
+  end
+end
+
+function pullCardFromDiscard(cardName)
+
+  if type(cardName) ~= "string" then
+    error("Implementation error. Expected string.", 2)
+  end
+
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local deckAreaObjects = PlayermatApi.getDeckAreaObjects(matColor)
+
+  if not deckAreaObjects.discard then
+    return
+  end
+
+  if deckAreaObjects.discard.type == 'Card' then
+    log("Yet to implement", 2)
+  elseif deckAreaObjects.discard.type == 'Deck' then
+    takeOutByName(deckAreaObjects.discard, cardName, {
+      position = self.getPosition() + Vector(0, 1, 0), smooth = true})
+  end
+end
+
+-- Boolen helpers
+
+-- Absolute isRetrievableCard function, checks if the card is retrievable by any means
+---@return boolean
+function isRetrievableCard(card)
+  
+  if type(card) ~= "table" then
+    error("Yet to implement", 2)
+  end
+  
+  if not card.gm_notes then
+    error("Fail immediately in the developing.", 2)
+  end
+  
+  if isPlayableCard(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isScavenging and isScavengingAble(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isAmuletActive and isEvent(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  end
+end
+
+-- Checks if this is a playable Card, simply by its effect
+---@return boolean
+function isPlayableCard(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if isInList(retrievableCardsIds, metadata.id) then
+    return true
+  end
+  return false
+end
+
+-- Checks if this is an Item Card
+---@return boolean
+function isScavengingAble(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  traits = metadata.traits or ""
+  if string.find(traits, "Item") then
+    return true
+  end
+  return false
+end
+
+-- Checks if this is an Event
+function isEvent(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if metadata.type == "Event" then
+    return true
+  end
+  return false
+end
+
+------ GENERIC FUNCTIONS FOR TABLETOP SIMULATOR
+
+--@param deck tts__Object
+--@param cardName string
+--@returns tts__Object|nil
+function takeOutByName(deck, cardName, params)
+  -- Defensive checks
+
+  if not deck or deck.tag ~= "Deck" then
+    error("Argument error. deck", 2)
+  end
+
+  if type(cardName) ~= "string" or cardName == "" then
+    error("Argument error. cardName", 2)
+  end
+
+  if not params or type(params) ~= "table" then
+    error("Argument error. params", 2)
+  end
+
+  -- Search for the card in the deck
+  local cards = deck.getObjects()
+  for _, card in ipairs(cards) do
+    if card.name == cardName then
+      if card.guid and #card.guid == 6 then
+        params.guid = card.guid
+        return deck.takeObject(params)
+      else
+        -- Can the postion of card inside a deck be found? My test say no
+        log("No GUID available for this card (inside a deck). This can happen if the cards were never initialized", 2)
+        return nil
+      end
+    end
+  end
+
+  log("takeoutbyname: Card '" .. cardName .. "' not found in deck")
+  return nil
+end
+
+--@param list table of card id
+--@param value id to search for
+---@return boolean
+function isInList(list, value)
+  for _, item in ipairs(list) do
+    if item == value then
+      return true
+    end
+  end
+  return false
+end
