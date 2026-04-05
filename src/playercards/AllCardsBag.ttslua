@@ -174,9 +174,9 @@ function buildIndex()
     end
   end
 
-  buildSupplementalIndexes()
+  buildSupplementalIndices()
   collectSortingData()
-  sortIndexes()
+  sortIndices()
   updatePlayerCardPanel()
   indexingDone = true
 
@@ -366,8 +366,8 @@ function cleanCycleName(cycleName)
   return cycleName
 end
 
--- Creates the supplemental indexes for classes, weaknesses etc.
-function buildSupplementalIndexes()
+-- Creates the supplemental indices for classes, weaknesses etc.
+function buildSupplementalIndices()
   for cardId, card in pairs(cardIdIndex) do
     local md = card.metadata
 
@@ -509,8 +509,9 @@ end
 
 -- Expects a table like { [1] = true, [2] = false, [0] = true }
 function getFilteredContent(activeChapters)
-  local matches = {}
-  local seen    = {}
+  local matches  = {}
+  local seen     = {}
+  local hasOther = false
 
   local function processCycle(cycleName)
     if seen[cycleName] then return end
@@ -519,6 +520,7 @@ function getFilteredContent(activeChapters)
     if activeChapters[chapter] and cycleIndex[cycleName] and cycleHasSpawnableCards(cycleName) then
       table.insert(matches, toTitleCase(cycleName))
       seen[cycleName] = true
+      if cycleName == "other" then hasOther = true end
     end
   end
 
@@ -530,6 +532,10 @@ function getFilteredContent(activeChapters)
   -- Pass 2: Remaining cycles in index
   for cycleName, _ in pairs(cycleIndex) do
     processCycle(cycleName)
+  end
+
+  if not hasOther then
+    table.insert(matches, "Other")
   end
 
   return matches
@@ -551,6 +557,11 @@ end
 function generalizedCardComparator(id1, id2, criteria)
   local card1 = cardIdIndex[id1]
   local card2 = cardIdIndex[id2]
+
+  -- Handle missing data gracefully
+  if not card1 and not card2 then return id1 < id2 end
+  if not card1 then return false end -- Push unknown cards to the end
+  if not card2 then return true end
 
   for _, key in ipairs(criteria) do
     if card1.sortingData[key] ~= card2.sortingData[key] then
@@ -589,7 +600,7 @@ function metadataSortFunction(id1, id2)
   return generalizedCardComparator(base1, base2, { "class", "cardType", "level", "name" })
 end
 
-function sortIndexes()
+function sortIndices()
   -- sort class and level indices
   for _, indexTable in pairs(classAndLevelIndex) do
     table.sort(indexTable, metadataSortFunction)
@@ -1119,7 +1130,7 @@ function buildAvailableWeaknesses(restrictions)
 
       -- add weakness to list if eligible
       if eligible and name then
-        uniqueNameMap[name] = { id = weaknessId, count = md.basicWeaknessCount}
+        uniqueNameMap[name] = { id = weaknessId, count = md.basicWeaknessCount }
       end
     end
   end

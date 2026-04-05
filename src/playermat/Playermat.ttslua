@@ -413,7 +413,8 @@ function doUpkeep(player, clickType)
     end
 
     -- look for specific cards in the play area or on extensions (draw / discard excluded)
-    if (obj.hasTag("onExtension") or self.positionToLocal(obj.getPosition()).x > -1) then
+    local xPos = self.positionToLocal(obj.getPosition()).x
+    if (obj.hasTag("onExtension") or xPos > -1.1 or xPos < -2.1) then
       if obj.type == "Card" and not obj.hasTag("Investigator") then
         local cardMetadata = JSON.decode(obj.getGMNotes()) or {}
 

@@ -48,6 +48,10 @@ function onLoad(savedData)
 end
 
 function createHelperXML()
+  -- handle "true" rotated cards (e.g. from Zoop)
+  if self.getData().SidewaysCard == false then
+    buttonParams.nonRotatedCard = true
+  end
   local xmlTable = SideButtonCreator.getXmlTable(buttonParams)
   self.UI.setXmlTable(xmlTable)
 end

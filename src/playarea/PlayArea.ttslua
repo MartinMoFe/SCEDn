@@ -242,6 +242,7 @@ end
 
 function onObjectPickUp(_, object)
   if object.type ~= "Card" then return end
+  if not object.hasTag("Location") then return end
 
   object.setVectorLines({})
 
