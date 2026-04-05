@@ -89,6 +89,17 @@ EnemyMessage            = {
   },
 }
 MythosMessage           = {
+  ["01107"] = { ["4.9"] = 'At the end of the round, place doom...',
+                  ["3.9"] = 'At the end of the enemy phase, each unengaged Ghoul...' 
+                },
+  ["02237"] = { ["3.9"] = "At the end of the enemy phase..." },
+  ["02238"] = { ["3.9"] = "At the end of the enemy phase..." },
+  ["02239"] = { ["3.9"] = "At the end of the enemy phase..." },
+  ["04284"] = { ["1.1"] = "At the end of the 'check doom'..." },
+  ["03048"] = { ["4.9"] = "At the end of the round..." },
+  ["03204"] = { ["4.9"] = "At the end of the round..." },
+  ["03205"] = { ["4.9"] = "At the end of the round..." },
+  ---
   ["11558"] = { ["4.9"] = 'When the round ends, reveal tokens...' },
   ["11640"] = { ["4.9"] = 'When the round ends, reveal tokens...' },
   ["11683"] = { ["1.9"] = 'When doom is placed...' },
