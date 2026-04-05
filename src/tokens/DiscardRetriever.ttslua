@@ -69,14 +69,16 @@ function readDiscardPile()
   if not deckAreaObjects.discard then return end
 
   if deckAreaObjects.discard.type == 'Card' then
-    isRetrievableCard(deckAreaObjects.discard)
+    addRetrievableCard(deckAreaObjects.discard)
   elseif deckAreaObjects.discard.type == 'Deck' then
     for _, card in ipairs(deckAreaObjects.discard.getObjects()) do
-      isRetrievableCard(card)
+      addRetrievableCard(card)
     end
   end
 end
 
+---@param cardName string
+---@return tts__Object|nil
 function pullCardFromDiscard(cardName)
   if type(cardName) ~= "string" then
     error("Implementation error. Expected string.", 2)
@@ -84,26 +86,28 @@ function pullCardFromDiscard(cardName)
 
   local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
   local deckAreaObjects = PlayermatApi.getDeckAreaObjects(matColor)
+  local obj = nil
 
   if not deckAreaObjects.discard then
-    return
+    return nil
   end
 
   if deckAreaObjects.discard.type == 'Card' then
-    deckAreaObjects.discard.setPositionSmooth(self.getPosition() + Vector(0, 1, 0), false, true)
+    obj = deckAreaObjects.discard.setPositionSmooth(self.getPosition() + Vector(0, 1, 0), false, true)
   elseif deckAreaObjects.discard.type == 'Deck' then
-    takeOutByName(deckAreaObjects.discard, cardName, {
+    obj = takeOutByName(deckAreaObjects.discard, cardName, {
       position = self.getPosition() + Vector(0, 1, 0), smooth = true })
   end
+  return obj
 end
 
 -- Boolean helpers
 
--- Absolute isRetrievableCard function, checks if the card is retrievable by any means
+-- Absolute function, checks if the card is retrievable by any means
 -- adds it to the foundRetrievableNames
--- card can be a table (inside a deck) or a userdata (a single card on the discard pile)
+---@param card tts__Object or table -- card can be a table (inside a deck) or a userdata (a single card on the discard pile)
 ---@return nil
-function isRetrievableCard(card)
+function addRetrievableCard(card)
   if type(card) ~= "table" and type(card) ~= "userdata" then
     log("Implementation error, should not be called", 2)
   end
@@ -145,7 +149,8 @@ function isPlayableCard(gmnotes)
   return false
 end
 
--- Checks if this is an Item Card
+
+--- Checks if this is an Item Card
 ---@return boolean
 function isScavengingAble(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
@@ -156,6 +161,7 @@ function isScavengingAble(gmnotes)
   return false
 end
 
+---@return boolean
 -- Checks if this is an Event
 function isEvent(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
@@ -165,6 +171,7 @@ function isEvent(gmnotes)
   return false
 end
 
+---@return boolean
 -- Checks if this is an Skill
 function isSkill(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
@@ -174,7 +181,7 @@ function isSkill(gmnotes)
   return false
 end
 
---@returns nil
+---@return boolean
 function isInvestigatorIsabelle()
   local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
   local investigator = PlayermatApi.getActiveInvestigatorData(matColor)
@@ -186,9 +193,9 @@ end
 
 ------ GENERIC FUNCTIONS FOR TABLETOP SIMULATOR
 
---@param deck tts__Object
---@param cardName string
---@returns tts__Object|nil
+---@param deck tts__Object
+---@param cardName string
+---@return tts__Object|nil
 function takeOutByName(deck, cardName, params)
   -- Defensive checks
 
