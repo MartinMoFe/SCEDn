@@ -29,8 +29,9 @@ do
         return getMonsterWatcher().getVar('locationsFacedown')
     end
 
+    -- list of id, not objects
     function EnemyWatcherApi.getVisibleCardsMythosArea()
-        return getMonsterWatcher().getVar('mythosObjects')
+        return getMonsterWatcher().getVar('mythosObjectsIds')
     end
 
     -- Useful functions

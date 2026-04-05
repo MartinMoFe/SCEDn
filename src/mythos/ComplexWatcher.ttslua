@@ -186,6 +186,13 @@ HunterEnemies               = {
   ['50022'] = true,
   ['53018'] = true,
   ['53078'] = true,
+  -- chapter 2
+  ['267002'] = true,
+  ['267000'] = true,
+  --
+  ['267029'] = true,
+  ['267027'] = true,
+  ['267013'] = true
 }
 HunterEnemiesFlipped        = {
   ['04209'] = true,
@@ -336,16 +343,18 @@ function showAllCardsInfo(phaseNumber)
   end
 end
 
+--- This function shows the forced effects in the Act, Agenda and maybe other cards.
+---@return nil: this function does not return anything, it just prints the messages to all players
 function showAllMythosInfo(params)
   local phaseNumber = params.phaseNumber
   local colorPrint = params.colorPrint
 
-  local mythosObjects = EnemyWatcherApi.getVisibleCardsMythosArea()
-  log("mythosObjects = EnemyWatcherApi.getVisibleCardsMythosArea()")
-  log(mythosObjects)
+  local IdsToCheck = EnemyWatcherApi.getVisibleCardsMythosArea()
 
-  for _, object in ipairs(mythosObjects) do
-    local msg = getMythosMessage(object, phaseNumber)
+  assert(type(IdsToCheck) == "table", "Expected mythosObjectsToShow to be a table of card ids.")
+
+  for _, object in ipairs(IdsToCheck) do
+    local msg = getMythosMessageFromId(object, phaseNumber)
     if msg then
       printToAll(msg, colorPrint)
     end
@@ -508,9 +517,9 @@ end
 
 -- Message retrieval
 
---- @param obj userdata|table  TTS object or decoded metadata table
---- @param phaseNumber number   Phase index used to select the message
---- @return string|nil
+--- @param obj userdata  TTS object
+--- @param phaseNumber string: somthing like "2.9"
+--- @return string|nil: Message like "Forced - Do something"
 function getTreacheryMessage(obj, phaseNumber)
   -- Returns string or nil
   local rawNotes = obj.getGMNotes() or "{}"
@@ -524,30 +533,8 @@ function getTreacheryMessage(obj, phaseNumber)
 end
 
 --- @param obj userdata|table  TTS object or decoded metadata table
---- @param phaseNumber number   Phase index used to select the message
---- @return string|nil
-function getMythosMessage(obj, phaseNumber)
-  local rawNotes = "{}"
-  local md = {}
-  local id = ""
-
-  if type(obj) == "userdata" then
-    rawNotes = obj.getGMNotes() or "{}"
-    md = JSON.decode(rawNotes) or {}
-    id = md.id or ""
-  elseif type(obj) == "table" then
-    md = obj or {}
-    id = md.id or ""
-  else
-    error("Unsupported card type for ID extraction", 2)
-  end
-
-  local messages = MythosMessage[id] or nil
-  if messages then
-    return messages[phaseNumber]
-  end
-end
-
+--- @param phaseNumber string: somthing like "2.9"
+--- @return string|nil: Message like "Forced - Do something"
 function getEnemyMessage(obj, phaseNumber)
   -- Returns string or nil
   local rawNotes = obj.getGMNotes() or "{}"
@@ -560,10 +547,24 @@ function getEnemyMessage(obj, phaseNumber)
   return nil
 end
 
+--- @param id string            Card ID as a string (e.g., "01157")
+--- @param phaseNumber string  Phase index used to select the message (e.g., "2.9")
+--- @return string|nil
+function getMythosMessageFromId(id, phaseNumber)
+  assert(type(id) == "string", "Expected id to be a string in getMythosMessage")
+
+  local messages = MythosMessage[id] or nil
+  if messages then
+    return messages[phaseNumber]
+  end
+  return nil
+end
+
+
 --- @param obj tts__Object
 --- @param phaseNumber number  Phase index used to select the message
 --- @param isFaceUp boolean
---- @return string|nil
+--- @return string|nil: Message like "Forced - Do something"
 function getLocationMessage(obj, phaseNumber, isFaceUp)
   if not obj or type(obj) ~= "userdata" then
     error("Invalid object provided to getLocationMessage", 2)

@@ -66,6 +66,7 @@ function onLoad(savedData)
   treacheriesT      = guidsToObjects(data.treacheriesT)
   locationsFaceup   = guidsToObjects(data.locationsFaceup)
   locationsFacedown = guidsToObjects(data.locationsFacedown)
+  mythosObjectsIds    = {}
 end
 
 function onSave()
@@ -92,6 +93,7 @@ function onSave()
     treacheriesT      = objectsToGuids(treacheriesT),
     locationsFaceup   = objectsToGuids(locationsFaceup),
     locationsFacedown = objectsToGuids(locationsFacedown),
+    mythosObjects    = {}
   }
 
   return JSON.encode(data)
@@ -208,8 +210,8 @@ end
 
 -- PlayArea helper
 
--- Scans the central PlayArea zone and returns all objects within it.
--- @return {table} Table of GameObject references in the zone
+--- Scans the central PlayArea zone and returns all objects within it.
+--- @return table: Table of GameObject references in the zone
 function scanPlayArea()
   -- Returns all objects in the PlayArea (the central zone)
   local zone = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "PlayAreaZone")
@@ -222,7 +224,7 @@ function scanPlayArea()
   return zone.getObjects()
 end
 
--- @return table Table containing all GameObject references from all threat areas
+--- @return table: Table containing all GameObject references from all threat areas
 -- @usage local threatObjects = scanThreatAreas()
 function scanThreatAreas()
   local matColors = PlayermatApi.getUsedMatColors()
@@ -236,67 +238,50 @@ function scanThreatAreas()
   return objectsInThreat
 end
 
--- @return table Table containing all
+---@return table:Table containing all GameObject references in the Mythos Area
 function scanMythosArea()
-  mythosObjects = {}
 
-  -- Step 1: Get Mythos Area object
   local mythosArea = GUIDReferenceApi.getObjectByOwnerAndType("Mythos", "MythosArea")
 
   if type(mythosArea) ~= "userdata" then
-    log("Expected tts_object (userdata), aborting")
-    return
+    assert(type(mythosArea) == "userdata", "Expected tts_object (userdata), aborting. april2026")
+    return {}
   end
 
-  -- Step 2: Check required methods on tts_objec
-  if type(mythosArea.getPosition) ~= "function" or type(mythosArea.getBounds) ~= "function" then
-    log("mythosArea.getPosition missing, aborting")
-    log("mythosArea.getBounds missing, aborting")
-    return
-  end
+  local foundMythosObjects = {}
 
-  -- Step 3: Validate SearchLib.onObject
-  if type(SearchLib) ~= "table" then
-    log("SearchLib not a table, aborting")
-    return
-  end
-
-  if type(SearchLib.onObject) ~= "function" then
-    log("SearchLib.onObject not a function, aborting")
-    return
-  end
-
-  -- Step 4: Perform search
   local results = SearchLib.onObject(mythosArea)
   if type(results) ~= "table" then
-    log("Search results not a table, aborting")
-    return
+    log("This should never happen, SearchLib.onObject should return a table. april2026")
+    return {}
   end
 
-  -- Step 5: Iterate results and validate each object
   for _, obj in ipairs(results) do
     if type(obj) == "userdata" then
-      table.insert(mythosObjects, obj)
+      table.insert(foundMythosObjects, obj)
     else
-      log("Non tts_object found in search results")
+      log("Non tts_object found in search results. april2026. What??")
     end
   end
 
-  -- Step 6: Final state
-  return mythosObjects
+  return foundMythosObjects
 end
 
+-- This functions gets the objects in the mythos area, but only those that are cards or decks, and visible
+-- Ignores tokens and tiles
+---@return table: table of tts__Object or objects inside a deck
 function getVisibleCardsMythosArea()
-  local mythosObjects = scanMythosArea()
 
-  if type(mythosObjects) ~= "table" then
-    log("Input is not a table, aborting")
+  local mythosObjectsUnparsed = scanMythosArea()
+
+  if type(mythosObjectsUnparsed) ~= "table" then
+    log("Input is not a table, aborting. 2026april")
     return {}
   end
 
   local visibleCards = {}
 
-  for _, obj in ipairs(mythosObjects) do
+  for _, obj in ipairs(mythosObjectsUnparsed) do
     if type(obj) == "userdata" then
       if obj.tag == "Card" then
         table.insert(visibleCards, obj)
@@ -330,10 +315,10 @@ function scanAndStore()
   locationsFaceup = {}
   locationsFacedown = {}
 
-  local allObjs = scanPlayArea()
-  if not allObjs then return end
+  local objsPA = scanPlayArea()
+  if not objsPA then return end
 
-  for _, obj in ipairs(allObjs) do
+  for _, obj in ipairs(objsPA) do
     if isVisibleEnemy(obj) then
       table.insert(enemies, obj)
     elseif isVisibleTreachery(obj) then
@@ -350,10 +335,10 @@ function scanAndStore()
   enemiesT = {}
   treacheriesT = {}
 
-  local objs = scanThreatAreas()
-  if not objs then return end
+  local objsTA = scanThreatAreas()
+  if not objsTA then return end
 
-  for _, obj in ipairs(objs) do
+  for _, obj in ipairs(objsTA) do
     if isVisibleEnemy(obj) then
       table.insert(enemiesT, obj)
     elseif isVisibleTreachery and isVisibleTreachery(obj) then
@@ -361,7 +346,24 @@ function scanAndStore()
     end
   end
 
-  mythosObjects = getVisibleCardsMythosArea()
+  mythosObjectsIds = {}
+
+  local objsMA = getVisibleCardsMythosArea()
+
+  for _, obj in ipairs(objsMA) do
+    if type(obj) == "userdata" then
+      local md = getMd(obj)
+      local id = md['id']
+      table.insert(mythosObjectsIds, id)
+    elseif type(obj) == "table" then
+      local md = getMd(obj)
+      local id = md['id']
+      table.insert(mythosObjectsIds, id)
+    else
+      log("Non userdata object in Mythos Area, skipping")
+    end
+  end
+
 end
 
 -- Minis helper
@@ -539,18 +541,30 @@ function getObjectByName(name)
 end
 
 ---Safely read GM notes JSON and return a table (never nil).
+--- I want to bulletproof this, should work in case the object is a real object or a table (object inside a deck)
 ---@param obj tts__Object
 ---@return table
 function getMd(obj)
   assert(obj, "getMd: obj is required")
 
-  local raw = obj.getGMNotes() or ""
+  local gmNotes = nil
 
-  if raw == "" then
+  if type(obj) == "table" then
+    gmNotes= obj.gm_notes
+  elseif type(obj) == "userdata" then
+    gmNotes = obj.getGMNotes()
+  else
+    error("Unsupported object type for getMd.")
     return {}
   end
 
-  local ok, data = pcall(JSON.decode, raw)
+  assert(type(gmNotes) == "string", "getMd: gmNotes should be a string. This should never happen, april2026.")
+
+  if gmNotes == "" then
+    return {}
+  end
+
+  local ok, data = pcall(JSON.decode, gmNotes)
 
   if not ok or type(data) ~= "table" then
     return {}
