@@ -11,9 +11,16 @@ retrievableCardsIds = {
 local foundRetrievableNames = {}
 local isScavenging = false
 local isAmuletActive = false
+local isIsabelle = false
 
 
 function onLoad()
+  -- Check if its Isabelle
+  if isInvestigatorIsabelle() then
+    isIsabelle = true
+    printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
+  end
+  
   addPermanentEntries()
 end
 
@@ -24,6 +31,7 @@ end
 
 -- Context Menu
 
+-- This function generates the context menu based on the current state of the discard pile and the toggles
 function generateContextMenu()
   self.clearContextMenu()
 
@@ -36,7 +44,7 @@ function generateContextMenu()
   end
 end
 
--- This entries lead the context menu
+-- This entries always lead the context menu
 function addPermanentEntries()
   self.addContextMenuItem("Toggle Scavenging", function() toggleScavenging() end)
   self.addContextMenuItem("Toggle Wendy's Amulet", function() toggleAmulet() end)
@@ -91,7 +99,7 @@ function pullCardFromDiscard(cardName)
   end
 end
 
--- Boolen helpers
+-- Boolean helpers
 
 -- Absolute isRetrievableCard function, checks if the card is retrievable by any means
 ---@return boolean
@@ -110,6 +118,8 @@ function isRetrievableCard(card)
   elseif isScavenging and isScavengingAble(card.gm_notes) then
     table.insert(foundRetrievableNames, card.name)
   elseif isAmuletActive and isEvent(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isIsabelle and isSkill(card.gm_notes) then
     table.insert(foundRetrievableNames, card.name)
   end
 end
@@ -144,6 +154,25 @@ function isEvent(gmnotes)
   return false
 end
 
+-- Checks if this is an Skill
+function isSkill(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if metadata.type == "Skill" then
+    return true
+  end
+  return false
+end
+
+--@returns nil
+function isInvestigatorIsabelle()
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local investigator = PlayermatApi.getActiveInvestigatorData(matColor)
+  if investigator and investigator.id == "12013" then
+    return true
+  end
+  return false
+end
+
 ------ GENERIC FUNCTIONS FOR TABLETOP SIMULATOR
 
 --@param deck tts__Object
@@ -168,13 +197,9 @@ function takeOutByName(deck, cardName, params)
   local cards = deck.getObjects()
   for _, card in ipairs(cards) do
     if card.name == cardName then
-      if card.guid and #card.guid == 6 then
-        params.guid = card.guid
-        return deck.takeObject(params)
-      else
-        -- Can the postion of card inside a deck be found? My test say no
-        log("No GUID available for this card (inside a deck). This can happen if the cards were never initialized", 2)
-        return nil
+      if card.name == cardName then
+        deck.takeObject({ guid = card.guid, position = self.getPosition() + Vector(0, 1, 0.5), smooth = false })
+        break
       end
     end
   end
