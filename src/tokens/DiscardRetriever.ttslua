@@ -68,9 +68,8 @@ function readDiscardPile()
 
   if not deckAreaObjects.discard then return end
 
-  
   if deckAreaObjects.discard.type == 'Card' then
-    log("Yet to implement", 2)
+    isRetrievableCard(deckAreaObjects.discard)
   elseif deckAreaObjects.discard.type == 'Deck' then
     for _, card in ipairs(deckAreaObjects.discard.getObjects()) do
       isRetrievableCard(card)
@@ -92,7 +91,7 @@ function pullCardFromDiscard(cardName)
   end
 
   if deckAreaObjects.discard.type == 'Card' then
-    log("Yet to implement", 2)
+    deckAreaObjects.discard.setPositionSmooth(self.getPosition() + Vector(0, 1, 0), false, true)
   elseif deckAreaObjects.discard.type == 'Deck' then
     takeOutByName(deckAreaObjects.discard, cardName, {
       position = self.getPosition() + Vector(0, 1, 0), smooth = true})
@@ -102,25 +101,39 @@ end
 -- Boolean helpers
 
 -- Absolute isRetrievableCard function, checks if the card is retrievable by any means
----@return boolean
+-- adds it to the foundRetrievableNames
+-- card can be a table (inside a deck) or a userdata (a single card on the discard pile)
+---@return nil
 function isRetrievableCard(card)
   
-  if type(card) ~= "table" then
-    error("Yet to implement", 2)
+  if type(card) ~= "table" and type(card) ~= "userdata" then
+    log("Implementation error, should not be called", 2)
   end
   
-  if not card.gm_notes then
-    error("Fail immediately in the developing.", 2)
+  local gmNotes = {}
+  local name = nil
+  if type(card) == "table" then
+    gmNotes = card.gm_notes
+    name = card.name
+  elseif type(card) == "userdata" then
+    gmNotes = card.getGMNotes()
+    name = card.getName()
   end
+
+  if not name or not gmNotes then
+    log("Implementation error, card has no name or gmnotes")
+    return
+  end
+
   
-  if isPlayableCard(card.gm_notes) then
-    table.insert(foundRetrievableNames, card.name)
-  elseif isScavenging and isScavengingAble(card.gm_notes) then
-    table.insert(foundRetrievableNames, card.name)
-  elseif isAmuletActive and isEvent(card.gm_notes) then
-    table.insert(foundRetrievableNames, card.name)
-  elseif isIsabelle and isSkill(card.gm_notes) then
-    table.insert(foundRetrievableNames, card.name)
+  if isPlayableCard(gmNotes) then
+    table.insert(foundRetrievableNames, name)
+  elseif isScavenging and isScavengingAble(gmNotes) then
+    table.insert(foundRetrievableNames, name)
+  elseif isAmuletActive and isEvent(gmNotes) then
+    table.insert(foundRetrievableNames, name)
+  elseif isIsabelle and isSkill(gmNotes) then
+    table.insert(foundRetrievableNames, name)
   end
 end
 
