@@ -20,7 +20,7 @@ function onLoad()
     isIsabelle = true
     printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
   end
-  
+
   addPermanentEntries()
 end
 
@@ -52,7 +52,7 @@ end
 
 function toggleScavenging()
   isScavenging = not isScavenging
-  printToAll("Retrieving Items is now " .. (isScavenging and "active" or "inactive"), {1, 1, 1})
+  printToAll("Retrieving Items is now " .. (isScavenging and "active" or "inactive"), { 1, 1, 1 })
 end
 
 function toggleAmulet()
@@ -78,7 +78,6 @@ function readDiscardPile()
 end
 
 function pullCardFromDiscard(cardName)
-
   if type(cardName) ~= "string" then
     error("Implementation error. Expected string.", 2)
   end
@@ -94,7 +93,7 @@ function pullCardFromDiscard(cardName)
     deckAreaObjects.discard.setPositionSmooth(self.getPosition() + Vector(0, 1, 0), false, true)
   elseif deckAreaObjects.discard.type == 'Deck' then
     takeOutByName(deckAreaObjects.discard, cardName, {
-      position = self.getPosition() + Vector(0, 1, 0), smooth = true})
+      position = self.getPosition() + Vector(0, 1, 0), smooth = true })
   end
 end
 
@@ -105,11 +104,10 @@ end
 -- card can be a table (inside a deck) or a userdata (a single card on the discard pile)
 ---@return nil
 function isRetrievableCard(card)
-  
   if type(card) ~= "table" and type(card) ~= "userdata" then
     log("Implementation error, should not be called", 2)
   end
-  
+
   local gmNotes = {}
   local name = nil
   if type(card) == "table" then
@@ -125,7 +123,7 @@ function isRetrievableCard(card)
     return
   end
 
-  
+
   if isPlayableCard(gmNotes) then
     table.insert(foundRetrievableNames, name)
   elseif isScavenging and isScavengingAble(gmNotes) then

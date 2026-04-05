@@ -15,7 +15,7 @@
       "MergeDistancePixels": 15,
       "Stackable": false,
       "StandUp": false,
-      "Thickness": 0.2
+      "Thickness": 0.1
     },
     "ImageScalar": 1,
     "ImageSecondaryURL": "",
@@ -38,19 +38,19 @@
   "MeasureMovement": false,
   "Name": "Custom_Token",
   "Nickname": "DiscardRetriever",
-  "Snap": true,
-  "Sticky": true,
+  "Snap": false,
+  "Sticky": false,
   "Tooltip": true,
   "Transform": {
-    "posX": -54.264,
-    "posY": 1.65,
-    "posZ": 17.456,
+    "posX": -29.836,
+    "posY": 1.62,
+    "posZ": 8.893,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
-    "scaleX": 1,
-    "scaleY": 1,
-    "scaleZ": 1
+    "scaleX": 0.5,
+    "scaleY": 0.5,
+    "scaleZ": 0.5
   },
   "Value": 0,
   "XmlUI": ""
