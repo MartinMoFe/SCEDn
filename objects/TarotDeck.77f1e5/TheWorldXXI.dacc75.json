@@ -10,6 +10,7 @@
       "Type": 0
     }
   },
+  "GMNotes": "{\n  \"id\": \"TAR21\",\n  \"type\": \"Tarot\"\n}",
   "GUID": "dacc75",
   "LuaScript": "require(\"playercards/Tarotcard\")",
   "Name": "Card",

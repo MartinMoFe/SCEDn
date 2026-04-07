@@ -292,7 +292,7 @@ do
   function PlayermatApi.getUsedInvestigatorCards()
     local usedCards = {}
     for matColor, mat in pairs(getMatForColor("All")) do
-      local searchPos = mat.positionToWorld(localInvestigatorPosition)
+      local searchPos    = mat.positionToWorld(localInvestigatorPosition)
       local searchResult = SearchLib.atPosition(searchPos, "isCardOrDeck")
       if #searchResult > 0 then
         usedCards[matColor] = searchResult[1]

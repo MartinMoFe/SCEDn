@@ -37,11 +37,13 @@ do
   ---@param player tts__Player Player whose camera should be moved
   ---@param index? number Index of the camera view to load
   ---@param matColor? string Color of the playermat to swap to
-  function NavigationOverlayApi.loadCamera(player, index, matColor)
+  ---@param skipZoom? boolean True if player's camera 0 should be loaded instead of zooming to mat
+  function NavigationOverlayApi.loadCamera(player, index, matColor, skipZoom)
     getNOHandler().call("loadCameraFromApi", {
       player   = player,
       index    = index,
-      matColor = matColor
+      matColor = matColor,
+      skipZoom = skipZoom
     })
   end
 

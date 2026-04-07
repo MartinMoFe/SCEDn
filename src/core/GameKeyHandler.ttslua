@@ -523,12 +523,14 @@ function switchSeat(playerColor, direction)
 
   -- get current seat index
   local index
-  for i, color in ipairs(usedColors) do
-    if color == vColor then
+  for i, matColor in ipairs(usedColors) do
+    local handColor = PlayermatApi.getPlayerColor(matColor)
+    if handColor == vColor then
       index = i
       break
     end
   end
+
   if not index then
     broadcastToColor("Couldn't detect investigator.", playerColor, "Orange")
     return
@@ -543,7 +545,7 @@ function switchSeat(playerColor, direction)
   end
 
   -- swap color
-  NavigationOverlayApi.loadCamera(Player[vColor] or Player[playerColor], _, usedColors[index])
+  NavigationOverlayApi.loadCamera(Player[vColor] or Player[playerColor], nil, usedColors[index])
 end
 
 function takeClueAsColor(matColor, hoveredObject)

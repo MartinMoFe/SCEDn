@@ -326,7 +326,7 @@ function getDynamicViewBounds(objList)
 end
 
 function loadCameraFromApi(params)
-  loadCamera(params.player, params.index, params.matColor)
+  loadCamera(params.player, params.index, params.matColor, params.skipZoom)
 end
 
 -- loads the specified camera for a player
