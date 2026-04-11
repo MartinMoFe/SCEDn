@@ -102,7 +102,9 @@ function broadcastDoom(val)
   local broadcastParts = {}
 
   -- construct the first part of the message
+  table.insert(broadcastParts, "[FF0000]")
   table.insert(broadcastParts, val)
+  table.insert(broadcastParts, "[-]")
   table.insert(broadcastParts, " doom on the agenda (")
 
   -- add the middle part

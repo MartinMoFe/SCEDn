@@ -114,7 +114,9 @@ function changeState(_, _, isRightClick)
     tracker.destruct()
     spawnObjectData({ data = data })
   end
-  communicateChange(phaseId)
+  
+  communicateChange(phaseId) -- my part
+
 end
 
 
@@ -128,7 +130,8 @@ function communicateChange(phaseArg)
   local obj = getObjectFromGUID(guid)
 
   if not obj then
-    print("communicateChange: object with GUID " .. guid .. " not found")
+    log("communicateChange: object with GUID " .. guid .. " not found")
+    log("This should be an object that is apart.")
     return
   end
 

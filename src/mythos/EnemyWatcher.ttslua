@@ -97,9 +97,10 @@ function onSave()
   return JSON.encode(data)
 end
 
-function respondToChange(phaseArg)
+function respondToChange(aString)
+  assert(type(aString)=="string", "Error type")
   -- This function is called from outside
-  newPhase = phaseArg
+  newPhase = aString
 
   if newPhase == lastPhase then
     return
@@ -108,18 +109,15 @@ function respondToChange(phaseArg)
   lastPhase = newPhase
   scanAndStore()
 
-  if newPhase == 1 then
+  if newPhase == "1.9" or newPhase == "2.9" or newPhase == "3.9" or newPhase == "4.9" then
     destroyFakeMinis()
-  elseif newPhase == 2 then
+  elseif newPhase == "2.1" then
     showHealthSanityInfo({ colorPrint = INV_GREEN })
-    destroyFakeMinis()
     duplicateFakeMinis()
-  elseif newPhase == 3 then
-    destroyFakeMinis()
+  elseif newPhase == "3.1" then
     showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
-  elseif newPhase == 4 then
-    destroyFakeMinis()
   end
+  
 end
 
 -- This function shows how many enemies are in play area and in the threat areas

@@ -66,7 +66,7 @@ EnemyMessage            = {
   ["02058"]  = { ["3.1"] = 'Forced - When the enemy phase begins: Ready The Experiment.' },
   ["02141"]  = { ["3.1"] = 'Forced - At the start of the enemy phase: Reveal a random token from the chaos bag. If the revealed token has a ? symbol, ready Hunting Horror.' },
   ["02294"]  = { ["3.9"] = 'Forced - At the end of the enemy phase, Devotee of the Key moves once toward Sentinel Peak. If Devotee of the Key is already at Sentinel Peak, discard it and add 2 doom to the current agenda, instead.' },
-  ["02329"]  = { ["3.1"] = 'Forced - When Interstellar Traveler enters a location: Flip 1 clue on that location to its doom side and place it on Interstellar Traveler, or place 1 doom on Interstellar Traveler if there are no clues on that location.' },
+  ["02329"]  = { ["3.1"] = 'Forced - When Interstellar Traveler enters a location: Flip 1 clue on that location to its doom side and place it on Interstellar Traveler, or ...' },
   ["03060"]  = { ["3.9"] = 'Forced - At the end of the enemy phase: Each investigator at Royal Emissarys location or a connecting location takes 1 horror.' },
   ["03221b"] = { ["3.9"] = 'Forced - At the end of the enemy phase: If The Organist is unengaged, move it 1 location away from the nearest investigator (to a location with no investigators, if possible). If it is engaged, disengage it instead.' },
   ["04338"]  = {
@@ -77,7 +77,7 @@ EnemyMessage            = {
   ["11535"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on a player card at this enemy\'s location. Then, discard Hunting Parasite.' },
   ["11537a"] = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
   ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: Increase the flood level of its location. If you cannot, place 1 doom on Medusa.' },
-  ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: This enemy attacks the investigator with the lowest  at a connecting location. If no attack was made, Slitherer in Darkness moves to the flooded location nearest the Moving Platform.' },
+  ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: ...' },
   ["11635"]  = { ["3.9"] = 'Forced - When the enemy phase ends, if there are no investigators at Colossal Tyrant\'s location: Deal 1 direct horror to each card with sanity at each adjacent location.' },
   ["11637"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready and unengaged: It moves to its prey\'s location.' },
   ["11721"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on another non-Elite enemy at this location. Then, discard Stowaway Drone.' },
@@ -261,7 +261,6 @@ LocationsBlockedBack = {
 -- █── █──█ █──█ █▀▀
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
-local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
 local BLUE_TREACHERY = { r = 0.300, g = 0.700, b = 0.800 }
 
 function onLoad(savedData)
@@ -280,12 +279,11 @@ function onLoad(savedData)
   self.addContextMenuItem("Toggle Enemy Decal", toggleEnemyDecal)
 end
 
----@param phaseArg integer  -- Fase actual: 1=Mitos, 2=Investigación, 3=Enemigos, 4=Mantenimiento
-function respondToChange(phaseArg)
-  assert(type(phaseArg) == "number", "informChange: phaseArg")
-  assert(phaseArg >= 1 and phaseArg <= 4, "informChange: phaseArg (1-4)")
-
-  newPhase = phaseArg
+---@param aString string
+function respondToChange(aString)
+  assert(type(aString) == "string", "Error type")
+  -- This function is called from outside
+  newPhase = aString
 
   if newPhase == lastPhase then
     return
@@ -293,9 +291,9 @@ function respondToChange(phaseArg)
 
   lastPhase = newPhase
 
-  if newPhase == 2 then
+  if newPhase == "1.9" then
     placeEnemyDecalsWisely()
-  elseif newPhase == 3 then
+  elseif newPhase == "2.9" then
     placeEnemyDecalsWisely()
   end
 
@@ -304,36 +302,36 @@ end
 
 -- Show things, according to phase number
 
----@param phaseNumber integer  -- Fase principal (1 a 4)
-function showAllCardsInfo(phaseNumber)
-  local colorPrint = { {}, {} }
+---@param phaseString string
+function showAllCardsInfo(phaseString)
+  local colorPrint = nil
   local slightRed = { r = 0.8, g = 0.2, b = 0.2 }
 
-  if phaseNumber == 1 then
-    colorPrint[1] = { r = 0.902, g = 0.827, b = 0.298 }
-    colorPrint[2] = slightRed
-    apair = { '4.9', '1.1' }
-  elseif phaseNumber == 2 then
-    colorPrint[1] = slightRed
-    colorPrint[2] = { r = 0.533, g = 0.788, b = 0.6 }
-    apair = { '1.9', '2.1' }
-  elseif phaseNumber == 3 then
-    colorPrint[1] = { r = 0.533, g = 0.788, b = 0.6 }
-    colorPrint[2] = BLUE_ENEMY
-    colorPrint[3] = Color.White
-    apair = { '2.9', '3.1', '3.7' }
-  elseif phaseNumber == 4 then
-    colorPrint[1] = BLUE_ENEMY
-    colorPrint[2] = { r = 0.902, g = 0.827, b = 0.298 }
-    apair = { '3.9', '4.1' }
-  end
-
-  for i, phaseString in ipairs(apair) do
-    showAllMythosInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
-    showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
+  if phaseString == "1.1" then
+    colorPrint = slightRed
+  elseif phaseString == "1.9" then
+    colorPrint = slightRed
+  elseif phaseString == "2.1" then
+    colorPrint = { r = 0.531, g = 0.848, b = 0.598 }
+  elseif phaseString == "2.9" then
+    colorPrint = { r = 0.531, g = 0.848, b = 0.598 }
+  elseif phaseString == "3.1" then
+    colorPrint = Color.Blue
+    showAllMythosInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
+    showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
     showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = BLUE_TREACHERY })
-    showAllLocationInfo({ phaseNumber = phaseString, colorPrint = colorPrint[i] })
+    showAllLocationInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
+  elseif phaseString == "3.9" then
+    colorPrint = Color.Blue
+  elseif phaseString == "4.1" then
+    colorPrint = Color.Yellow
+  elseif phaseString == "4.9" then
+    colorPrint = Color.Yellow
   end
+  showAllMythosInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
+  showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
+  showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
+  showAllLocationInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
 end
 
 function showAllMythosInfo(params)
@@ -341,8 +339,6 @@ function showAllMythosInfo(params)
   local colorPrint = params.colorPrint
 
   local mythosObjects = EnemyWatcherApi.getVisibleCardsMythosArea()
-  log("mythosObjects = EnemyWatcherApi.getVisibleCardsMythosArea()")
-  log(mythosObjects)
 
   for _, object in ipairs(mythosObjects) do
     local msg = getMythosMessage(object, phaseNumber)
