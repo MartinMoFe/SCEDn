@@ -1,0 +1,80 @@
+{
+  "GUID": "1855eb",
+  "Name": "Custom_Token",
+  "Transform": {
+    "posX": 60.9973373,
+    "posY": 1.53144431,
+    "posZ": -13.3664637,
+    "rotX": 0.000688460656,
+    "rotY": 269.999573,
+    "rotZ": -0.00129218982,
+    "scaleX": 1.0,
+    "scaleY": 1.0,
+    "scaleZ": 1.0
+  },
+  "Nickname": "Grizzled Duplicator",
+  "Description": "Grizzled handler. Does things.",
+  "GMNotes": "",
+  "AltLookAngle": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "ColorDiffuse": {
+    "r": 1.0,
+    "g": 0.9,
+    "b": 0.9
+  },
+  "LayoutGroupSortIndex": 0,
+  "Value": 0,
+  "Locked": false,
+  "Grid": true,
+  "Snap": false,
+  "IgnoreFoW": false,
+  "MeasureMovement": false,
+  "DragSelectable": true,
+  "Autoraise": true,
+  "Sticky": false,
+  "Tooltip": true,
+  "GridProjection": false,
+  "HideWhenFaceDown": false,
+  "Hands": false,
+  "CustomImage": {
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15068712517944227969/6B1971D2AFFE63DB9F1D1F90824EFF5A97B08FF9/",
+    "ImageSecondaryURL": "",
+    "ImageScalar": 1.0,
+    "WidthScale": 0.0,
+    "CustomToken": {
+      "Thickness": 0.1,
+      "MergeDistancePixels": 15.0,
+      "StandUp": false,
+      "Stackable": false
+    }
+  },
+  "LuaScript": "require(\"playarea/GrizzledDuplicator\")",
+  "LuaScriptState": "",
+  "XmlUI": "",
+  "AttachedSnapPoints": [
+    {
+      "Position": {
+        "x": 1.941,
+        "y": 0.1,
+        "z": 0.674
+      }
+    },
+    {
+      "Position": {
+        "x": 0.0,
+        "y": 0.1,
+        "z": 0.674
+      }
+    },
+    {
+      "Position": {
+        "x": -2.30899143,
+        "y": 0.0500000864,
+        "z": 0.6682522
+      }
+    }
+  ]
+}

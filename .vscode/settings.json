@@ -39,9 +39,9 @@
     "breadcrumb.activeSelectionForeground": "#00ff00",
 
     "editor.lineHighlightBackground": "#ffff0029",
-    "sideBar.background": "#161616",
 
-    "terminal.background": "#292900",
+    "terminal.background": "#232300",
+    "sideBar.background": "#0f1900",
     
     "tab.border": "#00AA00",
     "titleBar.border": "#99ff00",

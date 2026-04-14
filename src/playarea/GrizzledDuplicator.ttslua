@@ -1,0 +1,325 @@
+-- ==================================================
+-- CONFIG
+-- ==================================================
+Pos1 = { x = 2, y = 0, z = 0 }
+Pos2 = { x = 0, y = 0, z = 0 }
+Pos3 = { x = -2.0, y = 0, z = 0 }
+PosDestination = { x = 0, y = 2, z = 5 }
+-- ==================================================
+-- VARIABLES
+-- ==================================================
+Card1 = nil
+Card3 = nil
+-- ==================================================
+-- ON LOAD
+-- ==================================================
+function onLoad()
+    self.createButton({
+        label = "DUPLICATE",
+        click_function = "buttonPressed",
+        function_owner = self,
+        position = { 0, 0.3, -2 },
+        rotation = { 0, 0, 0 },
+        width = 1800,
+        height = 600,
+        font_size = 300
+    })
+end
+-- =========================
+-- BUTTON
+-- =========================
+function buttonPressed(obj, player_color, alt_click)
+    detectThreeCards(player_color)
+    if not Card1 then
+        printToAll("No card to stamp detected. Please place a card at the left position.")
+        return
+    end
+    if not Card3 then
+        printToAll("No card to stamp detected. Please place a card at the left position.")
+        return
+    end
+    -- do the grab
+    spawnInfo = getCardData(Card1)
+    fieldsInfo = getGrizzledTraits(Card3)
+    -- do the clone
+    spawnCardFromData(spawnInfo, Card3.getName(), fieldsInfo, { position = PosDestination, image = "George" })
+end
+
+-- =========================
+-- DETECTION
+-- =========================
+
+function detectThreeCards(player_color)
+    -- ping positions for debug
+    Player[player_color].pingTable(self.positionToWorld(Pos1))
+    Player[player_color].pingTable(self.positionToWorld(Pos2))
+    Player[player_color].pingTable(self.positionToWorld(Pos3))
+    -- detect objects
+    Card1 = detectCard(Pos1)
+    Card2 = detectCard(Pos2)
+    Card3 = detectCard(Pos3)
+    
+    if Card1 then
+        printToAll("Card to stamp detected: " .. Card1.getName())
+    else
+        printToAll("No card found at left position.")
+    end
+    if Card2 then
+        printToAll("Upgrade Sheet detected: " .. Card2.getName())
+    else
+        printToAll("No card found at central position.")
+    end
+    if Card3 then
+        print("Investigator Card detected: " .. Card3.getName())
+    else
+        printToAll("No card found at right position.")
+    end
+end
+
+function detectCard(position)
+    local hits = Physics.cast({
+        origin = self.positionToWorld(position) + Vector(0, 1, 0),
+        direction = { 0, -1, 0 },
+        type = 1,         -- RAY
+        max_distance = 5, -- how far down to search
+        debug = false
+    })
+    for _, hit in ipairs(hits) do
+        local obj = hit.hit_object
+        if obj.getName() == "Card duplicator" then
+            return nil
+        elseif obj.tag == "Card" then
+            return obj
+        end
+    end
+    return nil
+end
+
+-- =========================
+-- GET CARDS DATA
+-- =========================
+-- This card gets a lot of info, to be able to spawn a card
+---@param card tts__Object: a card
+---@return table: a table that can be passed to spawnObject
+function getCardData(card)
+
+    if not card then
+        error("No card provided", 2)
+    end
+
+    if not card.getName or not card.getDescription or not card.getGUID then
+        error("Invalid card object", 2)
+    end
+
+    if card.tag ~= "Card" then
+        error("Object is not a card", 2)
+    end
+
+    local data = {}
+    data.name = card.getName()
+    data.description = card.getDescription()
+    data.guid = card.getGUID()
+    data.position = card.getPosition()
+    data.rotation = card.getRotation()
+    data.scale = card.getScale()
+    data.gmNotes = card.getGMNotes()
+    data.tags = card.getTags()
+    data.custom = card.getCustomObject()
+    data.luaScript = card.getLuaScript()
+    local success, state = pcall(function()
+        return card.getLuaScriptState()
+    end)
+    data.luaScriptState = success and state or ""
+    return data
+end
+
+-- This takes the Upgrade Sheet of Grizzled, and grabs the traits
+function getGrizzledTraits(card)
+    -- 1. Verificamos que el objeto exista y tenga datos
+    if not card or card.script_state == "" then
+        return {}
+    end
+    -- 2. Parseamos el JSON del script_state
+    local data = JSON.decode(card.script_state)
+    local allTraits = {}
+    if data and data.selections then
+        for _, entry in ipairs(data.selections) do
+            if entry.text and entry.text ~= "" then
+                -- 3. Dividimos los textos por la coma y limpiamos espacios
+                for trait in string.gmatch(entry.text, "([^,]+)") do
+                    -- Eliminamos espacios al principio y final de cada palabra
+                    trait = trait:match("^%s*(.-)%s*$")
+                    table.insert(allTraits, trait)
+                end
+            end
+        end
+    end
+    return allTraits
+end
+
+-- =========================
+-- spawn CARDS
+-- =========================
+
+---@param data table
+---@param name string
+---@param grizzledFields table
+---@param params table
+function spawnCardFromData(data, name, grizzledFields, params)
+    if not data or not data.custom then
+        error("Invalid card data", 2)
+    elseif not grizzledFields or type(grizzledFields) ~= "table" then
+        error("Invalid fields data, expected a table", 2)
+    elseif type(name) ~= "string" then
+        error("Invalid name, expected a string", 2)
+    end
+
+    local destination = self.positionToWorld(params.position)
+    
+    if name == nil then
+        URL =
+        ""
+    elseif name == 'George Barnaby' then
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/15253478470813349064/9A6F7DEA828EA4519C35CDFD80D73C35CA63ABD7/"
+    elseif name == 'Hank Samson' then
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
+    elseif name == 'Hank Samson (word1)' then
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
+    elseif name == 'Hank Samson (word2)' then
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
+    elseif name == 'Isabelle Barnes' then
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/10359671553347854014/56EAB6453121511654D21C83241881E438A81EFC/"
+    elseif name == 'Minh Thi Phan' then
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/16963472557864291887/7A4AB78EE674A224884FD4101FDB8548566D5BA2/"
+    else
+        URL =
+        "https://steamusercontent-a.akamaihd.net/ugc/15253478470813349064/9A6F7DEA828EA4519C35CDFD80D73C35CA63ABD7/"
+    end
+    
+    local spawnParams = {
+        type = "CardCustom",
+        position = destination,
+        rotation = data.rotation,
+        -- more data from params
+    }
+
+    local newCard = spawnObject(spawnParams)
+    
+    -- Apply appearance
+    newCard.setCustomObject({
+        face = URL,
+        back = data.custom.back,
+        number = 1,
+        back_is_hidden = true
+    })
+    -- Apply metadata
+    newCard.setName(data.name)
+    newCard.setDescription(data.description)
+    newCard.setGMNotes(data.gmNotes)
+    
+    -- Apply tags
+    for _, tag in ipairs(data.tags or {}) do
+        newCard.addTag(tag)
+    end
+    
+    
+    -- █▀▄▀█ █▀▀ ▀█▀ ▄▀█ ▄▄ █▀ █▀▀ █▀█ █ █▀█ ▀█▀
+    -- █░▀░█ ██▄ ░█░ █▀█ ░░ ▄█ █▄▄ █▀▄ █ █▀▀ ░█░
+    
+    
+    grizzledFields = {'word1', 'word2pretty'}
+    grizzledFields = { 'word1', 'word2pretty', 'wordlong and cooler' }
+    grizzledFields = getGrizzledTraits(Card2)
+    for _, element in ipairs(grizzledFields) do
+        printToAll('-    Grizzled has the trait:' .. element)
+    end
+    setScriptWise(newCard, grizzledFields)  
+
+    -- It is not necessary to initialize the card. Even setting the code after,
+    -- the loading takes frames, and the onLoad is correctly applied
+    local necessary = false
+    if necessary then
+        local uiXml = generateCardXml(fields)
+        if newCard.UI then
+            pcall(function() newCard.UI.setXml(uiXml) end)
+        end
+    end
+    
+    return newCard
+end
+
+function generateCardXml(fields)
+    if not fields or #fields == 0 then
+        return [[<Panel><Text color="white">No traits</Text></Panel>]]
+    end
+    local xml =
+    [[<Panel height="320" width="155" scale="0.28 0.28 1" position = "0 75 -40" padding="10 10 10 10"  rotation = "0 0 180" >]]
+    xml = xml .. [[<VerticalLayout spacing="1" padding="0.5" verticalAlignment="Center">]]
+    for _, word in ipairs(fields) do
+        xml = xml .. [[<Text fontSize="30" color="black" fontStyle="Bold" alignment="Center">• ]]
+        xml = xml .. word .. [[</Text>]]
+    end
+    xml = xml .. [[</VerticalLayout>]]
+    xml = xml .. [[</Panel>]]
+    return xml
+end
+
+-- This populates the LUA code of a card, to make it an amazing written card
+-- imagine an object. you want that object to have code
+-- you use this
+function setScriptWise(card, fields)
+    -- Convert fields table to Lua table syntax
+    local fieldsLua = "{"
+    local boxHeight = 80 + 80 * #fields / 2
+    local boxPos = 95
+
+    for i, word in ipairs(fields) do
+        fieldsLua = fieldsLua .. '"' .. word .. '"'
+        if i < #fields then
+            fieldsLua = fieldsLua .. ", "
+        end
+    end
+    fieldsLua = fieldsLua .. "}"
+
+    -- Use [=[ ]=] to avoid escaping issues
+    local cardScript = [=[fieldsG = ]=] .. fieldsLua .. [=[
+
+boxHeight = ]=] .. boxHeight .. [=[
+
+boxPos = ]=] .. boxPos .. [=[
+
+function onLoad()
+    local uiXml = generateCardXml()
+    if self.UI then
+        pcall(function() self.UI.setXml(uiXml) end)
+    end
+end
+
+function generateCardXml()
+    if not fieldsG or #fieldsG == 0 then
+        return [[<Panel><Text color="white">No traits</Text></Panel>]]
+    end
+
+    local xml = [[<Panel height="]] .. boxHeight .. [[" width="320" scale="0.28 0.28 1" position="0 ]] .. boxPos .. [[ -40" padding="7 7 7 7" rotation="0 0 180">]]
+    xml = xml .. [[<VerticalLayout spacing="1" padding="0.2" verticalAlignment="Center">]]
+
+    for _, word in ipairs(fieldsG) do
+        xml = xml .. [[<Text fontSize="34" color="black" fontStyle="Bold" alignment="Center">• ]]
+        xml = xml .. word .. [[</Text>]]
+    end
+
+    xml = xml .. [[</VerticalLayout>]]
+    xml = xml .. [[</Panel>]]
+    return xml
+end
+
+]=]
+
+    card.setLuaScript(cardScript)
+end
