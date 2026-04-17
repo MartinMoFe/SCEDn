@@ -8,8 +8,11 @@ PosDestination = { x = 0, y = 2, z = 5 }
 -- ==================================================
 -- VARIABLES
 -- ==================================================
+
 Card1 = nil
+Card2 = nil
 Card3 = nil
+
 -- ==================================================
 -- ON LOAD
 -- ==================================================
@@ -34,15 +37,31 @@ function buttonPressed(obj, player_color, alt_click)
         printToAll("No card to stamp detected. Please place a card at the left position.")
         return
     end
-    if not Card3 then
-        printToAll("No card to stamp detected. Please place a card at the left position.")
+    if not Card2 then
+        printToAll("No card to stamp detected. Please place a card at the central position.")
         return
     end
-    -- do the grab
-    spawnInfo = getCardData(Card1)
-    fieldsInfo = getGrizzledTraits(Card3)
-    -- do the clone
-    spawnCardFromData(spawnInfo, Card3.getName(), fieldsInfo, { position = PosDestination, image = "George" })
+    
+
+    local spawnInfo = getCardData(Card1)
+    
+    -- Depending on the card, do different things
+
+    if Card1.getName() == "Grizzled" then
+        local fieldsInfo = getGrizzledTraits(Card2)
+        local nemesisField = getGrizzledNemesis(Card2)
+        if Card3 and Card3.getName then
+            invName = Card3.getName()
+        else 
+            invName = nil
+        end
+        spawnGrizzledFromData(spawnInfo, fieldsInfo, nemesisField, invName, { position = PosDestination })
+    elseif Card1.getName() == "Runic Axe" then
+        error("not impl")
+    end
+
+
+    
 end
 
 -- =========================
@@ -77,6 +96,7 @@ function detectThreeCards(player_color)
 end
 
 function detectCard(position)
+
     local hits = Physics.cast({
         origin = self.positionToWorld(position) + Vector(0, 1, 0),
         direction = { 0, -1, 0 },
@@ -92,6 +112,7 @@ function detectCard(position)
             return obj
         end
     end
+
     return nil
 end
 
@@ -135,71 +156,99 @@ end
 
 -- This takes the Upgrade Sheet of Grizzled, and grabs the traits
 function getGrizzledTraits(card)
-    -- 1. Verificamos que el objeto exista y tenga datos
+    
     if not card or card.script_state == "" then
         return {}
     end
-    -- 2. Parseamos el JSON del script_state
+    
     local data = JSON.decode(card.script_state)
     local allTraits = {}
     if data and data.selections then
         for _, entry in ipairs(data.selections) do
             if entry.text and entry.text ~= "" then
-                -- 3. Dividimos los textos por la coma y limpiamos espacios
                 for trait in string.gmatch(entry.text, "([^,]+)") do
-                    -- Eliminamos espacios al principio y final de cada palabra
                     trait = trait:match("^%s*(.-)%s*$")
                     table.insert(allTraits, trait)
                 end
             end
         end
     end
+
     return allTraits
 end
 
+---@return boolean
+function getGrizzledNemesis(card)
+    log("ggn1")
+    if not card or card.script_state == "" then
+        return false
+    end
+    local hasNemesis = pcall(function()
+        return JSON.decode(card.script_state).selections[4]["xp"] == 3
+    end) or false
+    
+    if hasNemesis then
+        log("This is indeed nemesis")
+    end
+
+    return hasNemesis
+end
+
+function getRunicAxeUpgrades(card)
+    if not card or card.script_state == "" then
+        return {}
+    end
+    log(JSON.decode(card.script_state))
+end
+
 -- =========================
--- spawn CARDS
+-- SPAWN CARDS
 -- =========================
 
----@param data table
----@param name string
----@param grizzledFields table
+---@param data table 
+---@param invName string|nil
+---@param upgradeFields table
+---@param nemesisField boolean
 ---@param params table
-function spawnCardFromData(data, name, grizzledFields, params)
+function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, params)
     if not data or not data.custom then
         error("Invalid card data", 2)
-    elseif not grizzledFields or type(grizzledFields) ~= "table" then
+    elseif not upgradeFields or type(upgradeFields) ~= "table" then
         error("Invalid fields data, expected a table", 2)
-    elseif type(name) ~= "string" then
-        error("Invalid name, expected a string", 2)
+    elseif type(invName) ~= "string" and invName ~= nil then
+        error("Invalid name, expected a string or nil", 2)
+    elseif type(nemesisField) ~= "boolean" and nemesisField ~= nil then
+        error("Invalid nemesisField, expected bool or nil", 2)
     end
 
     local destination = self.positionToWorld(params.position)
     
-    if name == nil then
+    if invName == nil then
+        printToAll('not implemented yet, its awful')
         URL =
-        ""
-    elseif name == 'George Barnaby' then
+        "https://arkhamdb.com/bundles/cards/09101.png"
+    elseif invName == 'George Barnaby' then
         URL =
         "https://steamusercontent-a.akamaihd.net/ugc/15253478470813349064/9A6F7DEA828EA4519C35CDFD80D73C35CA63ABD7/"
-    elseif name == 'Hank Samson' then
+    elseif invName == 'Hank Samson' then
         URL =
         "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
-    elseif name == 'Hank Samson (word1)' then
+    elseif invName == 'Hank Samson (Assistant)' then
         URL =
         "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
-    elseif name == 'Hank Samson (word2)' then
+    elseif invName == 'Hank Samson (Warden)' then
         URL =
         "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
-    elseif name == 'Isabelle Barnes' then
+    elseif invName == 'Isabelle Barnes' then
         URL =
         "https://steamusercontent-a.akamaihd.net/ugc/10359671553347854014/56EAB6453121511654D21C83241881E438A81EFC/"
-    elseif name == 'Minh Thi Phan' then
+    elseif invName == 'Minh Thi Phan' then
         URL =
         "https://steamusercontent-a.akamaihd.net/ugc/16963472557864291887/7A4AB78EE674A224884FD4101FDB8548566D5BA2/"
     else
+        -- Any investigator that is not implemented
         URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/15253478470813349064/9A6F7DEA828EA4519C35CDFD80D73C35CA63ABD7/"
+        "https://arkhamdb.com/bundles/cards/09101.png"
     end
     
     local spawnParams = {
@@ -233,13 +282,11 @@ function spawnCardFromData(data, name, grizzledFields, params)
     -- █░▀░█ ██▄ ░█░ █▀█ ░░ ▄█ █▄▄ █▀▄ █ █▀▀ ░█░
     
     
-    grizzledFields = {'word1', 'word2pretty'}
-    grizzledFields = { 'word1', 'word2pretty', 'wordlong and cooler' }
-    grizzledFields = getGrizzledTraits(Card2)
-    for _, element in ipairs(grizzledFields) do
+    assert(upgradeFields, "This should exist april 26")
+    for _, element in ipairs(upgradeFields) do
         printToAll('-    Grizzled has the trait:' .. element)
     end
-    setScriptWise(newCard, grizzledFields)  
+    setScriptWise(newCard, upgradeFields, nemesisField)
 
     -- It is not necessary to initialize the card. Even setting the code after,
     -- the loading takes frames, and the onLoad is correctly applied
@@ -273,7 +320,7 @@ end
 -- This populates the LUA code of a card, to make it an amazing written card
 -- imagine an object. you want that object to have code
 -- you use this
-function setScriptWise(card, fields)
+function setScriptWise(card, fields, nemesis)
     -- Convert fields table to Lua table syntax
     local fieldsLua = "{"
     local boxHeight = 80 + 80 * #fields / 2
@@ -293,6 +340,7 @@ function setScriptWise(card, fields)
 boxHeight = ]=] .. boxHeight .. [=[
 
 boxPos = ]=] .. boxPos .. [=[
+nemesis = ]=] .. tostring(nemesis) .. [=[
 
 function onLoad()
     local uiXml = generateCardXml()
@@ -314,7 +362,21 @@ function generateCardXml()
         xml = xml .. word .. [[</Text>]]
     end
 
-    xml = xml .. [[</VerticalLayout>]]
+    if nemesis then
+        -- Close the VerticalLayout first
+        xml = xml .. [[</VerticalLayout>]]
+        
+        -- Add a container for absolute positioning
+        xml = xml .. [[<Panel width="100%" height="100%">]]
+        
+        -- Add the Nemesis text in bottom left corner
+        xml = xml .. [[<Text fontSize="20" color="blue" fontStyle="Bold" alignment="BottomLeft" position="5 -5 0">Nemesis (Attach)</Text>]]
+        
+        xml = xml .. [[</Panel>]]
+    else
+        xml = xml .. [[</VerticalLayout>]]
+    end
+
     xml = xml .. [[</Panel>]]
     return xml
 end

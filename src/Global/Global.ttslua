@@ -3459,6 +3459,11 @@ function onClick_toggleOption(_, _, id)
   UI.setAttribute(id, "image", newState and "option_on" or "option_off")
 end
 
+function onClick_toggleOptionWrapper(table)
+  local id = table.id
+  onClick_toggleOption(_, _, id)
+end
+
 -- color selection for playArea
 function onClick_playAreaConnectionColor(player, _, id)
   player.showColorDialog(optionPanel[id], function(color)

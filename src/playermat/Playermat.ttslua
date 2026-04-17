@@ -539,6 +539,8 @@ end
 -- click function for "draw 1 button" (that can be added via option panel)
 function doDrawOne(player, clickType)
   updateMessageColor(player.color)
+  name = getActiveInvestigatorData().name or player.color
+  printToAll(name .. ' draws one card.')
   drawCardsWithReshuffle(1, clickType == "-2") -- right-click draws from below
 end
 
