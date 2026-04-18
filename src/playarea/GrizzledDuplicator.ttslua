@@ -244,7 +244,7 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
         "https://steamusercontent-a.akamaihd.net/ugc/10359671553347854014/56EAB6453121511654D21C83241881E438A81EFC/"
     elseif invName == 'Minh Thi Phan' then
         URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/16963472557864291887/7A4AB78EE674A224884FD4101FDB8548566D5BA2/"
+        "https://steamusercontent-a.akamaihd.net/ugc/13841382499082651366/6B4E9FEAFE291A5DC3C6734C11CBD64330FFCBCF/"
     else
         -- Any investigator that is not implemented
         URL =
@@ -282,38 +282,56 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
     -- █░▀░█ ██▄ ░█░ █▀█ ░░ ▄█ █▄▄ █▀▄ █ █▀▀ ░█░
     
     
-    assert(upgradeFields, "This should exist april 26")
-    for _, element in ipairs(upgradeFields) do
-        printToAll('-    Grizzled has the trait:' .. element)
-    end
-    setScriptWise(newCard, upgradeFields, nemesisField)
-
-    -- It is not necessary to initialize the card. Even setting the code after,
-    -- the loading takes frames, and the onLoad is correctly applied
-    local necessary = false
-    if necessary then
-        local uiXml = generateCardXml(fields)
-        if newCard.UI then
-            pcall(function() newCard.UI.setXml(uiXml) end)
-        end
-    end
+    assert(upgradeFields, "This should exist. april 26")
     
+    for _, element in ipairs(upgradeFields) do
+        printToAll('-    Grizzled has the trait: ' .. element)
+    end
+    printToAll('Trying to add code to the card...')
+
+    setScriptWise(newCard, upgradeFields, nemesisField)
+ 
     return newCard
 end
 
-function generateCardXml(fields)
-    if not fields or #fields == 0 then
-        return [[<Panel><Text color="white">No traits</Text></Panel>]]
-    end
-    local xml =
-    [[<Panel height="320" width="155" scale="0.28 0.28 1" position = "0 75 -40" padding="10 10 10 10"  rotation = "0 0 180" >]]
-    xml = xml .. [[<VerticalLayout spacing="1" padding="0.5" verticalAlignment="Center">]]
-    for _, word in ipairs(fields) do
-        xml = xml .. [[<Text fontSize="30" color="black" fontStyle="Bold" alignment="Center">• ]]
-        xml = xml .. word .. [[</Text>]]
-    end
-    xml = xml .. [[</VerticalLayout>]]
-    xml = xml .. [[</Panel>]]
+---@return string
+--- This function is not really used. This function is copypasted into the xml string
+function generateCardXml()
+    -- Debug Constants
+    local posX = 0
+    local posY = 75    -- Vertical position (from your previous fix)
+    local posZ = -40   -- Depth/Distance from surface
+    local width = 155  -- Width (from your previous fix)
+    local height = 320 -- Height (from your previous fix)
+    local scale = "0.28 0.28 1"
+    local rotation = "0 0 180"
+    local borderColor = "#FF0000"
+    local borderWidth = "5"
+
+    -- Generating the XML string
+    -- Using 'position' instead of 'offsetXY' for 3D placement
+    local xml = [[
+        <Panel
+            id="DebugBox"
+            width="]] .. width .. [["
+            height="]] .. height .. [["
+            scale="]] .. scale .. [["
+            position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [["
+            rotation="]] .. rotation .. [["
+            color="#FF000033"
+            active="true">
+
+            <Outline color="]] .. borderColor .. [[" size="]] .. borderWidth .. [[ ]] .. borderWidth .. [[" />
+
+            <Text
+                text="DEBUG BOUNDS"
+                fontSize="20"
+                color="]] .. borderColor .. [["
+                alignment="LowerCenter"
+                offsetXY="0 -30" />
+        </Panel>
+    ]]
+
     return xml
 end
 
@@ -321,67 +339,58 @@ end
 -- imagine an object. you want that object to have code
 -- you use this
 function setScriptWise(card, fields, nemesis)
-    -- Convert fields table to Lua table syntax
-    local fieldsLua = "{"
-    local boxHeight = 80 + 80 * #fields / 2
-    local boxPos = 95
+    -- 1. Outer Constants
+    local posX = 0
+    local posY = 70
+    local posZ = -40
+    local width = 180
+    local height = 20
+    local scale = "1 1 1"
+    local rotation = "0 0 180"
+    local borderColor = "#FF0000"
+    local borderWidth = "2"
 
-    for i, word in ipairs(fields) do
-        fieldsLua = fieldsLua .. '"' .. word .. '"'
-        if i < #fields then
-            fieldsLua = fieldsLua .. ", "
-        end
-    end
-    fieldsLua = fieldsLua .. "}"
+    -- 2. Nemesis Logic
+    local workingFields = {}
+    for _, v in ipairs(fields) do table.insert(workingFields, v) end
+    if nemesis then table.insert(workingFields, "NEMESIS") end
+    local fieldsLua = '{"' .. table.concat(workingFields, '", "') .. '"}'
 
-    -- Use [=[ ]=] to avoid escaping issues
-    local cardScript = [=[fieldsG = ]=] .. fieldsLua .. [=[
-
-boxHeight = ]=] .. boxHeight .. [=[
-
-boxPos = ]=] .. boxPos .. [=[
-nemesis = ]=] .. tostring(nemesis) .. [=[
+    -- 3. The Meta-Template
+    local cardScript = [[
+-- Generated Script
+local fields = ]] .. fieldsLua .. [[
 
 function onLoad()
-    local uiXml = generateCardXml()
-    if self.UI then
-        pcall(function() self.UI.setXml(uiXml) end)
-    end
+    print("START ONLOAD")
+    -- Small delay to ensure UI is ready
+    Wait.frames(function()
+        local xml = generateCardXml()
+        self.UI.setXml(xml)
+    end, 1)
+    print("END ONLOAD")
 end
 
 function generateCardXml()
-    if not fieldsG or #fieldsG == 0 then
-        return [[<Panel><Text color="white">No traits</Text></Panel>]]
-    end
+    print("START XML CREATION")
 
-    local xml = [[<Panel height="]] .. boxHeight .. [[" width="320" scale="0.28 0.28 1" position="0 ]] .. boxPos .. [[ -40" padding="7 7 7 7" rotation="0 0 180">]]
-    xml = xml .. [[<VerticalLayout spacing="1" padding="0.2" verticalAlignment="Center">]]
+    local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" '
+    xml = xml .. 'scale="]] .. scale .. [[" position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[" '
+    xml = xml .. 'rotation="]] .. rotation .. [[" color="#FF000033">'
 
-    for _, word in ipairs(fieldsG) do
-        xml = xml .. [[<Text fontSize="34" color="black" fontStyle="Bold" alignment="Center">• ]]
-        xml = xml .. word .. [[</Text>]]
-    end
+    -- Red Border
+    xml = xml .. '<Outline color="]] .. borderColor .. [[" size="]] .. borderWidth .. [[ ]] .. borderWidth .. [[" />'
 
-    if nemesis then
-        -- Close the VerticalLayout first
-        xml = xml .. [[</VerticalLayout>]]
-        
-        -- Add a container for absolute positioning
-        xml = xml .. [[<Panel width="100%" height="100%">]]
-        
-        -- Add the Nemesis text in bottom left corner
-        xml = xml .. [[<Text fontSize="20" color="blue" fontStyle="Bold" alignment="BottomLeft" position="5 -5 0">Nemesis (Attach)</Text>]]
-        
-        xml = xml .. [[</Panel>]]
-    else
-        xml = xml .. [[</VerticalLayout>]]
-    end
+    -- Single Text element for confirmation
+    xml = xml .. '<Text text="DEBUG BOX ACTIVE" fontSize="12" color="]] .. borderColor .. [[" />'
 
-    xml = xml .. [[</Panel>]]
+    xml = xml .. '</Panel>'
+
+    print("END XML CREATION")
     return xml
 end
-
-]=]
+]]
 
     card.setLuaScript(cardScript)
+    card.reload()
 end
