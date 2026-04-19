@@ -10,17 +10,17 @@
     "g": 0.9,
     "r": 0.9
   },
-    "CustomImage": {
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+  "CustomImage": {
+    "CustomTile": {
+      "Stackable": false,
+      "Stretch": true,
+      "Thickness": 0.2,
+      "Type": 0
+    },
+    "ImageScalar": 1,
     "ImageSecondaryURL": "",
-    "ImageScalar": 1.0,
-    "WidthScale": 0.0,
-    "CustomToken": {
-      "Thickness": 0.1,
-      "MergeDistancePixels": 15.0,
-      "StandUp": false,
-      "Stackable": false
-    }
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+    "WidthScale": 0
   },
   "Description": "Searches for continous effects and warns of them.",
   "DragSelectable": true,
@@ -43,13 +43,13 @@
   "Tooltip": true,
   "Transform": {
     "posX": 73,
-    "posY": 1.50,
+    "posY": 1.5,
     "posZ": -18,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
     "scaleX": 0.5,
-    "scaleY": 0.5,
+    "scaleY": 1,
     "scaleZ": 0.5
   },
   "Value": 0,

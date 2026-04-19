@@ -8,19 +8,19 @@
   "ColorDiffuse": {
     "b": 0,
     "g": 0.9,
-    "r": 0.9  
+    "r": 0.9
   },
   "CustomImage": {
-    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+    "CustomTile": {
+      "Stackable": false,
+      "Stretch": true,
+      "Thickness": 0.2,
+      "Type": 0
+    },
+    "ImageScalar": 1,
     "ImageSecondaryURL": "",
-    "ImageScalar": 1.0,
-    "WidthScale": 0.0,
-    "CustomToken": {
-      "Thickness": 0.1,
-      "MergeDistancePixels": 15.0,
-      "StandUp": false,
-      "Stackable": false
-    }
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/15928227517612128725/5D3CB0375BB28CDD090B059A11F6E7884D510444/",
+    "WidthScale": 0
   },
   "Description": "This Watcher knows how many enemies there are, and can create ghostly duplicates of the Minicards, to keep track of movement.\nIt requires of the phase tracker, to comunicate the enemies in the Enemy phase and duplicate minicards in the Investigation Phase.",
   "DragSelectable": true,
@@ -34,7 +34,7 @@
   "LayoutGroupSortIndex": 0,
   "Locked": true,
   "LuaScript": "require(\"mythos/EnemyWatcher\")",
-  "LuaScriptState": "",
+  "LuaScriptState_path": "EnemyWatcher.87e529.luascriptstate",
   "MeasureMovement": false,
   "Name": "Custom_Tile",
   "Nickname": "Enemy Watcher",
@@ -43,13 +43,13 @@
   "Tooltip": true,
   "Transform": {
     "posX": 73,
-    "posY": 1.50,
+    "posY": 1.5,
     "posZ": -16,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
     "scaleX": 0.5,
-    "scaleY": 0.5,
+    "scaleY": 1,
     "scaleZ": 0.5
   },
   "Value": 0,

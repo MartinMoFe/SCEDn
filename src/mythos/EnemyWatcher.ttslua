@@ -2,6 +2,7 @@ local GUIDReferenceApi         = require("core/GUIDReferenceApi")
 local PlayermatApi             = require("playermat/PlayermatApi")
 local SearchLib                = require("util/SearchLib")
 local Zones                    = require("playermat/Zones")
+local GlobalApi                = require("Global/GlobalApi")
 
 -- FIND ENEMIES: Cards that are enemies only only when face-down
 -- Here we list them by their id in the metadata
@@ -112,6 +113,7 @@ function respondToChange(aString)
   if newPhase == "1.9" or newPhase == "2.9" or newPhase == "3.9" or newPhase == "4.9" then
     destroyFakeMinis()
   elseif newPhase == "2.1" then
+    showResourceHandInfo({ colorPrint = INV_GREEN })
     showHealthSanityInfo({ colorPrint = INV_GREEN })
     duplicateFakeMinis()
   elseif newPhase == "3.1" then
@@ -146,26 +148,56 @@ function showHealthSanityInfo(params)
     params = {}
   end
 
-  local usedColors = PlayermatApi.getUsedMatColors()
-
   local colorPrint = params.colorPrint or Color.White
 
-  for _, matColor in ipairs(usedColors) do
+  for _, matColor in ipairs(PlayermatApi.getUsedMatColors()) do
+
     local investigatorName = PlayermatApi.getInvestigatorName(matColor)
-
+    local coloredName = "[" ..
+        Color.fromString(matColor):toHex() ..
+        "]" .. investigatorName .. "[-]"
     local health = PlayermatApi.getCounterValue(matColor, "DamageCounter")
-
     local sanity = PlayermatApi.getCounterValue(matColor, "HorrorCounter")
 
-    local message = "[" ..
-        Color.fromString(matColor):toHex() ..
-        "]" .. investigatorName .. "[-]" .. ": Damage " .. health .. " / Horror " .. sanity
+    local message = coloredName .. ": Damage " .. health .. " / Horror " .. sanity
 
     printToAll(message, colorPrint)
   end
   
   printToAll("-------", colorPrint)
 
+end
+
+function showResourceHandInfo(params)
+  if params == nil then
+    params = {}
+  end
+
+  local colorPrint = params.colorPrint or Color.White
+
+  for _, matColor in ipairs(PlayermatApi.getUsedMatColors()) do
+
+    local playerColor   = PlayermatApi.getPlayerColor(matColor)
+    local investigatorName = PlayermatApi.getInvestigatorName(matColor)
+    local coloredName      = "[" ..
+        Color.fromString(matColor):toHex() ..
+        "]" .. investigatorName .. "[-]"
+    local cardCount     = #Player[playerColor].getHandObjects()
+    local resourceCount = PlayermatApi.getCounterValue(matColor, "ResourceCounter")
+    
+
+    -- Outputs a string like: "Chr1Z has 3 cards and 1 resource."
+    local strings       = {
+      coloredName,
+      "has",
+      cardCount,
+      "card" .. (cardCount == 1 and "" or "s"),
+      "and",
+      resourceCount,
+      "resource" .. (resourceCount == 1 and "" or "s") .. "."
+    }
+    printToAll(table.concat(strings, " "), colorPrint)
+  end
 end
 
 -- Threat area helper

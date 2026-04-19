@@ -232,7 +232,9 @@
     "DecalPlacer.778507",
     "ViewController.ca8428",
     "PhaseTrackerController.d0c8fb",
-    "GrizzledDuplicator.1855eb"
+    "GrizzledDuplicator.1855eb",
+    "Quarter.4b584c",
+    "DiscardRetriever.a450fe"
   ],
   "PlayArea": 1,
   "SaveName": "Arkham SCE - 4.7.1",

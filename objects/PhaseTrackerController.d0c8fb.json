@@ -44,12 +44,12 @@
   "Transform": {
     "posX": 73.7,
     "posY": 1.328,
-    "posZ": -22.0,
+    "posZ": -22,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
     "scaleX": 0.5,
-    "scaleY": 0.5,
+    "scaleY": 1,
     "scaleZ": 0.5
   },
   "Value": 0,
