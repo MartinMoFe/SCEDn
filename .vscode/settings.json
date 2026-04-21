@@ -11,13 +11,13 @@
     "param-type-mismatch"
   ],
   "files.exclude": {
-    "src/playercards/customizable/**": true,
-    "objects/AdditionalPlayerCards.2cba6b**": true,
-    "objects/AllPlayerCards.15bb07**.gmnotes": true,
-    "objects/AllPlayerCards.15bb07/**.json": true,
-    "objects/AllPlayerCards.15bb07/**/*.gmnotes": true,
-    "objects/Fan-Made**": true,
-    "**_translation-notes**": true
+    // "src/playercards/customizable/**": true,
+    // "objects/AdditionalPlayerCards.2cba6b**": true,
+    // "objects/AllPlayerCards.15bb07**.gmnotes": true,
+    // "objects/AllPlayerCards.15bb07/**.json": true,
+    // "objects/AllPlayerCards.15bb07/**/*.gmnotes": true,
+    // "objects/Fan-Made**": true,
+    // "**_translation-notes**": true
     
   },
   "search.exclude": {

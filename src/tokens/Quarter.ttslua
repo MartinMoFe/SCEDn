@@ -1,0 +1,156 @@
+function getObjectByName(name)
+    if not name or type(name) ~= "string" then return nil end
+
+    local objects = getObjects()
+    if not objects then return nil end
+
+    for _, obj in ipairs(objects) do
+        if obj and obj.getName and type(obj.getName) == "function" then
+            local objName = obj.getName()
+            if objName == name then
+                return obj
+            end
+        end
+    end
+    return nil
+end
+
+removedBagTokens = false
+
+function onLoad()
+    -- Create a button to start the setup process manually
+    self.createButton({
+        label = "Run Initial Setup",
+        click_function = "runSetup",
+        function_owner = self,
+        position = { 0, 0.5, 0 },
+        width = 1200,
+        height = 400,
+        font_size = 200,
+        color = { 0.5, 0.5, 0.5 }
+    })
+    printToAll("Setup button created. Click it to complete initialisation.", "Orange")
+end
+
+function runSetup()
+    -- Safely handle the chest (set-aside bag)
+    local chest = getObjectByName('Set-aside')
+    if chest and chest.setColorTint then
+        chest.setColorTint({ r = 1, g = 1, b = 1 })
+    end
+
+    -- Safely call global cleanup functions
+    if Global and Global.call then
+        pcall(function() Global.call("removeSharedBagArea") end)
+        pcall(function()
+            Global.call("handVisibilityToggle", { playerColor = 'White', handColor = 'Orange' })
+        end)
+        pcall(function()
+            Global.call("handVisibilityToggle", { playerColor = 'Orange', handColor = 'White' })
+        end)
+    end
+
+    -- Remove unwanted objects by name
+    local names = {
+        "Campaign Importer/Exporter",
+        "Rules Reference",
+        "Doom tokens",
+        "Clue tokens",
+        "Deck Instruction Generator",
+        "Latest FAQ",
+        "The Scarlet Keys",
+        "SCED Tour",
+        "Lead Investigator",
+        "Card Back Enhancer",
+        "Connection markers"
+    }
+    for _, name in ipairs(names) do
+        local obj = getObjectByName(name)
+        if obj and obj.destroyObject then
+            pcall(function() obj.destroyObject() end)
+        end
+    end
+
+    local phasetracker = getObjectByName('Phase Tracker')
+    if phasetracker then
+        pcall(function()
+            phasetracker.setPositionSmooth({ -53, 2, 0 }, false, true)
+            phasetracker.setLock(false)
+            Wait.time(function() phasetracker.setLock(true) end, 2)
+        end)
+
+        pcall(function() phasetracker.setVar('moreDetails', true) end)
+        printToAll("Phase Tracker moved.", "Green")
+    end
+
+    local bag = getObjectByName("Chaos Bag")
+    if bag and not removedBagTokens then
+        emptyBag(bag)
+        printToAll("Bag empty.", "Green")
+    else
+        printToAll("Bag was NOT empty.", "Green")
+    end
+
+    pcall(function()
+        Global.call("onClick_toggleOptionWrapper", { id = "showAttachmentHelper" })
+        Global.call("onClick_toggleOptionWrapper", { id = "showSearchAssistant" })
+        Global.call("onClick_toggleOptionWrapper", { id = "showDisplacementTool" })
+        printToAll("Added thingies.", "Green")
+    end)
+
+    printToAll("Initialisation complete.", "Orange")
+    printToAll("Initialisation complete :)", "Green")
+end
+
+function emptyBag(bag)
+    if not bag or bag.tag ~= "Bag" then return end
+
+    local contents = bag.getObjects()
+    if not contents then return end
+
+    for _, entry in ipairs(contents) do
+        if entry and entry.guid then
+            pcall(function()
+                local obj = bag.takeObject({
+                    guid     = entry.guid,
+                    position = bag.getPosition() + Vector(4, 4, 3),
+                    smooth   = false
+                })
+
+                -- If takeObject returned the object instantly, destroy it
+                if obj then
+                    Wait.time(function()
+                        if obj and obj.destruct then
+                            obj.destruct()
+                        end
+                    end, 0.1)
+                else
+                    -- fallback: try to grab by GUID after a short delay
+                    Wait.time(function()
+                        local spawned = getObjectFromGUID(entry.guid)
+                        if spawned then
+                            spawned.destruct()
+                        end
+                    end, 0.1)
+                end
+            end)
+        end
+    end
+end
+
+function makeCharisma()
+    -- Configure playermats with slot symbols
+    -- local slots = { "any", "any", "any", "any", "Hand (left)", "Hand (right)", "Ally", "any", "any", "any", "Accessory",
+    --   "Arcane",
+    --   "Arcane", "Ally" }
+
+    -- local m1 = getObjectByName('Playermat 1: White')
+    -- if m1 and m1.call then
+    --   pcall(function() m1.call('updateSlotSymbols', slots) end)
+    -- end
+
+    -- local m2 = getObjectByName('Playermat 2: Orange')
+    -- if m2 and m2.call then
+    --   pcall(function() m2.call('updateSlotSymbols', slots) end)
+    -- end
+end

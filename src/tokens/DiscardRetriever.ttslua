@@ -1,0 +1,260 @@
+local PlayermatApi  = require("playermat/PlayermatApi")
+
+retrievableCardsIds = {
+  "04312", "04033", "11092",
+  "04272", "10118", "11085",
+  "11090", "06245", "09103"
+}
+
+
+--- @type string[]
+local foundRetrievableNames = {}
+local isScavenging = false
+local isAmuletActive = false
+local isIsabelle = false
+local isAgatha = false
+
+
+function onLoad()
+  -- Check if its Isabelle
+  if isInvestigatorIsabelle() then
+    isIsabelle = true
+    printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
+  elseif isInvestigatorAgatha() then
+    isAgatha = true
+    printToAll("Discard Retriever: Agatha Crane detected.", { 1, 1, 1 })
+    printToAll("Warning! This helper for Agatha helps you retrieve some events.", { 1, 0, 0 })
+    printToAll("Agatha's retrievable events are trickly, and some events can't be played with her ability.", { 1, 0, 0 })
+  end
+
+  addPermanentEntries()
+end
+
+function onHover()
+  -- This checks every time if Isabelle is the investigator, which can be less efficient
+  -- but it allows for the player spawning the Retriver and then loading the investigator
+  -- Or spawning the Retriver after loading the investigator, and then placing it
+  if not isIsabelle then
+    if isInvestigatorIsabelle() then
+      isIsabelle = true
+      printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
+    end
+  end
+
+  readDiscardPile()
+  generateContextMenu()
+end
+
+-- Context Menu
+
+-- This function generates the context menu based on the current state of the discard pile and the toggles
+function generateContextMenu()
+  self.clearContextMenu()
+
+  -- Permanent toggles
+  addPermanentEntries()
+
+  -- Cards stored as retrievable Cards, generate entries
+  for _, name in pairs(foundRetrievableNames) do
+    self.addContextMenuItem(name, function() pullCardFromDiscard(name) end)
+  end
+end
+
+-- This entries always lead the context menu
+function addPermanentEntries()
+  self.addContextMenuItem("Toggle Scavenging", function() toggleScavenging() end)
+  self.addContextMenuItem("Toggle Wendy's Amulet", function() toggleAmulet() end)
+end
+
+function toggleScavenging()
+  isScavenging = not isScavenging
+  printToAll("Retrieving Items is now " .. (isScavenging and "active" or "inactive"), { 1, 1, 1 })
+end
+
+function toggleAmulet()
+  isAmuletActive = not isAmuletActive
+  printToAll("Retrieving Events is now " .. (isScavenging and "active" or "inactive"), { 1, 1, 1 })
+end
+
+-- seaches discard pile, reads and populates the foundRetrievable variable
+function readDiscardPile()
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local deckAreaObjects = PlayermatApi.getDeckAreaObjects(matColor)
+  foundRetrievableNames = {}
+
+  if not deckAreaObjects.discard then return end
+
+
+  if deckAreaObjects.discard.type == 'Card' then
+    log("Yet to implement", 2)
+  elseif deckAreaObjects.discard.type == 'Deck' then
+    for _, card in ipairs(deckAreaObjects.discard.getObjects()) do
+      isRetrievableCard(card)
+    end
+  end
+end
+
+function pullCardFromDiscard(cardName)
+  if type(cardName) ~= "string" then
+    error("Implementation error. Expected string.", 2)
+  end
+
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local deckAreaObjects = PlayermatApi.getDeckAreaObjects(matColor)
+
+  if not deckAreaObjects.discard then
+    return
+  end
+
+  if deckAreaObjects.discard.type == 'Card' then
+    log("Yet to implement", 2)
+  elseif deckAreaObjects.discard.type == 'Deck' then
+    takeOutByName(deckAreaObjects.discard, cardName, {
+      position = self.getPosition() + Vector(0, 1, 0), smooth = true })
+  end
+end
+
+-- Boolean helpers
+
+-- Absolute isRetrievableCard function, checks if the card is retrievable by any means
+---@return boolean
+function isRetrievableCard(card)
+  if type(card) ~= "table" then
+    error("Yet to implement", 2)
+  end
+
+  if not card.gm_notes then
+    error("Fail immediately in the developing. All SCED cards have gmnotes.", 2)
+  end
+
+  if isPlayableCard(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isScavenging and isScavengingAble(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isAmuletActive and isEvent(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isIsabelle and isSkill(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  elseif isAgatha and isAgathaAble(card.gm_notes) then
+    table.insert(foundRetrievableNames, card.name)
+  end
+end
+
+-- Checks if this is a playable Card, simply by its effect
+---@return boolean
+function isPlayableCard(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if isInList(retrievableCardsIds, metadata.id) then
+    return true
+  end
+  return false
+end
+
+-- Checks if this is an Item Card
+---@return boolean
+function isScavengingAble(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  traits = metadata.traits or ""
+  if string.find(traits, "Item") then
+    return true
+  end
+  return false
+end
+
+-- Checks if this is an Event
+function isEvent(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if metadata.type == "Event" then
+    return true
+  end
+  return false
+end
+
+-- Checks if this is an Skill
+function isSkill(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if metadata.type == "Skill" then
+    return true
+  end
+  return false
+end
+
+function isAgathaAble(gmnotes)
+  local metadata = JSON.decode(gmnotes) or {}
+  if metadata.type == "Event" and metadata.traits then
+    if string.find(metadata.traits, "Spell") or string.find(metadata.traits, "Insight") then
+      return true
+    end
+  end
+  return false
+end
+
+local jsonString = "{\n  \"id\": \"02022\",\n  \"type\": \"Event\",\n  \"class\": \"Seeker\",\n  \"cost\": 0,\n  \"level\": 0,\n  \"traits\": \"Insight. Tactic.\",\n  \"willpowerIcons\": 1,\n  \"agilityIcons\": 1,\n  \"cycle\": \"The Dunwich Legacy\"\n}"
+assert(isAgathaAble(jsonString) == true, "This shouldn't pop")
+
+---@returns boolean
+function isInvestigatorIsabelle()
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local investigator = PlayermatApi.getActiveInvestigatorData(matColor)
+  if investigator and investigator.id == "12013" then
+    return true
+  end
+  return false
+end
+
+---@returns boolean
+function isInvestigatorAgatha()
+  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+  local investigator = PlayermatApi.getActiveInvestigatorData(matColor)
+  if investigator and investigator.id == "11007" or investigator.id == "11008" then
+    return true
+  end
+  return false
+end
+
+------ GENERIC FUNCTIONS FOR TABLETOP SIMULATOR
+
+--@param deck tts__Object
+--@param cardName string
+--@returns tts__Object|nil
+function takeOutByName(deck, cardName, params)
+  -- Defensive checks
+
+  if not deck or deck.tag ~= "Deck" then
+    error("Argument error. deck", 2)
+  end
+
+  if type(cardName) ~= "string" or cardName == "" then
+    error("Argument error. cardName", 2)
+  end
+
+  if not params or type(params) ~= "table" then
+    error("Argument error. params", 2)
+  end
+
+  -- Search for the card in the deck
+  local cards = deck.getObjects()
+  for _, card in ipairs(cards) do
+    if card.name == cardName then
+      if card.name == cardName then
+        deck.takeObject({ guid = card.guid, position = self.getPosition() + Vector(0, 1, 0.5), smooth = false })
+        break
+      end
+    end
+  end
+
+  log("takeoutbyname: Card '" .. cardName .. "' not found in deck")
+  return nil
+end
+
+--@param list table of card id
+--@param value id to search for
+---@return boolean
+function isInList(list, value)
+  for _, item in ipairs(list) do
+    if item == value then
+      return true
+    end
+  end
+  return false
+end

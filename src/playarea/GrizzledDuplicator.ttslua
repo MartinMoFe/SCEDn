@@ -393,10 +393,8 @@ function generateCardXml()
     end
 
     if isNemesis then
-        -- We use a Panel with a solid color to "cover" the background letters
-        -- Then put the text inside it.
-        xml = xml .. '<Panel width="]] .. width .. [[" height="]] .. height .. [[">'
-        xml = xml .. '  <Text text="NeMeSiS" fontSize="7" color="#000000" rectAlignment="MiddleCenter" />'
+        xml = xml .. '<Panel width="]] .. width + 20 .. [[" height="]] .. height .. [[">'
+        xml = xml .. '  <Text text="NeMeSiS" fontSize="7" color="#0055ff" rectAlignment="MiddleCenter" />'
         xml = xml .. '</Panel>'
     end
 
