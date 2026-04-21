@@ -1,13 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
-  "Bag": {
-    "Order": 0
-  },
   "ColorDiffuse": {
     "b": 0,
     "g": 0.36652,
@@ -95,7 +86,7 @@
     "Watchthis!3.tdc061",
     "Watchthis!.c40cb4",
     "WatcherfromAnotherDimension.6945f7",
-    "WatchThis!.60371",
+    "WatchThis.60371",
     "WarningShot.ec38db",
     "WardofRadiance.69116c",
     "WardofProtection5.7bc995",
@@ -1749,7 +1740,7 @@
     "DoubleDouble4.0e0530",
     "DorothySimmons.12030",
     "Doppelgänger1.tdc058",
-    "Do-or-Die.60568",
+    "DoorDie.60568",
     "Doomed.ba2ae1",
     "Dodge2.9ab750",
     "Dodge.rev01523",
@@ -1831,7 +1822,7 @@
     "DeafeningSilence.0821d4",
     "DeadEnds.12006",
     "DeVermisMysteriis2.b40b98",
-    "De-Escalate.60265",
+    "DeEscalate.60265",
     "DayofReckoning.e701af",
     "DayanaEsperence3.4f2489",
     "DawnStar1.8b15d7",
@@ -2334,27 +2325,13 @@
     "18Derringer.101a41"
   ],
   "ContainedObjects_path": "AllPlayerCards.15bb07",
-  "Description": "",
-  "DragSelectable": true,
-  "GMNotes": "",
   "GUID": "15bb07",
-  "Grid": true,
-  "GridProjection": false,
   "Hands": false,
   "HideWhenFaceDown": false,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
   "Locked": true,
   "LuaScript": "require(\"playercards/AllCardsBag\")",
-  "LuaScriptState": "",
-  "MaterialIndex": -1,
-  "MeasureMovement": false,
-  "MeshIndex": -1,
   "Name": "Bag",
   "Nickname": "All Player Cards",
-  "Snap": true,
-  "Sticky": true,
-  "Tooltip": true,
   "Transform": {
     "posX": 78,
     "posY": 0.96,
@@ -2365,7 +2342,5 @@
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

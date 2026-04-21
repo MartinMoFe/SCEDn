@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "ColorDiffuse": {
     "b": 1,
     "g": 1,
@@ -22,24 +16,12 @@
     "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/254843371583102491/71731F2E30413A4D27B0805A54B1D87DC415F8DF/",
     "WidthScale": 0
   },
-  "Description": "",
-  "DragSelectable": true,
-  "GMNotes": "",
   "GUID": "6161b4",
-  "Grid": true,
-  "GridProjection": false,
   "Hands": false,
   "HideWhenFaceDown": false,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
   "Locked": true,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "Custom_Tile",
   "Nickname": "Decoration - Map",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "NotInteractable"
   ],
@@ -54,7 +36,5 @@
     "scaleX": 10,
     "scaleY": 1,
     "scaleZ": 10
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }
