@@ -15,6 +15,8 @@ function getObjectByName(name)
   return nil
 end
 
+removedBagTokens = false
+
 function onLoad()
   -- Create a button to start the setup process manually
   self.createButton({
@@ -69,29 +71,35 @@ function runSetup()
     end
   end
 
-
-
-  -- Position and configure the Phase Tracker
   local phasetracker = getObjectByName('Phase Tracker')
   if phasetracker then
-    if phasetracker.setPositionSmooth then
-      pcall(function()
-        phasetracker.setPositionSmooth({ -53, 2, 0 }, false, true)
-      end)
-    end
-    if phasetracker.setVar then
-      pcall(function() phasetracker.setVar('broadcastChange', true) end)
-      pcall(function() phasetracker.setVar('moreDetails', true) end)
-    end
+    pcall(function()
+      phasetracker.setPositionSmooth({ -53, 2, 0 }, false, true)
+      phasetracker.setLock(false)
+      Wait.time(function() phasetracker.setLock(true) end, 2)
+    end)
+
+    pcall(function() phasetracker.setVar('moreDetails', true) end)
+    printToAll("Phase Tracker moved.", "Green")
   end
 
-  -- Empty a specific bag (GUID fea079)
-  local bag = getObjectFromGUID('fea079')
-  if bag then
-    emptyBag(bag)   -- assume emptyBag is defined elsewhere
+  local bag = getObjectByName("Chaos Bag")
+  if bag and not removedBagTokens then
+    emptyBag(bag)
+    printToAll("Bag empty.", "Green")
+  else
+    printToAll("Bag was NOT empty.", "Green")
   end
 
-  printToAll("Initialisation complete.", "Green")
+  pcall(function()
+    Global.call("onClick_toggleOptionWrapper", { id = "showAttachmentHelper" })
+    Global.call("onClick_toggleOptionWrapper", { id = "showSearchAssistant" })
+    Global.call("onClick_toggleOptionWrapper", { id = "showDisplacementTool" })
+    printToAll("Added thingies.", "Green")
+  end)
+
+  printToAll("Initialisation complete.", "Orange")
+  printToAll("Initialisation complete :)", "Green")
 end
 
 function emptyBag(bag)
@@ -129,7 +137,6 @@ function emptyBag(bag)
     end
   end
 end
-
 
 function makeCharisma()
   -- Configure playermats with slot symbols

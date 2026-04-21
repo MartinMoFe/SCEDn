@@ -10,10 +10,22 @@
     "g": 1,
     "r": 1
   },
+  "CustomImage": {
+    "CustomToken": {
+      "MergeDistancePixels": 15,
+      "Stackable": false,
+      "StandUp": false,
+      "Thickness": 0.2
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/16816830145530416934/441C06D6D246045EE264167E6C83AE1A0891B95F/",
+    "WidthScale": 0
+  },
   "Description": "",
   "DragSelectable": true,
   "GMNotes": "",
-  "GUID": "4b584c",
+  "GUID": "5335cd",
   "Grid": true,
   "GridProjection": false,
   "Hands": false,
@@ -21,36 +33,18 @@
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
+  "LuaScript": "require(\"tokens/Starter\")",
   "LuaScriptState": "",
-  "LuaScript_path": "Quarter.4b584c.ttslua",
   "MeasureMovement": false,
-  "Name": "Starter",
-  "Nickname": "",
-  "RotationValues": [
-    {
-      "Rotation": {
-        "x": 0,
-        "y": 90,
-        "z": 180
-      },
-      "Value": "Heads"
-    },
-    {
-      "Rotation": {
-        "x": 0,
-        "y": -90,
-        "z": 0
-      },
-      "Value": "Tails"
-    }
-  ],
+  "Name": "Custom_Token",
+  "Nickname": "InitialSetup",
   "Snap": true,
   "Sticky": true,
   "Tooltip": true,
   "Transform": {
-    "posX": 69.219,
-    "posY": 1.482,
-    "posZ": -30.642,
+    "posX": 52.731,
+    "posY": 1.581,
+    "posZ": -21.44,
     "rotX": 0,
     "rotY": 270,
     "rotZ": 0,
