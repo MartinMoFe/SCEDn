@@ -16,6 +16,7 @@ function getObjectByName(name)
 end
 
 removedBagTokens = false
+thingiesOn = false
 
 function onLoad()
   -- Create a button to start the setup process manually
@@ -24,7 +25,7 @@ function onLoad()
     click_function = "runSetup",
     function_owner = self,
     position = { 0, 0.5, 0 },
-    width = 1200,
+    width = 1400,
     height = 400,
     font_size = 200,
     color = { 0.5, 0.5, 0.5 }
@@ -91,12 +92,15 @@ function runSetup()
     printToAll("Bag was NOT empty.", "Green")
   end
 
-  pcall(function()
-    Global.call("onClick_toggleOptionWrapper", { id = "showAttachmentHelper" })
-    Global.call("onClick_toggleOptionWrapper", { id = "showSearchAssistant" })
-    Global.call("onClick_toggleOptionWrapper", { id = "showDisplacementTool" })
-    printToAll("Added thingies.", "Green")
-  end)
+  if not thingiesOn then
+    pcall(function()
+      Global.call("onClick_toggleOptionWrapper", { id = "showAttachmentHelper" })
+      Global.call("onClick_toggleOptionWrapper", { id = "showSearchAssistant" })
+      Global.call("onClick_toggleOptionWrapper", { id = "showDisplacementTool" })
+      thingiesOn = true
+      printToAll("Added thingies.", "Green")
+    end)
+  end
 
   printToAll("Initialisation complete.", "Orange")
   printToAll("Initialisation complete :)", "Green")

@@ -1,22 +1,39 @@
-local PlayermatApi  = require("playermat/PlayermatApi")
+local PlayermatApi          = require("playermat/PlayermatApi")
 
-retrievableCardsIds = {
+retrievableCardsIds         = {
   "04312", "04033", "11092",
   "04272", "10118", "11085",
   "11090", "06245", "09103"
 }
 
-
+--- @type string|nil
+local investigatorId        = nil
+--- @type tts__Object
+local playermat             = nil
+local discard               = nil
+--- @type string|nil
+local playermatColor        = nil
 --- @type string[]
 local foundRetrievableNames = {}
-local isScavenging = false
-local isAmuletActive = false
-local isIsabelle = false
-local isAgatha = false
+local isScavenging          = false
+local isAmuletActive        = false
+local isIsabelle            = false
+local isAgatha              = false
+
 
 
 function onLoad()
-  -- Check if its Isabelle
+  playermat = PlayermatApi.getPlayermatByPosition(self.getPosition())
+  playermatColor = PlayermatApi.getMatColorByPosition(self.getPosition())
+
+  if not playermat or not playermatColor then
+    return
+  else
+    printToAll('The helper found the '..playermatColor.. ' mat.')
+  end
+
+  investigatorId = getInvestigatorId()
+
   if isInvestigatorIsabelle() then
     isIsabelle = true
     printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
@@ -25,22 +42,14 @@ function onLoad()
     printToAll("Discard Retriever: Agatha Crane detected.", { 1, 1, 1 })
     printToAll("Warning! This helper for Agatha helps you retrieve some events.", { 1, 0, 0 })
     printToAll("Agatha's retrievable events are trickly, and some events can't be played with her ability.", { 1, 0, 0 })
+  else
+    printToAll("Found id: "..investigatorId)
   end
 
   addPermanentEntries()
 end
 
 function onHover()
-  -- This checks every time if Isabelle is the investigator, which can be less efficient
-  -- but it allows for the player spawning the Retriver and then loading the investigator
-  -- Or spawning the Retriver after loading the investigator, and then placing it
-  if not isIsabelle then
-    if isInvestigatorIsabelle() then
-      isIsabelle = true
-      printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
-    end
-  end
-
   readDiscardPile()
   generateContextMenu()
 end
@@ -78,16 +87,19 @@ end
 
 -- seaches discard pile, reads and populates the foundRetrievable variable
 function readDiscardPile()
-  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
-  local deckAreaObjects = PlayermatApi.getDeckAreaObjects(matColor)
+  if not discard then
+    deckAreaObjects = PlayermatApi.getDeckAreaObjects(playermatColor)
+    discard = deckAreaObjects.discard
+    if not discard then
+      return
+    end
+  end
+
   foundRetrievableNames = {}
 
-  if not deckAreaObjects.discard then return end
-
-
-  if deckAreaObjects.discard.type == 'Card' then
+  if discard.type == 'Card' then
     log("Yet to implement", 2)
-  elseif deckAreaObjects.discard.type == 'Deck' then
+  elseif discard.type == 'Deck' then
     for _, card in ipairs(deckAreaObjects.discard.getObjects()) do
       isRetrievableCard(card)
     end
@@ -185,18 +197,23 @@ function isAgathaAble(gmnotes)
     if string.find(metadata.traits, "Spell") or string.find(metadata.traits, "Insight") then
       return true
     end
+    return false
   end
   return false
 end
 
-local jsonString = "{\n  \"id\": \"02022\",\n  \"type\": \"Event\",\n  \"class\": \"Seeker\",\n  \"cost\": 0,\n  \"level\": 0,\n  \"traits\": \"Insight. Tactic.\",\n  \"willpowerIcons\": 1,\n  \"agilityIcons\": 1,\n  \"cycle\": \"The Dunwich Legacy\"\n}"
-assert(isAgathaAble(jsonString) == true, "This shouldn't pop")
+---@return string|nil
+function getInvestigatorId()
+  if not playermatColor then
+    return nil
+  end
+  local data = PlayermatApi.getActiveInvestigatorData(playermatColor)
+  return data.id or nil
+end
 
 ---@returns boolean
 function isInvestigatorIsabelle()
-  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
-  local investigator = PlayermatApi.getActiveInvestigatorData(matColor)
-  if investigator and investigator.id == "12013" then
+  if investigatorId == "12013" then
     return true
   end
   return false
@@ -204,9 +221,7 @@ end
 
 ---@returns boolean
 function isInvestigatorAgatha()
-  local matColor = PlayermatApi.getMatColorByPosition(self.getPosition())
-  local investigator = PlayermatApi.getActiveInvestigatorData(matColor)
-  if investigator and investigator.id == "11007" or investigator.id == "11008" then
+  if investigatorId == "11007" or investigatorId == "11008" then
     return true
   end
   return false
