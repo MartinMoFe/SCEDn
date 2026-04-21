@@ -461,6 +461,13 @@ function doUpkeep(player, clickType)
     end
   end
 
+  -- flip investigator tokens
+  for _, obj in ipairs(getObjectsWithTag("InvestigatorToken")) do
+    if obj.is_face_down then
+      obj.flip()
+    end
+  end
+
   -- reset action tracker
   GlobalApi.updateActionTrackerTokens(matColor)
   GlobalApi.updateActionTrackerName(matColor)

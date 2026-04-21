@@ -6,7 +6,7 @@ local WebInterface                    = require("deckbuilder/WebInterface")
 local lastWeaknessTrait               = "Madness"
 
 -- Intentionally global!
-toggleButtonState               = {
+toggleButtonState                     = {
   Chapter1     = true,
   Chapter2     = true,
   Other        = true,
@@ -621,7 +621,8 @@ end
 
 -- Spawn cards for all investigators in the given group. This creates piles for all defined
 -- investigator cards and minicards as well as the signature cards.
----@param class string Name of the group to spawn, matching a key in InvestigatorPanelData
+---@param class? string Name of the class to spawn
+---@param cycle? string Name of the cycle to spawn
 function spawnInvestigators(class, cycle)
   local investigatorData
 
@@ -863,12 +864,9 @@ end
 function spawnContent(cycle)
   if not AllCardsBagApi.isIndexReady() then return end
 
-  -- TODO: different handling for custom cycles?
-  local sortByMetadata      = true
-  local includeNoLevelCards = true
-  local cardList            = AllCardsBagApi.getCardsByCycle(cycle, sortByMetadata, includeNoLevelCards)
-
   prepareToPlaceCards()
+
+  local cardList = AllCardsBagApi.getCardsByCycle(cycle, true, true)
   local rowCount = spawnInvestigators(nil, cycle)
 
   if #cardList == 0 and rowCount == 0 then

@@ -5,8 +5,8 @@
   "class": "Survivor",
   "cost": 4,
   "traits": "Item. Weapon. Firearm.",
-  "agilityIcons": 1,
   "combatIcons": 1,
+  "agilityIcons": 1,
   "wildIcons": 1,
   "uses": [
     {

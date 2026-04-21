@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 6610400,
   "CustomDeck": {
     "66104": {
@@ -13,43 +7,21 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/62592696799949227/93C78BF9E30739BECC14D0251AC16BC589439DD8/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
-  "Description": "",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/WalterFitzpatrick2.tdc104.gmnotes",
   "GUID": "tdc104",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "CardCustom",
   "Nickname": "Walter Fitzpatrick (2)",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "Asset",
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

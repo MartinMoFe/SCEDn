@@ -1,0 +1,34 @@
+{
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "CustomImage": {
+    "CustomTile": {
+      "Stackable": false,
+      "Stretch": true,
+      "Thickness": 0.1,
+      "Type": 2
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "https://steamusercontent-a.akamaihd.net/ugc/16614682778237093038/684404A619134CBE4451103EA590BF3BA85A1DE1/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/13498406712279641771/5EE99E643332770E790950E824CD03E9597E4441/",
+    "WidthScale": 0
+  },
+  "GUID": "abd144",
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "LuaScript": "require(\"accessories/InvestigatorToken\")",
+  "Name": "Custom_Tile",
+  "Nickname": "Rogue",
+  "Snap": false,
+  "Tags": [
+    "InvestigatorToken"
+  ],
+  "Transform": {
+    "scaleX": 1,
+    "scaleY": 1,
+    "scaleZ": 1
+  }
+}

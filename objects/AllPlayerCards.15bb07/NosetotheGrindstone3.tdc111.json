@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 6611100,
   "CustomDeck": {
     "66111": {
@@ -13,43 +7,21 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/62582467381054330/62817B7373897BEAB599AE33640E5EFEFFCCD256/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
-  "Description": "",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/NosetotheGrindstone3.tdc111.gmnotes",
   "GUID": "tdc111",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "CardCustom",
   "Nickname": "Nose to the Grindstone (3)",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "Asset",
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

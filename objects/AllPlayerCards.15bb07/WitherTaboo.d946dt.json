@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 100,
   "CustomDeck": {
     "1": {
@@ -13,43 +7,21 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/11404383119808011093/6759A28446B4DC7A731D6ED5A5CC62EFC5ADFC4B/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
-  "Description": "",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/WitherTaboo.d946dt.gmnotes",
   "GUID": "d946dt",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "Card",
   "Nickname": "Wither (Taboo)",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "Asset",
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

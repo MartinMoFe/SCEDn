@@ -41,13 +41,13 @@ jobs:
         shell: bash
 
       - name: Upload built mod
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: TTSMod
           path: ./${{ env.filename }}
 
       - name: Add built mod to release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.0
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ${{ env.filename }}

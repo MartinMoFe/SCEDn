@@ -4,5 +4,12 @@
   "class": "Neutral",
   "traits": "Flaw.",
   "weakness": true,
+  "uses": [
+    {
+      "count": 0,
+      "type": "Damage",
+      "token": "damage"
+    }
+  ],
   "cycle": "Core 2026"
 }

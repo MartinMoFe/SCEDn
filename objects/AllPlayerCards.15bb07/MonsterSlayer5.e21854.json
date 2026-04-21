@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 100,
   "CustomDeck": {
     "1": {
@@ -13,42 +7,20 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/9322690455983343988/9D22F276214F0DDE5A5348D3E132B5D7E1305BCB/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
-  "Description": "",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/MonsterSlayer5.e21854.gmnotes",
   "GUID": "e21854",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "Card",
   "Nickname": "Monster Slayer (5)",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

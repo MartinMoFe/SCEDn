@@ -1,0 +1,34 @@
+{
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "CustomImage": {
+    "CustomTile": {
+      "Stackable": false,
+      "Stretch": true,
+      "Thickness": 0.1,
+      "Type": 2
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "https://steamusercontent-a.akamaihd.net/ugc/16067172632375150659/9FE3D15CA6A67CF5F8B07DC59E6A0DD798FC5BC5/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/14656574939506513070/BEB5EE0E150E2FEE0131F72E95CEF24F674E46F1/",
+    "WidthScale": 0
+  },
+  "GUID": "abd143",
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "LuaScript": "require(\"accessories/InvestigatorToken\")",
+  "Name": "Custom_Tile",
+  "Nickname": "Seeker",
+  "Snap": false,
+  "Tags": [
+    "InvestigatorToken"
+  ],
+  "Transform": {
+    "scaleX": 1,
+    "scaleY": 1,
+    "scaleZ": 1
+  }
+}

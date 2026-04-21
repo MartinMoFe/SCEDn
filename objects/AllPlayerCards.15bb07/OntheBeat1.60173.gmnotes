@@ -5,8 +5,8 @@
   "cost": 2,
   "level": 1,
   "traits": "Tactic. Police.",
-  "intellectIcons": 1,
   "willpowerIcons": 1,
+  "intellectIcons": 1,
   "wildIcons": 1,
   "cycle": "Starters 2026"
 }

@@ -1,0 +1,34 @@
+{
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "CustomImage": {
+    "CustomTile": {
+      "Stackable": false,
+      "Stretch": true,
+      "Thickness": 0.1,
+      "Type": 2
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "https://steamusercontent-a.akamaihd.net/ugc/11106704706603457114/3081B44E3DAEF944AF72733D9332ABADFEDC780B/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/9636656185503244840/CD2F55BE2F963C6CF3DA299CC2F4FA5528FA876B/",
+    "WidthScale": 0
+  },
+  "GUID": "abd145",
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "LuaScript": "require(\"accessories/InvestigatorToken\")",
+  "Name": "Custom_Tile",
+  "Nickname": "Mystic",
+  "Snap": false,
+  "Tags": [
+    "InvestigatorToken"
+  ],
+  "Transform": {
+    "scaleX": 1,
+    "scaleY": 1,
+    "scaleZ": 1
+  }
+}

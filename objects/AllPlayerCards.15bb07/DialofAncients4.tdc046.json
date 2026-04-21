@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 6604600,
   "CustomDeck": {
     "66046": {
@@ -13,43 +7,23 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/62585168924013814/A06FCFA917AEA803D437C6B119BF7E39CFE801C6/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
   "Description": "Signs of Cataclysm",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/DialofAncients4.tdc046.gmnotes",
   "GUID": "tdc046",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
   "LuaScript": "require(\"playercards/cards/DialofAncients4Cataclysm\")",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "CardCustom",
   "Nickname": "Dial of Ancients (4)",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "Asset",
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

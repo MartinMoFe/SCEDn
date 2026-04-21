@@ -6,8 +6,8 @@
   "cost": 2,
   "level": 3,
   "traits": "Item. Weapon. Melee.",
-  "combatIcons": 1,
-  "wildpowerIcons": 1,
   "willpowerIcons": 1,
+  "combatIcons": 1,
+  "wildIcons": 1,
   "cycle": "Core 2026"
 }

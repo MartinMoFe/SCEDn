@@ -3209,6 +3209,7 @@ function setClueSpendingNeed(totalNeededClues)
 end
 
 function onClueSliderChanged(_, value, id)
+  UI.setAttribute(id, "value", tonumber(value))
   UI.setAttribute(id .. "-current", "text", value)
 
   -- remove 'ClueSlider' from the string

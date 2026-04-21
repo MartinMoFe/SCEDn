@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 1204500,
   "CustomDeck": {
     "12045": {
@@ -13,43 +7,21 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/12074492510319536056/6C94B37BA0A06D9DC4A51C4911B9DCC0CC59F6D9/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
-  "Description": "",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/M1903Hammerless.12045.gmnotes",
   "GUID": "12045",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "Card",
   "Nickname": "M1903 Hammerless",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "Asset",
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

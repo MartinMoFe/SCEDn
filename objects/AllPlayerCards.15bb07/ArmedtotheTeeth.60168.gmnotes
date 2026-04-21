@@ -4,9 +4,9 @@
   "class": "Guardian",
   "level": 0,
   "traits": "Practiced.",
-  "agilityIcons": 1,
-  "combatIcons": 1,
   "willpowerIcons": 1,
+  "combatIcons": 1,
+  "agilityIcons": 1,
   "dynamicIcons": true,
   "cycle": "Starters 2026"
 }

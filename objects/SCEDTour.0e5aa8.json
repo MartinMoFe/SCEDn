@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "ColorDiffuse": {
     "b": 1,
     "g": 1,
@@ -22,24 +16,12 @@
     "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/11789466272940422943/A5B034F0C8C164F398FE9EFD4DFA9090461A292C/",
     "WidthScale": 0
   },
-  "Description": "",
-  "DragSelectable": true,
-  "GMNotes": "",
   "GUID": "0e5aa8",
-  "Grid": true,
-  "GridProjection": false,
   "Hands": false,
   "HideWhenFaceDown": false,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
   "LuaScript": "require(\"core/tour/TourStarter\")",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "Custom_Token",
   "Nickname": "SCED Tour",
-  "Snap": true,
-  "Sticky": true,
   "Tooltip": false,
   "Transform": {
     "posX": -24.5,
@@ -51,7 +33,11 @@
     "scaleX": 4,
     "scaleY": 1,
     "scaleZ": 4
+<<<<<<< HEAD
   },
   "Value": 0,
   "XmlUI": ""
+=======
+  }
+>>>>>>> upstream/main
 }

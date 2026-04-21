@@ -1,0 +1,41 @@
+{
+  "ColorDiffuse": {
+    "b": 1,
+    "g": 1,
+    "r": 1
+  },
+  "ContainedObjects_path": "Guardian.abd142",
+  "CustomImage": {
+    "CustomTile": {
+      "Stackable": false,
+      "Stretch": true,
+      "Thickness": 0.1,
+      "Type": 2
+    },
+    "ImageScalar": 1,
+    "ImageSecondaryURL": "https://steamusercontent-a.akamaihd.net/ugc/15568232218171650620/0366B4583F0E034AAFA5A1423669B1F505AF6598/",
+    "ImageURL": "https://steamusercontent-a.akamaihd.net/ugc/14624386528394069773/FED86B02323C864D182F9F0A8CF404B38346D5AE/",
+    "WidthScale": 0
+  },
+  "GUID": "abd142",
+  "Hands": false,
+  "HideWhenFaceDown": false,
+  "LuaScript": "require(\"accessories/InvestigatorToken\")",
+  "Name": "Custom_Tile",
+  "Nickname": "Guardian",
+  "Snap": false,
+  "States_path": {
+    "2": "Seeker.abd143",
+    "3": "Rogue.abd144",
+    "4": "Mystic.abd145",
+    "5": "Survivor.abd146"
+  },
+  "Tags": [
+    "InvestigatorToken"
+  ],
+  "Transform": {
+    "scaleX": 1,
+    "scaleY": 1,
+    "scaleZ": 1
+  }
+}

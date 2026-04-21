@@ -5,8 +5,8 @@
   "cost": 2,
   "level": 2,
   "traits": "Talent.",
-  "agilityIcons": 1,
   "combatIcons": 1,
+  "agilityIcons": 1,
   "wildIcons": 1,
   "uses": [
     {

@@ -4,8 +4,8 @@
   "class": "Seeker",
   "cost": 0,
   "traits": "Insight.",
+  "willpowerIcons": 1,
   "intellectIcons": 1,
   "wildIcons": 1,
-  "willpowerIcons": 1,
   "cycle": "Core 2026"
 }

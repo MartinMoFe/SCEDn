@@ -4,5 +4,12 @@
   "class": "Neutral",
   "traits": "Terror. Dreamlands.",
   "weakness": true,
+  "uses": [
+    {
+      "count": 0,
+      "type": "Horror",
+      "token": "horror"
+    }
+  ],
   "cycle": "Starters 2026"
 }

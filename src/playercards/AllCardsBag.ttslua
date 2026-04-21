@@ -94,6 +94,14 @@ local CHAPTER_MAP           = {
   ["beta"]                              = 0,
   ["promo"]                             = 0
 }
+-- override cycle names for return to sets
+local OVERRIDE_CYCLES       = {
+  ["Return to the Night of the Zealot"] = "core",
+  ["Return to the Dunwich Legacy"]      = "the dunwich legacy",
+  ["Return to the Path to Carcosa"]     = "the path to carcosa",
+  ["Return to the Forgotten Age"]       = "the forgotten age",
+  ["Return to the Circle Undone"]       = "the circle undone"
+}
 -- conversion tables to simplify type sorting
 local TYPE_TO_VALUE         = {
   Investigator = 1,
@@ -350,20 +358,8 @@ function addCardToIndex(cardData)
 end
 
 function cleanCycleName(cycleName)
-  if cycleName then
-    cycleName = string_lower(cycleName)
-
-    -- remove "return to " from cycle names
-    cycleName = cycleName:gsub("return to ", "")
-
-    -- override cycle name for night of the zealot
-    cycleName = cycleName:gsub("the night of the zealot", "core")
-  else
-    -- track cards without defined cycle (should only be fan-made cards)
-    cycleName = "other"
-  end
-
-  return cycleName
+  if not cycleName then return "other" end
+  return OVERRIDE_CYCLES[cycleName] or string_lower(cycleName)
 end
 
 -- Creates the supplemental indices for classes, weaknesses etc.
@@ -377,7 +373,7 @@ function buildSupplementalIndices()
       if md.weakness then
         table_insert(uniqueWeaknessList, cardId)
 
-        if md.basicWeaknessCount ~= nil then
+        if md.basicWeaknessCount then
           table_insert(basicWeaknessList, cardId)
         end
 
@@ -392,8 +388,9 @@ function buildSupplementalIndices()
           table_insert(bondedList, bondedData.id)
 
           -- Maybe add tabooed version of bonded card
-          if cardIdIndex[bondedData.id .. "-t"] then
-            table_insert(bondedList, bondedData.id .. "-t")
+          local bondedTabooId = bondedData.id .. "-t"
+          if cardIdIndex[bondedTabooId] then
+            table_insert(bondedList, bondedTabooId)
           end
         end
       end
@@ -500,7 +497,7 @@ function cycleHasSpawnableCards(cycleName)
     local md         = cardIdIndex[id].metadata
     local isNotExtra = md.type ~= "Investigator" and md.type ~= "Minicard" and not signatureDict[id]
 
-    if md.level ~= nil and isNotExtra then
+    if md.level and isNotExtra then
       return true -- Found at least one, we can stop looking
     end
   end
@@ -518,7 +515,7 @@ function getFilteredContent(activeChapters)
 
     local chapter = CHAPTER_MAP[cycleName] or 0
     if activeChapters[chapter] and cycleIndex[cycleName] and cycleHasSpawnableCards(cycleName) then
-      table.insert(matches, toTitleCase(cycleName))
+      table_insert(matches, toTitleCase(cycleName))
       seen[cycleName] = true
       if cycleName == "other" then hasOther = true end
     end
@@ -535,7 +532,7 @@ function getFilteredContent(activeChapters)
   end
 
   if not hasOther then
-    table.insert(matches, "Other")
+    table_insert(matches, "Other")
   end
 
   return matches
@@ -544,10 +541,11 @@ end
 -- collect the sorting data and cache it
 function collectSortingData()
   for _, card in pairs(cardIdIndex) do
+    local md = card.metadata
     card.sortingData = {
-      class    = getClassValue(card.metadata.class),
-      cardType = TYPE_TO_VALUE[card.metadata.type] or 99,
-      level    = card.metadata.level or 6,
+      class    = getClassValue(md.class),
+      cardType = TYPE_TO_VALUE[md.type] or 99,
+      level    = md.level or 6,
       name     = card.data.Nickname
     }
   end
@@ -563,6 +561,11 @@ function generalizedCardComparator(id1, id2, criteria)
   if not card1 then return false end -- Push unknown cards to the end
   if not card2 then return true end
 
+  -- Same base card (e.g. "01001" vs "01001-p"), short comes first
+  if getBaseId(id1) == getBaseId(id2) then
+    return string.len(id1) < string.len(id2)
+  end
+
   for _, key in ipairs(criteria) do
     if card1.sortingData[key] ~= card2.sortingData[key] then
       return card1.sortingData[key] < card2.sortingData[key]
@@ -572,32 +575,26 @@ function generalizedCardComparator(id1, id2, criteria)
   return id1 < id2
 end
 
--- sort by class, cardType, level and then name
+-- Sort by class, cardType, level and then name
 function metadataSortFunction(id1, id2)
-  local base1 = getBaseId(id1)
-  local base2 = getBaseId(id2)
+  return generalizedCardComparator(id1, id2, { "class", "cardType", "level", "name" })
+end
 
-  if base1 == base2 then
-    -- same base card (e.g., "01001" vs "01001-p"), short comes first
-    return string.len(id1) < string.len(id2)
+-- Attempt to sort by ID first if reasonable
+function cycleSortFunction(id1, id2)
+  local base1  = getBaseId(id1)
+  local base2  = getBaseId(id2)
+  local short1 = #base1 == 5 or #base1 == 6
+  local short2 = #base2 == 5 or #base2 == 6
+
+  -- If these cards have manually assigned IDs (5/6 digit length) instead of Zoop GUIDs, use them for sorting
+  if short1 ~= short2 then
+    return short1    -- If one is short and the other isn't, return true if the first is short
+  elseif short1 then
+    return id1 < id2 -- Both are short
   end
 
-  local len1 = string.len(base1)
-  local len2 = string.len(base2)
-
-  -- if these cards have manually assigned IDs (5 digit length) instead of Zoop GUIDs, use them for sorting
-  if len1 == 5 and len2 == 5 then
-    return id1 < id2
-  end
-
-  -- if only one card has a 5-digit ID, it should come first
-  if len1 == 5 then
-    return true
-  elseif len2 == 5 then
-    return false
-  end
-
-  return generalizedCardComparator(base1, base2, { "class", "cardType", "level", "name" })
+  return metadataSortFunction(id1, id2)
 end
 
 function sortIndices()
@@ -623,10 +620,23 @@ function sortIndices()
   -- sort upgradesheet index
   table.sort(upgradeSheetList)
 
-  -- sort investigator / minicard data
+  -- sort investigator / minicard data (need to build a sorted copy)
+  local keys = {}
+  for k in pairs(investigatorData) do
+    table_insert(keys, k)
+  end
+  table.sort(keys, cycleSortFunction)
+
+  local sorted = {}
+  for _, k in ipairs(keys) do
+    sorted[k] = investigatorData[k]
+  end
+  investigatorData = sorted
+
+  -- sort subtables
   for _, specificData in pairs(investigatorData) do
     for _, indexTable in pairs(specificData) do
-      table.sort(indexTable, metadataSortFunction)
+      table.sort(indexTable, cycleSortFunction)
     end
   end
 end
@@ -732,10 +742,11 @@ end
 function getCardsByCycle(params)
   if not isIndexReady() then return {} end
 
-  local cycleData = cycleIndex[string_lower(params.cycle)] or {}
+  local cycle     = string_lower(params.cycle)
+  local cycleData = cycleIndex[cycle] or {}
 
   -- create a copy of the data to not change the source
-  local cardList = {}
+  local cardList  = {}
   for _, id in ipairs(cycleData) do
     local md = cardIdIndex[id].metadata
     -- only include cards without level if requested (don't include investigators / minicards / signatures though)
@@ -746,7 +757,12 @@ function getCardsByCycle(params)
 
   -- sort list by metadata (useful for custom cards without proper IDs)
   if params.sortByMetadata and #cardList > 0 then
-    table.sort(cardList, metadataSortFunction)
+    local chapter = CHAPTER_MAP[cycle] or 0
+    if chapter > 0 then
+      table.sort(cardList, cycleSortFunction) -- sort by ID for official cards
+    else
+      table.sort(cardList, metadataSortFunction)
+    end
   end
   return cardList
 end

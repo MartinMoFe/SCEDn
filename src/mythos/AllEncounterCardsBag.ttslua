@@ -107,15 +107,16 @@ function addCardToIndex(cardData)
     local id = md.id or md.TtsZoopGuid
     if id then
       cardIdIndex[id] = { data = cardData, metadata = md }
-    else
-      -- assume name is the ID as fallback
-      local length = string.len(cardData["Nickname"])
-      if length == 5 or length == 6 then
-        local cardId = cardData["Nickname"]
-        cardData["Nickname"] = nil
-        cardIdIndex[cardId] = { data = cardData, metadata = { id = cardId } }
-      end
+      return
     end
+  end
+
+  -- assume name is the ID as fallback
+  local length = string.len(cardData["Nickname"])
+  if length == 5 or length == 6 then
+    local cardId = cardData["Nickname"]
+    cardData["Nickname"] = nil
+    cardIdIndex[cardId] = { data = cardData, metadata = { id = cardId } }
   end
 end
 

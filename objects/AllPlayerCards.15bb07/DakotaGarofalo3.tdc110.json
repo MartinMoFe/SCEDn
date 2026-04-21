@@ -1,10 +1,4 @@
 {
-  "AltLookAngle": {
-    "x": 0,
-    "y": 0,
-    "z": 0
-  },
-  "Autoraise": true,
   "CardID": 6611000,
   "CustomDeck": {
     "66110": {
@@ -13,43 +7,22 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/62586906401293312/A25CEF64B03591186D4FDDADC3E0D61A60B4726B/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
   "Description": "On the Hunt",
-  "DragSelectable": true,
   "GMNotes_path": "AllPlayerCards.15bb07/DakotaGarofalo3.tdc110.gmnotes",
   "GUID": "tdc110",
-  "Grid": true,
-  "GridProjection": false,
-  "HideWhenFaceDown": true,
-  "IgnoreFoW": false,
-  "LayoutGroupSortIndex": 0,
-  "Locked": false,
-  "LuaScript": "",
-  "LuaScriptState": "",
-  "MeasureMovement": false,
   "Name": "CardCustom",
   "Nickname": "Dakota Garofalo (3)",
-  "Snap": true,
-  "Sticky": true,
   "Tags": [
     "Asset",
     "PlayerCard"
   ],
-  "Tooltip": true,
   "Transform": {
-    "posX": 0,
-    "posY": 0,
-    "posZ": 0,
-    "rotX": 0,
     "rotY": 270,
-    "rotZ": 0,
     "scaleX": 1,
     "scaleY": 1,
     "scaleZ": 1
-  },
-  "Value": 0,
-  "XmlUI": ""
+  }
 }

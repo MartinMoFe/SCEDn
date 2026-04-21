@@ -6,8 +6,8 @@
   "cost": 4,
   "level": 3,
   "traits": "Ally. Detective. Police.",
-  "combatIcons": 1,
   "intellectIcons": 1,
+  "combatIcons": 1,
   "wildIcons": 1,
   "cycle": "Starters 2026"
 }

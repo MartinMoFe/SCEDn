@@ -13,20 +13,22 @@
       "FaceURL": "https://steamusercontent-a.akamaihd.net/ugc/2424696374431626355/0E8E98639A52981073EE7914612AB4E929BE79EA/",
       "NumHeight": 1,
       "NumWidth": 1,
-      "Type": 0,
-      "UniqueBack": true
+      "Type": 0
     }
   },
   "Description": "",
   "DragSelectable": true,
   "GMNotes": "{\"class\":\"Mythos\",\"cycle\":\"Utility\",\"id\":\"ADDVP\",\"type\":\"Story\",\"victory\":1}",
   "GUID": "958bc0",
+<<<<<<< HEAD
   "Grid": true,
   "GridProjection": false,
   "HideWhenFaceDown": true,
   "IgnoreFoW": false,
   "LayoutGroupSortIndex": 0,
   "Locked": false,
+=======
+>>>>>>> upstream/main
   "LuaScript": "require(\"mythos/AdditionalVictoryPointsCard\")",
   "LuaScriptState": "{\"notes\":\"Click to type\",\"vp\":1}",
   "MeasureMovement": false,
