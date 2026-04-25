@@ -25,15 +25,15 @@ function onLoad()
     self.destruct()
   end
 
-  function setMythosPhase()
-    printToAll("Setting phase to 1")
-    currentPhase = 1
-    updatePhase(1)
-  end
+  -- function setMythosPhase()
+  --   printToAll("Setting phase to 1")
+  --   currentPhase = 1
+  --   updatePhase(1)
+  -- end
 
   addHotkey("Advance Phase", advanceOnHotkey)
   self.addContextMenuItem("Destroy Self", destroySelf)
-  self.addContextMenuItem("Set mythos phase", setMythosPhase)
+  -- self.addContextMenuItem("Set mythos phase", setMythosPhase)
 end
 
 ---@return tts__Object|nil
@@ -98,6 +98,6 @@ function displayInfo(phaseArg)
   end
   broadcastToAll(PHASE_NAMES[phaseArg])
 
-  Wait.time(function() if obj1 then obj1.call("respondToChange", stringS[2]) end end, 1)
-  Wait.time(function() if obj2 then obj2.call("respondToChange", stringS[2]) end end, 1)
+  Wait.time(function() if obj1 then obj1.call("respondToChange", stringS[2]) end end, 0.5)
+  Wait.time(function() if obj2 then obj2.call("respondToChange", stringS[2]) end end, 0.5)
 end

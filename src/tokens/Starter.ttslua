@@ -19,18 +19,18 @@ removedBagTokens = false
 thingiesOn = false
 
 function onLoad()
-  -- Create a button to start the setup process manually
-  self.createButton({
-    label = "Run Initial Setup",
-    click_function = "runSetup",
-    function_owner = self,
-    position = { 0, 0.5, 0 },
-    width = 1400,
-    height = 400,
-    font_size = 200,
-    color = { 0.5, 0.5, 0.5 }
-  })
-  printToAll("Setup button created. Click it to complete initialisation.", "Orange")
+  Wait.time(function()
+    self.createButton({ 
+      label = "Run Initial Setup",
+      click_function = "runSetup",
+      function_owner = self,
+      position = { 0, 0.5, 0 },
+      width = 1400,
+      height = 400,
+      font_size = 200,
+      color = { 0.5, 0.5, 0.5 }
+    })
+  end, 3)
 end
 
 function runSetup()

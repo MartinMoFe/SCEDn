@@ -120,9 +120,10 @@ function detectCard(position)
     return nil
 end
 
--- =========================
--- GET CARDS DATA
--- =========================
+--- =========================
+--- GET CARDS DATA
+--- =========================
+
 -- This card gets a lot of info, to be able to spawn a card
 ---@param card tts__Object: a card
 ---@return table: a table that can be passed to spawnObject
@@ -289,7 +290,6 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
     for _, element in ipairs(upgradeFields) do
         printToAll('-    Grizzled has the trait: ' .. element)
     end
-    printToAll('Trying to add code to the card...')
 
     setScriptWise(newCard, upgradeFields, nemesisField)
  
@@ -300,6 +300,7 @@ function setScriptWise(card, fieldsOuter, nemesisOuter)
     -- 1. Outer Constants
     local posX = 0
     local posY = 71
+    local posYnemesis = 71
     local posZ = -40
     local width = 180
     local height = 24
@@ -307,62 +308,61 @@ function setScriptWise(card, fieldsOuter, nemesisOuter)
     local rotation = "0 0 180"
     local fSize = 8
     local nemesisLua = nemesisOuter
-
-    -- 2. Logic to Re-order and handle Nemesis
+    
     local workingFields = {}
-    for _, v in ipairs(fieldsOuter) do table.insert(workingFields, v) end
-
-    if #workingFields == 3 then
-        local longestIndex = 1
-        local maxLen = #workingFields[1]
-        for i = 2, 3 do
-            if #workingFields[i] > maxLen then
-                maxLen = #workingFields[i]; longestIndex = i
-            end
-        end
-        local longestWord = table.remove(workingFields, longestIndex)
-        table.insert(workingFields, longestWord)
-    end
+    workingFields = fieldsOuter
 
     -- Format table for the generated LUA script
     -- This turns {"A", "B"} into {"A", "B"} as a literal string
     local fieldsLua = '{"' .. table.concat(workingFields, '", "') .. '"}'
 
     if #workingFields == 2 then
-        fSize = 14
+        fSize = 15
+        posYnemesis = posY
     elseif #workingFields == 3 then
-        fSize = 14
+        fSize = 15
+        posYnemesis = posY + 20
     elseif #workingFields == 4 then
-        fSize = 10
+        fSize = 15
+        posYnemesis = posY
+    end
+
+    if #workingFields == 3 then
+        additonalXml = [[-- Add nemesis box
+    xml = xml .. '<Panel width="]] .. width + 20 ..
+            [[" height="]] .. height .. [["' position = "]] .. posX .. [[  ]] .. posY .. [[  ]] .. posZ .. [["  bestFitMaxSize="'..globalFontSize..'"/>'
+        xml = xml .. '  <Text text="NeMeSiS" fontSize="7" color="#0055ff" rectAlignment="MiddleCenter" />'
+        xml = xml .. '</Panel>'
+        ]]
+        printToAll("This card has 3 traits, so the nemesis tag will be moved down to avoid overlap.")
     end
     
 
-    -- 3. The Meta-Template
     local cardScript = [[
 -- Generated Script
+
 local fields = ]] .. fieldsLua .. [[
 
 local globalFontSize = ]] .. fSize .. [[
 
-local isNemesis = ]] .. tostring(nemesisLua) .. [[
 
 function onLoad()
     -- Wait a frame to ensure UI is ready
     Wait.frames(function() self.UI.setXml(generateCardXml()) end, 1)
 end
 
-function getCell(txt)  
+function getCell(txt)
     local xml = '<Panel>'
-    xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'" color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="6" bestFitMaxSize="'..globalFontSize..'"/>'
+    xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'"  '
+    xml = xml .. 'color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="6"'
+    xml = xml .. 'position = "]] .. posX .. [[  ]] .. posY .. [[  ]] .. posZ .. [["  bestFitMaxSize="'..globalFontSize..'"/>'
     xml = xml .. '</Panel>'
     return xml
 end
 
 function generateCardXml()
     local num = #fields
-    local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" '
-    xml = xml .. 'scale="]] .. scale .. [[" position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[" '
-    xml = xml .. 'rotation="]] .. rotation .. [[" color="#00000000">'
+    local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" color="#00000000">'
 
     if num == 2 then
         xml = xml .. '<HorizontalLayout spacing="1">'
@@ -392,11 +392,7 @@ function generateCardXml()
         error("Some message", 2)
     end
 
-    if isNemesis then
-        xml = xml .. '<Panel width="]] .. width + 20 .. [[" height="]] .. height .. [[">'
-        xml = xml .. '  <Text text="NeMeSiS" fontSize="7" color="#0055ff" rectAlignment="MiddleCenter" />'
-        xml = xml .. '</Panel>'
-    end
+    ]] .. additonalXml .. [[
 
     xml = xml .. '</Panel>'
     return xml

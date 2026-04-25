@@ -75,12 +75,12 @@ EnemyMessage            = {
   },
   ["07038"]  = { ["3.9"] = 'Forced - At the end of the enemy phase: Add 1 curse token to the chaos bag.' },
   ["11535"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on a player card at this enemy\'s location. Then, discard Hunting Parasite.' },
-  ["11537a"] = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: Increase the flood level of its location.' },
-  ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: Increase the flood level of its location. If you cannot, place 1 doom on Medusa.' },
+  ["11537a"] = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready: ...' },
+  ["11551"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if Medusa is ready: ...' },
   ["11605"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if there are no investigators at this enemys location: ...' },
-  ["11635"]  = { ["3.9"] = 'Forced - When the enemy phase ends, if there are no investigators at Colossal Tyrant\'s location: Deal 1 direct horror to each card with sanity at each adjacent location.' },
+  ["11635"]  = { ["3.9"] = 'Forced - When the enemy phase ends, if there are no investigators at Colossal Tyrant\'s location: ...' },
   ["11637"]  = { ["3.1"] = 'Forced - When the enemy phase begins, if this enemy is ready and unengaged: It moves to its prey\'s location.' },
-  ["11721"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on another non-Elite enemy at this location. Then, discard Stowaway Drone.' },
+  ["11721"]  = { ["3.9"] = 'Forced - When the enemy phase ends: Place 1 doom on another ...' },
   ["71051"]  = { ["3.9"] = "Forced - At the end of the enemy phase, if Declan Pearce is ready: Heal 1 damage from each enemy in play." },
   ["53077"]  = {
     ["3.7"] =
@@ -317,10 +317,6 @@ function showAllCardsInfo(phaseString)
     colorPrint = { r = 0.531, g = 0.848, b = 0.598 }
   elseif phaseString == "3.1" then
     colorPrint = Color.Blue
-    showAllMythosInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
-    showAllEnemyInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
-    showAllTreacheryInfo({ phaseNumber = phaseString, colorPrint = BLUE_TREACHERY })
-    showAllLocationInfo({ phaseNumber = phaseString, colorPrint = colorPrint })
   elseif phaseString == "3.9" then
     colorPrint = Color.Blue
   elseif phaseString == "4.1" then

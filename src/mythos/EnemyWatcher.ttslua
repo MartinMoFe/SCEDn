@@ -12,9 +12,7 @@ local FaceDownEnemies          = { -- Some enemies Enemies in the metadata, but 
   ['04122'] = true,                -- Harlan Earstone
   ['04130a'] = true,               -- Henry Deveau
   ['04209'] = true,                -- The Winged Serpent
-  ['71045'] = true,                -- Blooless Man
-  --['04325b'] = true,          -- Ichtaca
-
+  ['71045'] = true                -- Blooless Man
 }
 local AgendaActFacedownEnemies = { -- Some enemies are Agenda or Act cards in the metadata
   ["03241"] = true,                -- Empire of the DeadAgenda

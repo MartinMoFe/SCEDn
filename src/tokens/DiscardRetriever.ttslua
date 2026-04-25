@@ -1,56 +1,48 @@
-local PlayermatApi          = require("playermat/PlayermatApi")
+local PlayermatApi  = require("playermat/PlayermatApi")
 
-retrievableCardsIds         = {
+retrievableCardsIds = {
   "04312", "04033", "11092",
   "04272", "10118", "11085",
   "11090", "06245", "09103"
 }
 
---- @type string|nil
-local investigatorId        = nil
+
 --- @type tts__Object
-local playermat             = nil
+-- local playermat             = nil
 local discard               = nil
 --- @type string|nil
 local playermatColor        = nil
+--- @type string|nil
+local investigatorId        = nil
+
 --- @type string[]
 local foundRetrievableNames = {}
 local isScavenging          = false
 local isAmuletActive        = false
 local isIsabelle            = false
 local isAgatha              = false
-
+local isWendy               = false
 
 
 function onLoad()
-  playermat = PlayermatApi.getPlayermatByPosition(self.getPosition())
+  Wait.time(function() 
   playermatColor = PlayermatApi.getMatColorByPosition(self.getPosition())
 
-  if not playermat or not playermatColor then
+  if not playermatColor then
+    -- This can be spawned in the wrong place, just ignore it if so
     return
   else
-    printToAll('The helper found the '..playermatColor.. ' mat.')
+    printToAll('The helper found the ' .. playermatColor .. ' mat.')
   end
 
-  investigatorId = getInvestigatorId()
-
-  if isInvestigatorIsabelle() then
-    isIsabelle = true
-    printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
-  elseif isInvestigatorAgatha() then
-    isAgatha = true
-    printToAll("Discard Retriever: Agatha Crane detected.", { 1, 1, 1 })
-    printToAll("Warning! This helper for Agatha helps you retrieve some events.", { 1, 0, 0 })
-    printToAll("Agatha's retrievable events are trickly, and some events can't be played with her ability.", { 1, 0, 0 })
-  else
-    printToAll("Found id: "..investigatorId)
-  end
+  setInvestigatorVariables()
 
   addPermanentEntries()
+  end, 3.14)
 end
 
 function onHover()
-  readDiscardPile()
+  readDiscardPile(true)
   generateContextMenu()
 end
 
@@ -72,7 +64,9 @@ end
 -- This entries always lead the context menu
 function addPermanentEntries()
   self.addContextMenuItem("Toggle Scavenging", function() toggleScavenging() end)
-  self.addContextMenuItem("Toggle Wendy's Amulet", function() toggleAmulet() end)
+  if isWendy then
+    self.addContextMenuItem("Toggle Wendy's Amulet", function() toggleAmulet() end)
+  end
 end
 
 function toggleScavenging()
@@ -85,14 +79,28 @@ function toggleAmulet()
   printToAll("Retrieving Events is now " .. (isScavenging and "active" or "inactive"), { 1, 1, 1 })
 end
 
--- seaches discard pile, reads and populates the foundRetrievable variable
-function readDiscardPile()
+--- seaches discard pile, reads and populates the foundRetrievable variable
+--- @debug boolean, if true, will print debug messages. Default false.
+--- @return nil
+function readDiscardPile(debug)
+  local debug = debug or false
+
+  if not playermatColor and debug then
+    log("read discard pile has no player mat")
+    return
+  end
+
+  local deckAreaObjects = PlayermatApi.getDeckAreaObjects(playermatColor)
+
+  if not deckAreaObjects then
+    if debug then log("read discard pile can't get deck area objects") end
+    return
+  end
+
+  discard = deckAreaObjects.discard or nil
   if not discard then
-    deckAreaObjects = PlayermatApi.getDeckAreaObjects(playermatColor)
-    discard = deckAreaObjects.discard
-    if not discard then
-      return
-    end
+    foundRetrievableNames = {}
+    return
   end
 
   foundRetrievableNames = {}
@@ -101,9 +109,10 @@ function readDiscardPile()
     log("Yet to implement", 2)
   elseif discard.type == 'Deck' then
     for _, card in ipairs(deckAreaObjects.discard.getObjects()) do
-      isRetrievableCard(card)
+      ifRetrievableAdd(card)
     end
   end
+  if debug then log("end of readDiscardPile") end
 end
 
 function pullCardFromDiscard(cardName)
@@ -128,9 +137,9 @@ end
 
 -- Boolean helpers
 
--- Absolute isRetrievableCard function, checks if the card is retrievable by any means
----@return boolean
-function isRetrievableCard(card)
+--- Absolute ifRetrievableAdd function, checks if the card is retrievable by any means and add it to the list if so
+---@return nil
+function ifRetrievableAdd(card)
   if type(card) ~= "table" then
     error("Yet to implement", 2)
   end
@@ -152,7 +161,7 @@ function isRetrievableCard(card)
   end
 end
 
--- Checks if this is a playable Card, simply by its effect
+--- Checks if this is a playable Card, simply by its effect
 ---@return boolean
 function isPlayableCard(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
@@ -162,7 +171,7 @@ function isPlayableCard(gmnotes)
   return false
 end
 
--- Checks if this is an Item Card
+--- Checks if this is an Item Card
 ---@return boolean
 function isScavengingAble(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
@@ -182,7 +191,8 @@ function isEvent(gmnotes)
   return false
 end
 
--- Checks if this is an Skill
+--- Checks if this is an Skill
+--- @return
 function isSkill(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
   if metadata.type == "Skill" then
@@ -191,17 +201,21 @@ function isSkill(gmnotes)
   return false
 end
 
+--- Checks if this is an Event, and has the insight or spell trait
+---@return boolean
 function isAgathaAble(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
+
   if metadata.type == "Event" and metadata.traits then
     if string.find(metadata.traits, "Spell") or string.find(metadata.traits, "Insight") then
       return true
     end
-    return false
   end
+
   return false
 end
 
+-- get investigatorId
 ---@return string|nil
 function getInvestigatorId()
   if not playermatColor then
@@ -211,27 +225,34 @@ function getInvestigatorId()
   return data.id or nil
 end
 
----@returns boolean
-function isInvestigatorIsabelle()
+--- Sets the variables isX
+function setInvestigatorVariables()
+  investigatorId = getInvestigatorId()
+
   if investigatorId == "12013" then
-    return true
+    isIsabelle = true
+    printToAll("Discard Retriever: Isabelle Barnes detected.", { 1, 1, 1 })
+  elseif investigatorId == "11007" or investigatorId == "11008" then
+    isAgatha = true
+    printToAll("Discard Retriever: Agatha Crane detected.", { 1, 1, 1 })
+    printToAll("Warning! This helper for Agatha helps you retrieve some events.", { 1, 0, 0 })
+    printToAll("Agatha's retrievable events are trickly, and some events can't be played with her ability.", { 1, 0, 0 })
+  elseif string.find(investigatorId, "01005") then
+    isWendy = true
+    printToAll("Discard Retriever: Wendy Adams detected.", { 1, 1, 1 })
+  else
+    printToAll("Found id: " .. investigatorId)
   end
-  return false
 end
 
----@returns boolean
-function isInvestigatorAgatha()
-  if investigatorId == "11007" or investigatorId == "11008" then
-    return true
-  end
-  return false
-end
+--- ---------------------------------------------------
+--- --- GENERIC FUNCTIONS FOR TABLETOP SIMULATOR
+--- ---------------------------------------------------
 
------- GENERIC FUNCTIONS FOR TABLETOP SIMULATOR
-
---@param deck tts__Object
---@param cardName string
---@returns tts__Object|nil
+--- Takes out a card by name from a deck, and put it in front of the helper
+---@param deck tts__Object
+---@param cardName string
+---@returns tts__Object|nil
 function takeOutByName(deck, cardName, params)
   -- Defensive checks
 
@@ -262,8 +283,9 @@ function takeOutByName(deck, cardName, params)
   return nil
 end
 
---@param list table of card id
---@param value id to search for
+--- Checks if a value is in a list
+---@param list table of card id
+---@param value string card id to search for    
 ---@return boolean
 function isInList(list, value)
   for _, item in ipairs(list) do

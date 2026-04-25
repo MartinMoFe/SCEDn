@@ -11,21 +11,21 @@
     "param-type-mismatch"
   ],
   "files.exclude": {
-    // "src/playercards/customizable/**": true,
-    // "objects/AdditionalPlayerCards.2cba6b**": true,
-    // "objects/AllPlayerCards.15bb07**.gmnotes": true,
-    // "objects/AllPlayerCards.15bb07/**.json": true,
-    // "objects/AllPlayerCards.15bb07/**/*.gmnotes": true,
-    // "objects/Fan-Made**": true,
-    // "**_translation-notes**": true
-    
+    "src/playercards/customizable/**": true,
+    "objects/AdditionalPlayerCards.2cba6b**": true,
+    "objects/AllPlayerCards.15bb07**.gmnotes": true,
+    "objects/AllPlayerCards.15bb07/**.json": true,
+    "objects/AllPlayerCards.15bb07/**/*.gmnotes": true,
+    "objects/Fan-Made**": true,
+    "**_translation-notes**": true    
   },
   "search.exclude": {
     "**.po": true,
   },
   "workbench.colorTheme": "Dark+",
   "workbench.colorCustomizations": {
-    "titleBar.activeBackground": "#506000",
+
+    "titleBar.activeBackground": "#708000",
     "titleBar.activeForeground": "#DDDDff",
     
     "tab.activeBackground": "#506000",
@@ -40,7 +40,7 @@
 
     "editor.lineHighlightBackground": "#ffff0029",
 
-    "terminal.background": "#232300",
+    "terminal.background": "#202000",
     "sideBar.background": "#0f1900",
     
     "tab.border": "#00AA00",
