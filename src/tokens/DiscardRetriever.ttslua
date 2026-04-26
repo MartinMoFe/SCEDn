@@ -192,7 +192,7 @@ function isEvent(gmnotes)
 end
 
 --- Checks if this is an Skill
---- @return
+--- @return boolean
 function isSkill(gmnotes)
   local metadata = JSON.decode(gmnotes) or {}
   if metadata.type == "Skill" then

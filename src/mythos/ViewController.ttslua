@@ -1,7 +1,7 @@
 function onLoad(saved_data)
     ---@class ViewTokenPair
     ---@field guid string
-    ---@field rotation Vector
+    ---@field rotation tts__Vector
 
     if saved_data ~= "" then
         local data = JSON.decode(saved_data) or {}

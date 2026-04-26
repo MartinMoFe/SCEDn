@@ -8,8 +8,11 @@
     "missing-return",
     "need-check-nil",
     "assign-type-mismatch",
-    "param-type-mismatch"
+    "param-type-mismatch",
+    "undefined-global"
   ],
+  "pylint.args": ["--disable=all"],
+  
   "files.exclude": {
     "src/playercards/customizable/**": true,
     "objects/AdditionalPlayerCards.2cba6b**": true,
@@ -17,7 +20,7 @@
     "objects/AllPlayerCards.15bb07/**.json": true,
     "objects/AllPlayerCards.15bb07/**/*.gmnotes": true,
     "objects/Fan-Made**": true,
-    "**_translation-notes**": true    
+    "**_translation-notes**": true
   },
   "search.exclude": {
     "**.po": true,

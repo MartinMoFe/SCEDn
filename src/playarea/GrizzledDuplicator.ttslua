@@ -1,68 +1,76 @@
 -- ==================================================
--- CONFIG
+-- CONSTANTS
 -- ==================================================
-Pos1 =                      { x = 2.5, y  = 0.5, z = 0 }
-Pos2 =                      { x = 0.0, y  = 0.5, z = 0 }
-Pos3 =                      { x = -2.5, y = 0.5, z = 0 }
-PosDestination =            { x = 0, y = 2.5, z = 5 }
--- ==================================================
--- VARIABLES
--- ==================================================
+Pos1 = { x = 2.5, y = 0.5, z = 2.0 }
+Pos2 = { x = 0.0, y = 0.5, z = 2.0 }
+Pos3 = { x = -2.5, y = 0.5, z = 2.0 }
+PosDestination = { x = 0, y = 2.5, z = 5.0 }
 
-Card1 = nil
-Card2 = nil
-Card3 = nil
+INVESTIGATOR_URLS = {
+  ["George Barnaby"]          =
+  "https://steamusercontent-a.akamaihd.net/ugc/15253478470813349064/9A6F7DEA828EA4519C35CDFD80D73C35CA63ABD7/",
+  ["Hank Samson"]             =
+  "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/",
+  ["Hank Samson (Assistant)"] =
+  "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/",
+  ["Hank Samson (Warden)"]    =
+  "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/",
+  ["Isabelle Barnes"]         =
+  "https://steamusercontent-a.akamaihd.net/ugc/12057168090462736185/81364373578EA172E926AF5D17ADB5FDF5974F7D/",
+  ["Minh Thi Phan"]           =
+  "https://steamusercontent-a.akamaihd.net/ugc/13676746587758979368/148E3BB9711191110239C915B2C866EB5BEF4742/"
+}
 
--- ==================================================
--- ON LOAD
--- ==================================================
+DEFAULT_URL = "https://arkhamdb.com/bundles/cards/09101.png"
+
+DEBUG_MODE = true
+
+--- ==================================================
+--- ON LOAD
+--- ==================================================
+
 function onLoad()
-    self.createButton({
-        label = "DUPLICATE",
-        click_function = "buttonPressed",
-        function_owner = self,
-        position = { 0, 0.3, -2 },
-        rotation = { 0, 0, 0 },
-        width = 1800,
-        height = 600,
-        font_size = 300
-    })
+  self.createButton({
+    label = "CUSTOMIZE",
+    click_function = "buttonPressed",
+    function_owner = self,
+    position = { 0, 0.3, -2 },
+    rotation = { 0, 0, 0 },
+    width = 1800,
+    height = 600,
+    font_size = 300
+  })
+
+  Card1 = nil
+  Card2 = nil
+  Card3 = nil
+  invName = nil
 end
 
 -- =========================
 -- BUTTON
 -- =========================
-function buttonPressed(obj, player_color, alt_click)
-    -- Cards are sticky. Lock to prevent annoying.
-    self.setLock(true)
 
-    detectThreeCards(player_color)
+function buttonPressed(obj, playerColor, alt_click)
+  -- Cards are sticky. Lock to prevent annoying.
+  self.setLock(true)
 
-    if not Card1 then
-        printToAll("No card to stamp detected. Please place a card at the left position.")
-        return
-    end
-    if not Card2 then
-        printToAll("No card to stamp detected. Please place a card at the central position.")
-        return
-    end
+  detectThreeCards(playerColor)
 
-    local spawnInfo = getCardData(Card1)
+  boringCommunication()
 
-    -- Depending on the card, do different things
+  local spawnData = getCardData(Card1)
 
-    if Card1.getName() == "Grizzled" then
-        local fieldsInfo = getGrizzledTraits(Card2)
-        local nemesisField = getGrizzledNemesis(Card2)
-        if Card3 and Card3.getName then
-            invName = Card3.getName()
-        else
-            invName = nil
-        end
-        spawnGrizzledFromData(spawnInfo, fieldsInfo, nemesisField, invName, { position = PosDestination })
-    elseif Card1.getName() == "Runic Axe" then
-        error("not impl")
-    end
+  if Card1.getName() == "Grizzled" then
+    local fieldsInfo = getGrizzledTraits(Card2)
+    local nemesisField = getGrizzledNemesis(Card2)
+    local alwaysPrepField = getGrizzledAlways(Card2)
+    spawnGrizzledFromData(spawnData, fieldsInfo, nemesisField, alwaysPrepField, invName, { position = PosDestination })
+  elseif Card1.getName() == "Runic Axe" then
+    error("not impl")
+  end
+
+  printToAll("Card duplication complete! Feel free to take the new card.", { 0, 1, 0 })
 end
 
 -- =========================
@@ -70,50 +78,43 @@ end
 -- =========================
 
 function detectThreeCards(player_color)
-    -- ping positions for debug
+  if DEBUG_MODE then
+    log('Pinging to help detect positions. If these are off, adjust the Pos variables in the script.')
     Player[player_color].pingTable(self.positionToWorld(Pos1))
     Player[player_color].pingTable(self.positionToWorld(Pos2))
     Player[player_color].pingTable(self.positionToWorld(Pos3))
-    -- detect objects
-    Card1 = detectCard(Pos1)
-    Card2 = detectCard(Pos2)
-    Card3 = detectCard(Pos3)
+  end
 
-    if Card1 then
-        printToAll("Card to stamp detected: " .. Card1.getName())
-    else
-        printToAll("No card found at left position.")
-    end
-    if Card2 then
-        printToAll("Upgrade Sheet detected: " .. Card2.getName())
-    else
-        printToAll("No card found at central position.")
-    end
-    if Card3 then
-        print("Investigator Card detected: " .. Card3.getName())
-    else
-        printToAll("No card found at right position.")
-    end
+  -- detect objects
+  Card1 = detectCard(Pos1)
+  Card2 = detectCard(Pos2)
+  Card3 = detectCard(Pos3)
+
+  if Card3 and Card3.getName then
+    invName = Card3.getName()
+  else
+    invName = nil
+  end
 end
 
 function detectCard(position)
-    local hits = Physics.cast({
-        origin = self.positionToWorld(position) + Vector(0, 1, 0),
-        direction = { 0, -1, 0 },
-        type = 1,         -- RAY
-        max_distance = 5, -- how far down to search
-        debug = false
-    })
-    for _, hit in ipairs(hits) do
-        local obj = hit.hit_object
-        if obj.getName() == "Card duplicator" then
-            return nil
-        elseif obj.tag == "Card" then
-            return obj
-        end
+  local hits = Physics.cast({
+    origin = self.positionToWorld(position) + Vector(0, 1, 0),
+    direction = { 0, -1, 0 },
+    type = 1,         -- RAY
+    max_distance = 5, -- how far down to search
+    debug = false
+  })
+  for _, hit in ipairs(hits) do
+    local obj = hit.hit_object
+    if obj.getName() == "Card duplicator" then
+      return nil
+    elseif obj.tag == "Card" then
+      return obj
     end
+  end
 
-    return nil
+  return nil
 end
 
 --- =========================
@@ -124,80 +125,112 @@ end
 ---@param card tts__Object: a card
 ---@return table: a table that can be passed to spawnObject
 function getCardData(card)
-    if not card then
-        error("No card provided", 2)
-    end
+  if not card then
+    error("No card provided", 2)
+  end
 
-    if not card.getName or not card.getDescription or not card.getGUID then
-        error("Invalid card object", 2)
-    end
+  if not card.getName or not card.getDescription or not card.getGUID then
+    error("Invalid card object", 2)
+  end
 
-    if card.tag ~= "Card" then
-        error("Object is not a card", 2)
-    end
+  if card.tag ~= "Card" then
+    error("Object is not a card", 2)
+  end
 
-    local data = {}
-    data.name = card.getName()
-    data.description = card.getDescription()
-    data.guid = card.getGUID()
-    data.position = card.getPosition()
-    data.rotation = card.getRotation()
-    data.scale = card.getScale()
-    data.gmNotes = card.getGMNotes()
-    data.tags = card.getTags()
-    data.custom = card.getCustomObject()
-    data.luaScript = card.getLuaScript()
-    local success, state = pcall(function()
-        return card.getLuaScriptState()
-    end)
-    data.luaScriptState = success and state or ""
-    return data
+  local data = {}
+  data.name = card.getName()
+  data.description = card.getDescription()
+  data.guid = card.getGUID()
+  data.position = card.getPosition()
+  data.rotation = card.getRotation()
+  data.scale = card.getScale()
+  data.gmNotes = card.getGMNotes()
+  data.tags = card.getTags()
+  data.custom = card.getCustomObject()
+  data.luaScript = card.getLuaScript()
+  local success, state = pcall(function()
+    return card.getLuaScriptState()
+  end)
+  data.luaScriptState = success and state or ""
+  return data
 end
 
 -- This takes the Upgrade Sheet of Grizzled, and grabs the traits
 function getGrizzledTraits(card)
-    if not card or card.script_state == "" then
-        return {}
-    end
+  if not card or card.script_state == "" then
+    return {}
+  end
 
-    local data = JSON.decode(card.script_state)
-    local allTraits = {}
-    if data and data.selections then
-        for _, entry in ipairs(data.selections) do
-            if entry.text and entry.text ~= "" then
-                for trait in string.gmatch(entry.text, "([^,]+)") do
-                    trait = trait:match("^%s*(.-)%s*$")
-                    table.insert(allTraits, trait)
-                end
-            end
+  local data = JSON.decode(card.script_state)
+  local allTraits = {}
+  if data and data.selections then
+    for _, entry in ipairs(data.selections) do
+      if entry.text and entry.text ~= "" then
+        for trait in string.gmatch(entry.text, "([^,]+)") do
+          trait = trait:match("^%s*(.-)%s*$")
+          table.insert(allTraits, trait)
         end
+      end
     end
-    return allTraits
+  end
+  return allTraits
 end
 
 ---@return boolean
 function getGrizzledNemesis(card)
-    log("enter ggt")
-    local hasNemesis = false
-    if not card or card.script_state == "" then
-        return false
-    end
-    pcall(function()
-        hasNemesis = JSON.decode(card.script_state).selections[4]["xp"] == 3
-    end)
+  local hasNemesis = false
+  if not card or card.script_state == "" then
+    return false
+  end
+  pcall(function()
+    hasNemesis = JSON.decode(card.script_state).selections[4]["xp"] == 3
+  end)
 
-    if hasNemesis then
-        log("This is indeed nemesis")
-    end
+  if hasNemesis then
+    log("This is indeed nemesis")
+  end
 
-    return hasNemesis
+  return hasNemesis
 end
 
+function getGrizzledAlways(card)
+  local hasBool = false
+  if not card or card.script_state == "" then
+    return false
+  end
+  pcall(function()
+    hasBool = JSON.decode(card.script_state).selections[6]["xp"] == 5
+  end)
+
+  if hasBool then
+    log("This is indeed nemesis")
+  end
+
+  return hasBool
+end
+
+
 function getRunicAxeUpgrades(card)
-    if not card or card.script_state == "" then
-        return {}
-    end
-    log(JSON.decode(card.script_state))
+  if not card or card.script_state == "" then
+    return {}
+  end
+  log(JSON.decode(card.script_state))
+end
+
+--- =========================
+---
+--- =========================
+
+function boringCommunication()
+  if not Card1 then
+    printToAll("No card to stamp detected. Please place a card at the left position.")
+  end
+  if not Card2 then
+    printToAll("No card to stamp detected. If you would like, place a card at the central position.")
+  end
+  if not Card3 then
+    printToAll("No investigator. You can place if you want.")
+  end
 end
 
 -- =========================
@@ -209,123 +242,119 @@ end
 ---@param upgradeFields table
 ---@param nemesisField boolean
 ---@param params table
-function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, params)
-    if not data or not data.custom then
-        error("Invalid card data", 2)
-    elseif not upgradeFields or type(upgradeFields) ~= "table" then
-        error("Invalid fields data, expected a table", 2)
-    elseif type(invName) ~= "string" and invName ~= nil then
-        error("Invalid name, expected a string or nil", 2)
-    elseif type(nemesisField) ~= "boolean" and nemesisField ~= nil then
-        error("Invalid nemesisField, expected bool or nil", 2)
-    end
+function spawnGrizzledFromData(data, upgradeFields, nemesisField, alwaysPrepField, invName, params)
+  if not data or not data.custom then
+    error("Invalid card data", 2)
+  elseif not upgradeFields or type(upgradeFields) ~= "table" then
+    error("Invalid fields data, expected a table", 2)
+  elseif type(invName) ~= "string" and invName ~= nil then
+    error("Invalid name, expected a string or nil", 2)
+  elseif type(nemesisField) ~= "boolean" and nemesisField ~= nil then
+    error("Invalid nemesisField, expected bool or nil", 2)
+  end
 
-    local destination = self.positionToWorld(params.position)
+  local destination = self.positionToWorld(params.position)
 
-    if invName == nil then
-        printToAll('not implemented yet, its awful')
-        URL =
-        "https://arkhamdb.com/bundles/cards/09101.png"
-    elseif invName == 'George Barnaby' then
-        URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/15253478470813349064/9A6F7DEA828EA4519C35CDFD80D73C35CA63ABD7/"
-    elseif invName == 'Hank Samson' then
-        URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
-    elseif invName == 'Hank Samson (Assistant)' then
-        URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
-    elseif invName == 'Hank Samson (Warden)' then
-        URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/17554546592286588821/04A62CFDE0B5C40FE0A04433D0707A9F828889ED/"
-    elseif invName == 'Isabelle Barnes' then
-        URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/10359671553347854014/56EAB6453121511654D21C83241881E438A81EFC/"
-    elseif invName == 'Minh Thi Phan' then
-        URL =
-        "https://steamusercontent-a.akamaihd.net/ugc/13841382499082651366/6B4E9FEAFE291A5DC3C6734C11CBD64330FFCBCF/"
-    else
-        -- Any investigator that is not implemented
-        URL =
-        "https://arkhamdb.com/bundles/cards/09101.png"
-    end
+  if invName == nil then
+    printToAll('Not implemented yet, its awful!!')
+  end
 
-    local spawnParams = {
-        type = "CardCustom",
-        position = destination,
-        rotation = data.rotation,
-        -- more data from params
-    }
+  URL = INVESTIGATOR_URLS[invName] or DEFAULT_URL
 
-    local newCard = spawnObject(spawnParams)
+  local spawnParams = {
+    type = "CardCustom",
+    position = destination,
+    rotation = data.rotation,
+    scale = data.scale,
+    sound = false,
+    snap_to_grid = false
+  }
+  --- ==================================
+  --- Spawn the card
+  --- ==================================
 
-    -- Apply appearance
-    newCard.setCustomObject({
-        face = URL,
-        back = data.custom.back,
-        number = 1,
-        back_is_hidden = true
-    })
-    -- Apply metadata
-    newCard.setName(data.name)
-    newCard.setDescription(data.description)
-    newCard.setGMNotes(data.gmNotes)
+  local newCard = spawnObject(spawnParams)
 
-    -- Apply tags
-    for _, tag in ipairs(data.tags or {}) do
-        newCard.addTag(tag)
-    end
+  if DEBUG_MODE then
+    printToAll("Spawned card with params: " .. JSON.encode(spawnParams))
+  end
+
+  --- ==================================
+  --- Apply more data to the card
+  --- ==================================
+
+  newCard.setCustomObject({
+    face = URL,
+    back = data.custom.back,
+    number = 1,
+    back_is_hidden = true
+  })
+
+  newCard.setName(data.name)
+  newCard.setDescription(data.description)
+  newCard.setGMNotes(data.gmNotes)
+
+  for _, tag in ipairs(data.tags or {}) do
+    newCard.addTag(tag)
+  end
+
+  --- ==================================
+  --- Apply meta script, onLoad will handle the rest
+  --- ==================================
 
 
-    -- █▀▄▀█ █▀▀ ▀█▀ ▄▀█ ▄▄ █▀ █▀▀ █▀█ █ █▀█ ▀█▀
-    -- █░▀░█ ██▄ ░█░ █▀█ ░░ ▄█ █▄▄ █▀▄ █ █▀▀ ░█░
+  assert(upgradeFields, "This should exist. april 26")
 
-
-    assert(upgradeFields, "This should exist. april 26")
-
+  if DEBUG_MODE then
     for _, element in ipairs(upgradeFields) do
-        printToAll('-    Grizzled has the trait: ' .. element)
+      printToAll('-    Grizzled has the trait: ' .. element)
     end
+  end
 
-    setScriptWise(newCard, upgradeFields, nemesisField)
+  setScriptWise(newCard, upgradeFields, nemesisField, alwaysPrepField)
 
-    return newCard
+  return newCard
 end
 
-function setScriptWise(card, fieldsOuter, nemesisOuter)
-    -- 1. Outer Constants
-    local posX = -5
-    local posY = 69
-    local posZ = -43
-    local width = 180
-    local height = 24
-    local scale = "1 1 1"
-    local rotation = "0 0 180"
-    local fSize = 15
-    local font = "Arno"
-
-    local fieldsLua = '{"' .. table.concat(fieldsOuter, '", "') .. '"}'
+function setScriptWiseold(card, fieldsOuter, nemesisOuter)
+  --- april 26 - this is the old version of the function, which builds the script in a more piecemeal way. The new version is more streamlined and efficient, but this is left here for reference in case I broke something in the rewrite.
+  local posX = -5
+  local posY = 69
+  local posZ = -43
+  local width = 180
+  local height = 24
+  local scale = "1 1 1"
+  local rotation = "0 0 180"
+  local fSize = 15
+  local font = "Arno"
 
 
-    if nemesisOuter then
-        --- new box
-        additonalXml = [[-- Add nemesis box
+  local fieldsLua = '{"' .. table.concat(fieldsOuter, '", "') .. '"}'
+
+  if nemesisOuter then
+    additonalXml = [[-- Add nemesis box
         xml = xml .. '<Panel width="]] ..
-                width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[">'
+        width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[">'
         xml = xml .. '  <Text text="Nemesis" fontSize="18" color="#4466ffdd" rectAlignment="MiddleCenter" />'
         xml = xml .. '</Panel>'
         ]]
-    else
-        additonalXml = ""
-    end
+  else
+    additonalXml = ""
+  end
+
+  if #fieldsLua == 4 then
+    fSize = 8
+  end
 
 
-    local cardScript = [[
+  local cardScript = [[
 -- Generated Script
 
 local fields = ]] .. fieldsLua .. [[
 
+
 local globalFontSize = ]] .. fSize .. [[
+
 
 function onLoad()
     -- Wait a frame to ensure UI is ready
@@ -335,7 +364,7 @@ end
 function getCell(txt)
     local xml = '<Panel>'
     xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'" '
-    xml = xml .. 'font="]].. font ..[[" '
+    xml = xml .. 'font="]] .. font .. [[" '
     xml = xml .. 'color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="6" '
     xml = xml .. 'position="0 0 0" bestFitMaxSize="'..globalFontSize..'"/>'
     xml = xml .. '</Panel>'
@@ -343,8 +372,7 @@ function getCell(txt)
 end
 
 function generateCardXml()
-    local num = #fields
-    -- Changed color from #00000000 to #add8e622
+
     local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" '
     xml = xml .. 'position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[" '
     xml = xml .. 'rotation="]] .. rotation .. [[" scale="]] .. scale .. [[" color="#add8e622">'
@@ -384,6 +412,128 @@ function generateCardXml()
 end
 ]]
 
-    card.setLuaScript(cardScript)
-    card.reload()
+  card.setLuaScript(cardScript)
+  card.reload()
+end
+
+  --- This function sets the Lua script of the card based on the provided fields and nemesis status. It constructs a Lua script that generates a UI panel on the card with the specified traits and an optional nemesis box.
+---@param card tts__Object
+---@param fieldsOuter table
+---@param nemesisOuter boolean
+---@return nil
+function setScriptWise(card, fieldsOuter, nemesisOuter, alwaysPrepField)
+  -- 1. Outer Constants/Calculations
+  local num = #fieldsOuter
+  local posX = -5
+  local posY = 69
+  local posZ = -43
+  local width = 180
+  local height = 24
+  if num == 4 then
+    height = 30
+  end
+  local scale = "1 1 1"
+  local rotation = "0 0 180"
+  local font = "Arno"
+  local fSize = 15
+  if #fieldsOuter >= 4 then
+    fSize = 12
+  end
+
+  local fieldsLua = '{"' .. table.concat(fieldsOuter, '", "') .. '"}'
+
+  local additonalXml = ""
+  local additonalXml2 = ""
+  if nemesisOuter then
+    additonalXml = [[-- Add nemesis box
+  xml = xml .. '<Panel width="]] ..
+  width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. (posY - 20) .. [[ ]] .. posZ .. [[">'
+  xml = xml .. '  <Text text="Nemesis" fontSize="18" color="#4466ffdd" rectAlignment="MiddleCenter" />'
+  xml = xml .. '</Panel>']]
+  end
+  if alwaysPrepField then
+    additonalXml2 = [[-- Add nemesis box
+    xml = xml .. '<Panel width="]] ..
+    width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. (posY - 40) .. [[ ]] .. posZ .. [[">'
+    xml = xml .. '  <Text text="Always prepared" fontSize="18" color="#44ff66dd" rectAlignment="MiddleCenter" />'
+    xml = xml .. '</Panel>']]
+  end
+
+  if num == 2 then
+    panelXml = [[
+  xml = xml .. '<HorizontalLayout spacing="1">'
+  xml = xml .. getCell(fields[1])
+  xml = xml .. getCell(fields[2])
+  xml = xml .. '</HorizontalLayout>'
+    ]]
+  elseif num == 3 then
+    panelXml = [[
+  xml = xml .. '<HorizontalLayout spacing="1">'
+  xml = xml .. getCell(fields[1])
+  xml = xml .. getCell(fields[2])
+  xml = xml .. getCell(fields[3])
+  xml = xml .. '</HorizontalLayout>'
+      ]]
+  elseif num == 4 then
+    panelXml = [[
+  xml = xml .. '<VerticalLayout spacing="0" childForceExpandHeight="true">'
+  xml = xml .. '<HorizontalLayout spacing="1">'
+  xml = xml .. getCell(fields[1])
+  xml = xml .. getCell(fields[2])
+  xml = xml .. '</HorizontalLayout>'
+  xml = xml .. '<HorizontalLayout spacing="1">'
+  xml = xml .. getCell(fields[3])
+  xml = xml .. getCell(fields[4])
+  xml = xml .. '</HorizontalLayout>'
+  xml = xml .. '</VerticalLayout>'
+    ]]
+  else
+    error("Unexpected number of fields: " .. num, 2)
+  end
+
+
+
+  local cardScript = [[
+-- Generated Script
+
+local fields = ]] .. fieldsLua .. [[
+
+local globalFontSize = ]] .. fSize .. [[
+
+
+function onLoad()
+  -- Wait a frame to ensure UI is ready
+  Wait.frames(function() self.UI.setXml(generateCardXml()) end, 1)
+end
+
+function getCell(txt)
+  local xml = '<Panel>'
+  xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'" '
+  xml = xml .. 'font="]] .. font .. [[" '
+  xml = xml .. 'color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="4" '
+  xml = xml .. 'position="0 0 0" bestFitMaxSize="'..globalFontSize..'"/>'
+  xml = xml .. '</Panel>'
+  return xml
+end
+
+function generateCardXml()
+  local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" '
+  xml = xml .. 'position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[" '
+  xml = xml .. 'rotation="]] .. rotation .. [[" scale="]] .. scale .. [[" color="#add8e622">'
+
+  -- Panel
+  ]] .. panelXml .. [[
+
+  ]] .. additonalXml .. [[
+  
+  ]] .. additonalXml2 .. [[
+
+  xml = xml .. '</Panel>'
+  return xml
+end
+]]
+
+  -- 3. Apply to Card
+  card.setLuaScript(cardScript)
+  card.reload()
 end
