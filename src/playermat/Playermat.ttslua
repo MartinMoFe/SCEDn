@@ -545,8 +545,14 @@ end
 
 -- click function for "draw 1 button" (that can be added via option panel)
 function doDrawOne(player, clickType)
-  updateMessageColor(player.color)
-  drawCardsWithReshuffle(1, clickType == "-2") -- right-click draws from below
+  
+  if false then
+    updateMessageColor(matColor)
+  end
+
+  local coloredMatOrPlayer = GlobalApi.getColoredName(playerColor)
+  printToAll(coloredMatOrPlayer .. ' draws one card.')
+  drawCardsWithReshuffle(1, clickType == "-2")
 end
 
 function drawCardsWithReshuffleWrapper(params)

@@ -1,0 +1,103 @@
+-- This object is required to create the HOTKEY.
+-- Explanation: Every time the phase changes, the PhaseTracker is destroyed and rebuild. That way, a Hotkey can't be created
+-- So, we create it here.
+--
+-- This element also links the Phase Tracker and the Watchers
+
+local PhaseTrackerApi = require("playarea/PhaseTrackerApi")
+
+local PHASE_NAMES = {
+  "[CC3333]I. Mythos Phase[-]",
+  "[88C999]II. Investigation Phase[-]",
+  "[4477A1]III. Enemy Phase[-]",
+  "[E6D34C]IV. Upkeep Phase[-]"
+}
+
+-- GUID of the existing Phase Tracker
+local PHASE_TRACKER_GUID = "d0c8fa"
+
+function onLoad()
+  phaseTracker = nil
+  currentPhase = nil
+
+  function destroySelf()
+    printToAll("Destroying " .. self.getName())
+    self.destruct()
+  end
+
+  -- function setMythosPhase()
+  --   printToAll("Setting phase to 1")
+  --   currentPhase = 1
+  --   updatePhase(1)
+  -- end
+
+  addHotkey("Advance Phase", advanceOnHotkey)
+  self.addContextMenuItem("Destroy Self", destroySelf)
+  -- self.addContextMenuItem("Set mythos phase", setMythosPhase)
+end
+
+---@return tts__Object|nil
+function findPhaseTracker()
+  -- search only if it was not found
+  if not phaseTracker or not phaseTracker.getGUID then
+    phaseTracker = getObjectFromGUID(PHASE_TRACKER_GUID)
+  end
+  if phaseTracker then
+    return phaseTracker
+  end
+
+  return nil
+end
+
+---@param playerColor string
+---@param isKeyUp boolean
+function advanceOnHotkey(playerColor, isKeyUp)
+  if isKeyUp then return end
+
+  if not findPhaseTracker() then
+    printToColor("PhaseTrackerController: Phase tracker not found!", playerColor, { 1, 0.2, 0.2 })
+    return
+  end
+
+  -- Call into the API — forwards phase normally
+  PhaseTrackerApi.advancePhase(false)
+end
+
+---@param phaseArg number 1 to 4
+function updatePhase(phaseArg)
+  assert(type(phaseArg) == "number", "updatePhase: expected number, got " .. type(phaseArg))
+  assert(phaseArg >= 1 and phaseArg <= 4, "updatePhase: phase must be between 1 and 4")
+
+  currentPhase = phaseArg
+
+  displayInfo(phaseArg)
+end
+
+function displayInfo(phaseArg)
+  local stringS = nil
+  local obj1 = getObjectFromGUID("87e529")
+  local obj2 = getObjectFromGUID("87e530")
+
+  if phaseArg == 1 then
+    stringS = { '4.9', '1.1' }
+  elseif phaseArg == 2 then
+    stringS = { '1.9', '2.1' }
+  elseif phaseArg == 3 then
+    stringS = { '2.9', '3.1', }
+  elseif phaseArg == 4 then
+    stringS = { '3.9', '4.1' }
+  end
+
+
+  if obj1 then obj1.call("respondToChange", stringS[1]) end
+  if obj2 then obj2.call("respondToChange", stringS[1]) end
+
+  if phaseArg == 1 then
+    printToAll("")
+    printToAll("------ NEW ROUND ------")
+  end
+  broadcastToAll(PHASE_NAMES[phaseArg])
+
+  Wait.time(function() if obj1 then obj1.call("respondToChange", stringS[2]) end end, 0.5)
+  Wait.time(function() if obj2 then obj2.call("respondToChange", stringS[2]) end end, 0.5)
+end

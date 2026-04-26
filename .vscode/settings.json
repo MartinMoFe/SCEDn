@@ -8,6 +8,48 @@
     "missing-return",
     "need-check-nil",
     "assign-type-mismatch",
-    "param-type-mismatch"
-  ]
+    "param-type-mismatch",
+    "undefined-global"
+  ],
+  "pylint.args": ["--disable=all"],
+  
+  "files.exclude": {
+    "src/playercards/customizable/**": true,
+    "objects/AdditionalPlayerCards.2cba6b**": true,
+    "objects/AllPlayerCards.15bb07**.gmnotes": true,
+    "objects/AllPlayerCards.15bb07/**.json": true,
+    "objects/AllPlayerCards.15bb07/**/*.gmnotes": true,
+    "objects/Fan-Made**": true,
+    "**_translation-notes**": true
+  },
+  "search.exclude": {
+    "**.po": true,
+  },
+  "workbench.colorTheme": "Dark+",
+  "workbench.colorCustomizations": {
+
+    "titleBar.activeBackground": "#708000",
+    "titleBar.activeForeground": "#DDDDff",
+    
+    "tab.activeBackground": "#506000",
+    "tab.activeForeground": "#ffffff",
+    
+
+    
+    "breadcrumb.background": "#506000BB",
+    "breadcrumb.foreground": "#ccccff",
+    "breadcrumb.focusForeground": "#dd7c00",
+    "breadcrumb.activeSelectionForeground": "#00ff00",
+
+    "editor.lineHighlightBackground": "#ffff0029",
+
+    "terminal.background": "#202000",
+    "sideBar.background": "#0f1900",
+    
+    "tab.border": "#00AA00",
+    "titleBar.border": "#99ff00",
+    "sideBar.border": "#99ff00",
+    "panel.border": "#99ff00",
+    "editorGroup.border": "#99ff00"
+  }
 }
