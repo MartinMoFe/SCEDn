@@ -1,0 +1,153 @@
+function onLoad(saved_data)
+    ---@class ViewTokenPair
+    ---@field guid string
+    ---@field rotation tts__Vector
+
+    if saved_data ~= "" then
+        local data = JSON.decode(saved_data) or {}
+        ---@type ViewTokenPair[]
+        viewTokens = data.viewTokens or {}
+        lookingAt  = data.lookingAt or nil
+        numberViewTokens = data.numberViewTokens or 0
+    else
+        -- defaults on first load
+        lookingAt  = nil
+        ---@type ViewTokenPair[]
+        viewTokens = {}
+        numberViewTokens = 0
+    end
+
+    self.addContextMenuItem("Search View Tokens", searchViewMoverTokens)
+    self.addContextMenuItem("Remove  View Tokens", removeAllTokens)
+
+    self.createButton({
+        label          = "Find + Freeze Views",
+        click_function = "searchAndFreeze",
+        function_owner = self,
+        position       = { 0, 0.2, 0 },
+        rotation       = { 0, 0, 0 },
+        width          = 2200,
+        height         = 500,
+        font_size      = 250,
+    })
+
+    addHotkey("Next View", function(player_color)
+        moveCamera(player_color)
+    end)
+end
+
+function onSave()
+    local data = {
+        viewTokens = viewTokens,
+        lookingAt  = lookingAt
+    }
+
+    return JSON.encode(data)
+end
+
+--- Finds view tokens and immediately freezes them
+function searchAndFreeze()
+    searchViewMoverTokens()
+    freezeViewMoverTokens()
+end
+
+function searchViewMoverTokens()
+    viewTokens = {}
+    numberViewTokens = 0
+
+    for _, obj in ipairs(getAllObjects()) do
+        if obj.hasTag("ViewMoverToken") then
+            local guid = obj.getGUID()
+            local rotation = obj.getRotation()
+            table.insert(viewTokens, {
+                guid = guid,
+                rotation = rotation
+            })
+        end
+    end
+
+    numberViewTokens = #viewTokens
+end
+
+--- Freezes all view tokens:
+--- - makes them non-interactable
+--- - hides tooltip text (name + description)
+--- - shrinks them to 1/20th size
+--- Uses the global `viewTokens` (list of pairs).
+function freezeViewMoverTokens()
+    if not viewTokens then return end
+
+    for _, entry in ipairs(viewTokens) do
+
+        local obj = getObjectFromGUID(entry.guid)
+        if obj then
+            obj.interactable = false
+            obj.setLock(true)
+
+            obj.setName("")
+            obj.setDescription("")
+
+            -- shrink (factor 20)
+            local s = obj.getScale()
+            obj.setScale({
+                s.x / 20,
+                s.y / 20,
+                s.z / 20
+            })
+        end
+    end
+end
+
+function removeAllTokens()
+    if not viewTokens then return end
+    local num = #viewTokens
+
+    for _, entry in ipairs(viewTokens) do
+        local obj = getObjectFromGUID(entry.guid)
+        if obj then
+            obj.destruct()
+        end
+    end
+    viewTokens = {}
+    log("Destroyed a total of "..num.." tokens")
+end
+
+function moveCamera(player_color)
+    if not viewTokens or #viewTokens == 0 then
+        return
+    end
+
+    -- initialize if nil
+    if not lookingAt then
+        lookingAt = 1
+    end
+
+    -- move and wrap around
+    lookingAt = lookingAt + 1
+    if lookingAt > #viewTokens then
+        lookingAt = 1
+    elseif lookingAt < 1 then
+        lookingAt = #viewTokens
+    end
+
+    local entry = viewTokens[lookingAt]
+    if not entry then return end
+
+    local obj = getObjectFromGUID(entry.guid)
+    if not obj then return end
+
+    -- compute yaw from stored rotation
+    local yRot = entry.rotation and entry.rotation.y or 0
+    local yaw = rotationToYaw(yRot)
+
+    Player[player_color].lookAt({
+        position = obj.getPosition(),
+        pitch    = 90,
+        yaw      = yaw,
+        distance = 22
+    })
+end
+
+function rotationToYaw(yRotation)
+    return (yRotation + 180) % 360
+end

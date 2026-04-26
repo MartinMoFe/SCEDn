@@ -227,7 +227,15 @@
     "CoreNightoftheZealot.64a613",
     "TheDrownedCity.938aab",
     "FilmFatale.45e513",
-    "Core2026BrethrenofAsh.elokoss"
+    "Core2026BrethrenofAsh.elokoss",
+    "EnemyWatcher.87e529",
+    "ComplexWatcher.87e530",
+    "DecalPlacer.778507",
+    "ViewController.ca8428",
+    "PhaseTrackerController.d0c8fb",
+    "GrizzledDuplicator.1855eb",
+    "DiscardRetriever.a450fe",
+    "InitialSetup.5335cd"
   ],
   "PlayArea": 1,
   "SaveName": "Arkham SCE - 4.7.2",
