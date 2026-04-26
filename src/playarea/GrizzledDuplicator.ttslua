@@ -1,10 +1,10 @@
 -- ==================================================
 -- CONFIG
 -- ==================================================
-Pos1 = { x = 2, y = 0, z = 0 }
-Pos2 = { x = 0, y = 0, z = 0 }
-Pos3 = { x = -2.0, y = 0, z = 0 }
-PosDestination = { x = 0, y = 2, z = 5 }
+Pos1 =                      { x = 2.5, y  = 0.5, z = 0 }
+Pos2 =                      { x = 0.0, y  = 0.5, z = 0 }
+Pos3 =                      { x = -2.5, y = 0.5, z = 0 }
+PosDestination =            { x = 0, y = 2.5, z = 5 }
 -- ==================================================
 -- VARIABLES
 -- ==================================================
@@ -28,11 +28,11 @@ function onLoad()
         font_size = 300
     })
 end
+
 -- =========================
 -- BUTTON
 -- =========================
 function buttonPressed(obj, player_color, alt_click)
-    
     -- Cards are sticky. Lock to prevent annoying.
     self.setLock(true)
 
@@ -46,9 +46,9 @@ function buttonPressed(obj, player_color, alt_click)
         printToAll("No card to stamp detected. Please place a card at the central position.")
         return
     end
-    
+
     local spawnInfo = getCardData(Card1)
-    
+
     -- Depending on the card, do different things
 
     if Card1.getName() == "Grizzled" then
@@ -56,16 +56,13 @@ function buttonPressed(obj, player_color, alt_click)
         local nemesisField = getGrizzledNemesis(Card2)
         if Card3 and Card3.getName then
             invName = Card3.getName()
-        else 
+        else
             invName = nil
         end
         spawnGrizzledFromData(spawnInfo, fieldsInfo, nemesisField, invName, { position = PosDestination })
     elseif Card1.getName() == "Runic Axe" then
         error("not impl")
     end
-
-
-    
 end
 
 -- =========================
@@ -81,7 +78,7 @@ function detectThreeCards(player_color)
     Card1 = detectCard(Pos1)
     Card2 = detectCard(Pos2)
     Card3 = detectCard(Pos3)
-    
+
     if Card1 then
         printToAll("Card to stamp detected: " .. Card1.getName())
     else
@@ -100,7 +97,6 @@ function detectThreeCards(player_color)
 end
 
 function detectCard(position)
-
     local hits = Physics.cast({
         origin = self.positionToWorld(position) + Vector(0, 1, 0),
         direction = { 0, -1, 0 },
@@ -128,7 +124,6 @@ end
 ---@param card tts__Object: a card
 ---@return table: a table that can be passed to spawnObject
 function getCardData(card)
-
     if not card then
         error("No card provided", 2)
     end
@@ -164,7 +159,7 @@ function getGrizzledTraits(card)
     if not card or card.script_state == "" then
         return {}
     end
-    
+
     local data = JSON.decode(card.script_state)
     local allTraits = {}
     if data and data.selections then
@@ -187,9 +182,10 @@ function getGrizzledNemesis(card)
     if not card or card.script_state == "" then
         return false
     end
-    pcall(function() hasNemesis =  JSON.decode(card.script_state).selections[4]["xp"] == 3
+    pcall(function()
+        hasNemesis = JSON.decode(card.script_state).selections[4]["xp"] == 3
     end)
-    
+
     if hasNemesis then
         log("This is indeed nemesis")
     end
@@ -208,7 +204,7 @@ end
 -- SPAWN CARDS
 -- =========================
 
----@param data table 
+---@param data table
 ---@param invName string|nil
 ---@param upgradeFields table
 ---@param nemesisField boolean
@@ -225,7 +221,7 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
     end
 
     local destination = self.positionToWorld(params.position)
-    
+
     if invName == nil then
         printToAll('not implemented yet, its awful')
         URL =
@@ -253,7 +249,7 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
         URL =
         "https://arkhamdb.com/bundles/cards/09101.png"
     end
-    
+
     local spawnParams = {
         type = "CardCustom",
         position = destination,
@@ -262,7 +258,7 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
     }
 
     local newCard = spawnObject(spawnParams)
-    
+
     -- Apply appearance
     newCard.setCustomObject({
         face = URL,
@@ -274,69 +270,55 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, invName, param
     newCard.setName(data.name)
     newCard.setDescription(data.description)
     newCard.setGMNotes(data.gmNotes)
-    
+
     -- Apply tags
     for _, tag in ipairs(data.tags or {}) do
         newCard.addTag(tag)
     end
-    
-    
+
+
     -- █▀▄▀█ █▀▀ ▀█▀ ▄▀█ ▄▄ █▀ █▀▀ █▀█ █ █▀█ ▀█▀
     -- █░▀░█ ██▄ ░█░ █▀█ ░░ ▄█ █▄▄ █▀▄ █ █▀▀ ░█░
-    
-    
+
+
     assert(upgradeFields, "This should exist. april 26")
-    
+
     for _, element in ipairs(upgradeFields) do
         printToAll('-    Grizzled has the trait: ' .. element)
     end
 
     setScriptWise(newCard, upgradeFields, nemesisField)
- 
+
     return newCard
 end
 
 function setScriptWise(card, fieldsOuter, nemesisOuter)
     -- 1. Outer Constants
-    local posX = 0
-    local posY = 71
-    local posYnemesis = 71
-    local posZ = -40
+    local posX = -5
+    local posY = 69
+    local posZ = -43
     local width = 180
     local height = 24
     local scale = "1 1 1"
     local rotation = "0 0 180"
-    local fSize = 8
-    local nemesisLua = nemesisOuter
-    
-    local workingFields = {}
-    workingFields = fieldsOuter
+    local fSize = 15
+    local font = "Arno"
 
-    -- Format table for the generated LUA script
-    -- This turns {"A", "B"} into {"A", "B"} as a literal string
-    local fieldsLua = '{"' .. table.concat(workingFields, '", "') .. '"}'
+    local fieldsLua = '{"' .. table.concat(fieldsOuter, '", "') .. '"}'
 
-    if #workingFields == 2 then
-        fSize = 15
-        posYnemesis = posY
-    elseif #workingFields == 3 then
-        fSize = 15
-        posYnemesis = posY + 20
-    elseif #workingFields == 4 then
-        fSize = 15
-        posYnemesis = posY
-    end
 
-    if #workingFields == 3 then
+    if nemesisOuter then
+        --- new box
         additonalXml = [[-- Add nemesis box
-    xml = xml .. '<Panel width="]] .. width + 20 ..
-            [[" height="]] .. height .. [["' position = "]] .. posX .. [[  ]] .. posY .. [[  ]] .. posZ .. [["  bestFitMaxSize="'..globalFontSize..'"/>'
-        xml = xml .. '  <Text text="NeMeSiS" fontSize="7" color="#0055ff" rectAlignment="MiddleCenter" />'
+        xml = xml .. '<Panel width="]] ..
+                width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[">'
+        xml = xml .. '  <Text text="Nemesis" fontSize="18" color="#4466ffdd" rectAlignment="MiddleCenter" />'
         xml = xml .. '</Panel>'
         ]]
-        printToAll("This card has 3 traits, so the nemesis tag will be moved down to avoid overlap.")
+    else
+        additonalXml = ""
     end
-    
+
 
     local cardScript = [[
 -- Generated Script
@@ -345,7 +327,6 @@ local fields = ]] .. fieldsLua .. [[
 
 local globalFontSize = ]] .. fSize .. [[
 
-
 function onLoad()
     -- Wait a frame to ensure UI is ready
     Wait.frames(function() self.UI.setXml(generateCardXml()) end, 1)
@@ -353,16 +334,20 @@ end
 
 function getCell(txt)
     local xml = '<Panel>'
-    xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'"  '
-    xml = xml .. 'color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="6"'
-    xml = xml .. 'position = "]] .. posX .. [[  ]] .. posY .. [[  ]] .. posZ .. [["  bestFitMaxSize="'..globalFontSize..'"/>'
+    xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'" '
+    xml = xml .. 'font="]].. font ..[[" '
+    xml = xml .. 'color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="6" '
+    xml = xml .. 'position="0 0 0" bestFitMaxSize="'..globalFontSize..'"/>'
     xml = xml .. '</Panel>'
     return xml
 end
 
 function generateCardXml()
     local num = #fields
-    local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" color="#00000000">'
+    -- Changed color from #00000000 to #add8e622
+    local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" '
+    xml = xml .. 'position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[" '
+    xml = xml .. 'rotation="]] .. rotation .. [[" scale="]] .. scale .. [[" color="#add8e622">'
 
     if num == 2 then
         xml = xml .. '<HorizontalLayout spacing="1">'
