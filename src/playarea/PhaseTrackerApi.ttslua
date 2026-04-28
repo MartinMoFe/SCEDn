@@ -1,0 +1,25 @@
+do
+  local PhaseTrackerApi = {}
+
+  -- GUID of the Phase Tracker
+  local PHASE_TRACKER_GUID = "d0c8fa"
+
+  -- Get the Phase Tracker object
+  local function getPhaseTracker()
+    return getObjectFromGUID(PHASE_TRACKER_GUID)
+  end
+
+  -- Advance the phase on the Phase Tracker
+  function PhaseTrackerApi.advancePhase(isRightClick)
+    local tracker = getPhaseTracker()
+    if not tracker then
+      print("PhaseApi: Could not find Phase Tracker with GUID " .. PHASE_TRACKER_GUID)
+      return
+    end
+
+    -- changeState(_, _, isRightClick)
+    tracker.call("changeState", { nil, nil, isRightClick or false })
+  end
+
+  return PhaseTrackerApi
+end

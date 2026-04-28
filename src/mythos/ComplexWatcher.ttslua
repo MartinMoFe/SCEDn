@@ -11,11 +11,6 @@ local EnemyWatcherApi = require("mythos/EnemyWatcherApi")
 
 -- Messages in treacheries and locations
 TreacheryMessage        = {
-  ["04009"] = {
-    ["2.1"] = 'Forced - At the beginning of your turn: Choose a location other than your location.',
-    ["2.9"] =
-    'When your turn ends, if you did not successfully investigate the chosen location this turn, take 2 horror and shuffle Call of the Unknown back into your deck.'
-  },
   ["01164"] = { ["2.9"] = 'Forced - At the end of your turn: Test 🧠 (3).' },
   ["01165"] = { ["4.9"] = 'Forced - At the end of the round, discard Dissonant Voices' },
   ["02038"] = { ["2.9"] = 'Forced - At the end of your turn: Take 1 direct damage.' },
@@ -25,35 +20,40 @@ TreacheryMessage        = {
   ["03083"] = { ["4.9"] = 'Forced - At the end of the round: Discard Tough Crowd.' },
   ["03101"] = { ["4.9"] = 'Forced - At the end of the round: Discard Ooze and Filth.' },
   ["03226"] = { ["2.9"] = "Forced - At the end of your turn: Test  (3). If you succeed, discard Frozen in Fear." },
-  ["03261"] = { ["2.9"] = "Forced - At the end of your turn, if you did not perform the above  ability: You must either discard all of your resources or discard all cards in your hand. Then, discard The Shadow Behind You." },
+  ["03261"] = { ["2.9"] = "Forced - At the end of your turn, if you did not perform the above  ability..." },
   ["03262"] = { ["4.9"] = "Forced - At the end of the round: Each investigator at attached location takes 3 damage. Discard The Pit Below." },
+  ["04009"] = { ["2.1"] = 'Forced - At the beginning of your turn...', ["2.9"] = 'When your turn ends...' },
   ["04077"] = { ["2.9"] = "Forced - At the end of your turn, if you did not successfully explore this turn: Take 1 horror." },
   ["04081"] = { ["2.9"] = "Forced - At the end of your turn: Discard Lost in the Wilds." },
   ["04094"] = { ["4.9"] = "Forced - At the end of the round: Discard 1 copy of Deep Dark from play. (Max once per round.)" },
   ["04099"] = { ["4.9"] = "Forced - At the end of the round: Discard Snakescourge." },
-  ["04216"] = { ["4.9"] = "Forced - At the end of the round: Each investigator at the attached location who is poisoned takes 2 horror. Each investigator at the attached location who is not poisoned must put a set-aside Poisoned weakness into play in his or her threat area, instead. Discard Poisonous Spores." },
+  ["04216"] = { ["4.9"] = "Forced - At the end of the round: Each investigator at the attached location who is poisoned..." },
   ["04299"] = { ["4.9"] = "Forced - At the end of the round: Discard 1 copy of Children of Valusia from play. (Max once per round.)" },
   ["04340"] = { ["4.9"] = "Forced - At the end of the round: Each investigator here takes 1 damage and 1 horror. If there are no investigators in this location, discard it and move each enemy here to Nexus of Nkai." },
   ["10018"] = { ["4.9"] = "Forced - At the end of the round: Hank Samson takes 1 direct horror." },
   ["11534"] = { ["2.9"] = "Forced - At the end of your turn: Test foot(3). If you succeed, discard \"Look Out!\"" },
   ["11665"] = { ["4.9"] = "Forced - When the round ends: Each investigator at this location takes 1 damage. Attach St. Elmo's Fire to an adjacent location (with investigators, if able)." },
+  ["11722"] = { ["2.9"] = "Forced - After you end your turn at a location with another investigator or a Stowaway enemy: Place 1 doom on Infected!" },
+  ["11750"] = { ["2.9"] = "Forced - When your turn ends, if you have no cards in hand: Discard Drawn to Darkness." },
+  ["12129"] = { ["2.9"] = 'Forced - When the investigation phase ends: Each non-Elite...' },
+  ["12159"] = { ["4.9"] = 'Forced - When the round ends: Discard Flash Flood.' },
+  ["12193"] = { ["2.1"] = 'Forced - After your turn begins: Discard the...' },
   ["53072"] = { ["1.9"] = 'Forced - At the end of the mythos phase: Place 1 doom on Stolen Mind.' },
   ["60204"] = { ["2.1"] = "Forced - When your turn begins: Discard 1 non-weakness card at random from your hand." },
   ["71062"] = { ["2.9"] = "Forced - At the end of your turn: Test (3). If you fail, take 1 horror." },
-  ["11750"] = { ["2.9"] = "Forced - When your turn ends, if you have no cards in hand: Discard Drawn to Darkness." },
-  ["11722"] = { ["2.9"] = "Forced - After you end your turn at a location with another investigator or a Stowaway enemy: Place 1 doom on Infected!" },
 }
 LocationFaceupMessage   = {
   ["02324"] = { ["4.9"] = 'Forced - At the end of the round: Either place 1 doom on Tear Through Space, or discard it.' },
-  ["02328"] = { ["4.9"] = 'Forced - At the end of the round: If you are at Dimensional Doorway, you must either spend 2 resources or shuffle Dimensional Doorway into the encounter deck.' },
-  ["04063"] = { ["4.9"] = 'Forced - At the end of the round: Flip 1 of the clues on Ancient Hall to its doom side. Any investigator at Ancient Hall may spend 3 resources to cancel this effect.' },
+  ["02328"] = { ["4.9"] = 'Forced - At the end of the round: If you are at Dimensional Doorway, you must ...' },
+  ["04063"] = { ["4.9"] = 'Forced - At the end of the round: Flip 1 of the clues on Ancient Hall to its doom side. Any ...' },
   ["04181"] = { ["4.9"] = 'Forced - At the end of the round: Discard 1 resource from Canals of Tenochtitlán.' },
-  ["04340"] = { ["4.9"] = "Forced - At the end of the round: Each investigator here takes 1 damage and 1 horror. If there are no investigators in this location, discard it and move each enemy here to Nexus of Nkai." },
+  ["04340"] = { ["4.9"] = "Forced - At the end of the round: Each investigator here takes 1 damage and 1 horror. If ..." },
   ["11542"] = { ["2.9"] = 'Forced - After you end your turn at Drowned Acropolis: You must either increase its flood level or take 1 horror.' },
   ["11543"] = { ["2.9"] = 'Forced - After you end your turn at Drowned Acropolis: You must either increase the flood level of an adjacent location or take 1 damage.' },
   ["11544"] = { ["2.9"] = 'Forced - After you end your turn at Blasted Ruins: Increase its flood level.' },
   ["11545"] = { ["2.9"] = 'Forced - After you end your turn at Blasted Ruins: Increase its flood level.' },
   ["11572"] = { ["2.9"] = "Forced - When your turn ends, if you are at this location: Test  (1). If you fail, you must either move to a connecting location or Mother attacks you." },
+  ["12155"] = { ["2.9"] = 'Forced - When the investigation phase ends: ...' },
 }
 LocationFacedownMessage = {
   ["04251"] = { ["4.9"] = 'Forced - At the end of the round, if there are fewer than 4 clues on Great Library: Add clues to Great Library until there are 4 clues on it.' },
@@ -87,6 +87,8 @@ EnemyMessage            = {
     'Forced - After Tindalos Alpha attacks you: Shuffle a non-story asset you control into your deck, moving all damage and horror from that asset to your investigator. Discard Tindalos Alpha.',
     ["3.9"] = 'Forced - At the end of the enemy phase: Discard Tindalos Alpha.'
   },
+  ["12122"] = { ["3.9"] = 'Forced - After Hellhound attacks you during the enemy phase:...' },
+  ["12189"] = { ["4.9"] = 'Forced - When the round ends: Place...' },
 }
 MythosMessage           = {
   ["11558"] = { ["4.9"] = 'When the round ends, reveal tokens...' },
@@ -306,15 +308,16 @@ end
 function showAllCardsInfo(phaseString)
   local colorPrint = nil
   local slightRed = { r = 0.8, g = 0.2, b = 0.2 }
+  local slightGreen = { r = 0.531, g = 0.848, b = 0.598 }
 
   if phaseString == "1.1" then
     colorPrint = slightRed
   elseif phaseString == "1.9" then
     colorPrint = slightRed
   elseif phaseString == "2.1" then
-    colorPrint = { r = 0.531, g = 0.848, b = 0.598 }
+    colorPrint = slightGreen
   elseif phaseString == "2.9" then
-    colorPrint = { r = 0.531, g = 0.848, b = 0.598 }
+    colorPrint = slightGreen
   elseif phaseString == "3.1" then
     colorPrint = Color.Blue
   elseif phaseString == "3.9" then

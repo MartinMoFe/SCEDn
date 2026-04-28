@@ -4,9 +4,7 @@ local SearchLib                = require("util/SearchLib")
 local Zones                    = require("playermat/Zones")
 local GlobalApi                = require("Global/GlobalApi")
 
--- FIND ENEMIES: Cards that are enemies only only when face-down
--- Here we list them by their id in the metadata
--- These cases are explicitly defined here because they are not in the metadata
+--- Cards that are enemies only only when face-down
 local FaceDownEnemies          = { -- Some enemies Enemies in the metadata, but when the face up is not
   ['04137a'] = true,               -- Maria DeSilvas
   ['04122'] = true,                -- Harlan Earstone
@@ -14,6 +12,8 @@ local FaceDownEnemies          = { -- Some enemies Enemies in the metadata, but 
   ['04209'] = true,                -- The Winged Serpent
   ['71045'] = true                -- Blooless Man
 }
+
+--- Cards that are enemies only only when face-down
 local AgendaActFacedownEnemies = { -- Some enemies are Agenda or Act cards in the metadata
   ["03241"] = true,                -- Empire of the DeadAgenda
   ['01121a'] = true,               -- The Masked Hunter Agenda
@@ -113,9 +113,12 @@ function respondToChange(aString)
   elseif newPhase == "2.1" then
     showResourceHandInfo({ colorPrint = INV_GREEN })
     showHealthSanityInfo({ colorPrint = INV_GREEN })
-    duplicateFakeMinis()
   elseif newPhase == "3.1" then
     showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
+  elseif newPhase == '3.3' then
+    showEnemyMovement()
+  elseif newPhase == '3.7' then
+    showEnemyAttack()
   end
   
 end
@@ -139,6 +142,18 @@ function showEnemyInfo(colorPrint, colorHighlight)
     printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
   end
   highlightObjects(enemiesInThreatArea, colorHighlight, 10)
+end
+
+function showEnemyMovement()
+  printToAll("Hunter and patrol (ready and unengaged) enemies move", LIGHT_BLUE)
+  printToAll("There are [ffaaaa]X[-] enemies with hunter", LIGHT_BLUE)
+  printToAll("There are [ffaaaa]X[-] enemies with patrol", LIGHT_BLUE)
+end
+
+function showEnemyAttack()
+  printToAll("Engaged enemies attack", LIGHT_BLUE)
+  printToAll("There are [ffaaaa]X[-] massive enemies", LIGHT_BLUE)
+  printToAll("There are [ffaaaa]X[-] engaged enemies", LIGHT_BLUE)
 end
 
 function showHealthSanityInfo(params)
@@ -392,7 +407,9 @@ function scanAndStore()
   mythosObjects = getVisibleCardsMythosArea()
 end
 
--- Minis helper
+-----------------------------
+--- Minis helper
+--- -------------------------
 
 function getMinicardsInPlayArea()
   -- returns a table of objects
@@ -445,6 +462,17 @@ end
 function destroyFakeMinis()
   if not fakeMinis then return end
 
+  if #fakeMinis == 0 then
+    -- in case we lost track of them
+    local allObjs = getAllObjects()
+    for _, obj in ipairs(allObjs) do
+      if obj.hasTag("DuplicateMinicard") then
+        table.insert(fakeMinis, obj)
+      end
+    end
+    log('destroy fake minis: used the backup method.')
+  end
+
   for _, obj in ipairs(fakeMinis) do
     if obj and obj.destruct then
       pcall(function() obj.destruct() end) -- in case the table was cleaned
@@ -454,10 +482,10 @@ function destroyFakeMinis()
   fakeMinis = {}
 end
 
--- Identify card wisely
+--- -----------------------------
+--- Identify card wisely
+--- -----------------------------
 
---- Determines whether an object represents a visible enemy.
---- Face-down enemies may still be visible depending on metadata tables.
 ---@param obj tts__Object
 ---@return boolean
 function isVisibleEnemy(obj)
@@ -484,7 +512,6 @@ function isVisibleEnemy(obj)
   return false
 end
 
---- Determines whether an object represents a visible treachery card.
 ---@param obj tts__Object
 ---@return boolean
 function isVisibleTreachery(obj)
@@ -494,6 +521,8 @@ function isVisibleTreachery(obj)
   return md.type == "Treachery" and not obj.is_face_down
 end
 
+---@param obj tts__Object
+---@return boolean
 function isFaceupLocation(obj)
   local md = getMd(obj)
   local id = md['id'] or ''
@@ -507,6 +536,8 @@ function isFaceupLocation(obj)
   end
 end
 
+---@param obj tts__Object
+---@return boolean
 function isFacedownLocation(obj)
   local md = getMd(obj)
   local id = md['id'] or ''
@@ -516,6 +547,8 @@ function isFacedownLocation(obj)
   end
 end
 
+---@param obj tts__Object
+---@return boolean
 function isVisibleLocation(obj)
   if isFacedownLocation(obj) or isFaceupLocation(obj) then
     return true
@@ -523,9 +556,9 @@ function isVisibleLocation(obj)
   return false
 end
 
---------------------
--- Generic
---------------------
+--- -----------------
+--- Generic
+--- -----------------
 
 ---@param objects tts__Object[]   # list of objects to highlight
 ---@param color string|table      # TTS color string, e.g. "Red", "Green", "Blue", or hex
@@ -587,10 +620,14 @@ function getMd(obj)
   return data
 end
 
+---Get the visible card of a deck (or 1-card deck)
+---@param deck tts__Object
+---@return nil|table # Returns nil if no visible card, or a table with the card's metadata if visible
 function getVisibleCardDeck(deck)
-  -- Must be a TTS object
+
+
   if type(deck) ~= "userdata" or deck.tag ~= "Deck" then
-    log("getVisibleCardDeck::argument error")
+    error("implemented getVisibleCardDeck only for Deck objects", 2)
     return nil
   end
 
@@ -600,9 +637,12 @@ function getVisibleCardDeck(deck)
   end
 
   local deckObjects = deck.getObjects()
+
   if type(deckObjects) ~= "table" or #deckObjects == 0 then
-    return nil
+    error("When does this happen? Last checked in april 2026", 2)
   end
+
   local visibleCard = deckObjects[#deckObjects]
+  
   return visibleCard
 end
