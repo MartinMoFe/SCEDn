@@ -1,10 +1,10 @@
 -- ==================================================
 -- CONSTANTS
 -- ==================================================
-Pos1 = { x = 2.5, y = 0.5, z = 2.0 }
-Pos2 = { x = 0.0, y = 0.5, z = 2.0 }
-Pos3 = { x = -2.5, y = 0.5, z = 2.0 }
-PosDestination = { x = 0, y = 2.5, z = 5.0 }
+POS1 = { x = 2.5, y = 0.5, z = 2.0 }
+POS2 = { x = 0.0, y = 0.5, z = 2.0 }
+POS3 = { x = -2.5, y = 0.5, z = 2.0 }
+POS_DESTINATION = { x = 0, y = 2.5, z = 5.0 }
 
 GRIZZLED_INVESTIGATOR_URLS = {
   ["George Barnaby"]          =
@@ -31,11 +31,7 @@ RUNIC_UPGRADES_URL = {
   "https://steamusercontent-a.akamaihd.net/ugc/13556295576541001245/6382F438E8ABBE7706F77A3487B7E80D9CB113ED/",
   gloryhunt =
   "https://steamusercontent-a.akamaihd.net/ugc/18373887849742968172/AAD2B744F01D45168C01306F38DC660502E5DF26/",
-  heirloom = "xxx",
   fury = "xxx",
-  ancientpower = "xxx",
-  saga = "xxx",
-  scriptweaver = "xxx",
   default = "xxx"
 }
 
@@ -87,14 +83,14 @@ function buttonPressed(obj, playerColor, alt_click)
     local nemesisField = getGrizzledNemesis(Card2)
     local alwaysPrepField = getGrizzledAlways(Card2)
     printGrizzledInfo(fieldsInfo, nemesisField, alwaysPrepField)
-    spawnGrizzledFromData(spawnData, fieldsInfo, nemesisField, alwaysPrepField, invName, { position = PosDestination })
+    spawnGrizzledFromData(spawnData, fieldsInfo, nemesisField, alwaysPrepField, invName, { position = POS_DESTINATION })
   end
 
-  
+
   if Card1.getName() == "Runic Axe" or Card1.getName() == "Runic Axe (Taboo)" then
     local thisFields = getRunicAxeUpgrades(Card2)
-    error()
-    spawnRunicFromData(spawnData, thisFields, invName, { position = PosDestination })
+    printRunicInfo(thisFields)
+    spawnRunicFromData(spawnData, thisFields, invName, { position = POS_DESTINATION })
   end
 
   printToAll("Card duplication complete! Feel free to take the new card.", { 0, 1, 0 })
@@ -106,15 +102,14 @@ end
 
 function detectThreeCards(player_color)
   if DEBUG_MODE then
-    log('Pinging to help detect positions. If these are off, adjust the Pos variables in the script.')
-    Player[player_color].pingTable(self.positionToWorld(Pos1))
-    Player[player_color].pingTable(self.positionToWorld(Pos2))
-    Player[player_color].pingTable(self.positionToWorld(Pos3))
+    Player[player_color].pingTable(self.positionToWorld(POS1))
+    Player[player_color].pingTable(self.positionToWorld(POS2))
+    Player[player_color].pingTable(self.positionToWorld(POS3))
   end
 
-  Card1 = detectCard(Pos1)
-  Card2 = detectCard(Pos2)
-  Card3 = detectCard(Pos3)
+  Card1 = detectCard(POS1)
+  Card2 = detectCard(POS2)
+  Card3 = detectCard(POS3)
 
   if Card3 and Card3.getName then
     invName = Card3.getName()
@@ -213,10 +208,6 @@ function getGrizzledNemesis(card)
     hasNemesis = JSON.decode(card.script_state).selections[4]["xp"] == 3
   end)
 
-  if hasNemesis then
-    log("This is indeed nemesis")
-  end
-
   return hasNemesis
 end
 
@@ -231,24 +222,19 @@ function getGrizzledAlways(card)
     hasBool = JSON.decode(card.script_state).selections[6]["xp"] == 5
   end)
 
-  if hasBool then
-    log("This is indeed nemesis")
-  end
-
   return hasBool
 end
+
 
 ---@param card tts__Object
 ---@return table
 function getRunicAxeUpgrades(card)
   if not card then
-    error("No card provided", 2)
+    error("No card provided, implementation error.", 2)
   end
 
-  log("Start of getRunicAxeUpgrades")
-  
-  if not card or card.script_state == "" then
-    error(card.getName() .. " has no script state", 2)
+  if card.script_state == "" then
+    error("Has no script state, implementation error.", 2)
   end
 
   local aTable = {
@@ -257,40 +243,40 @@ function getRunicAxeUpgrades(card)
     ["elders"] = false,
     ["hunt"] = false,
     ["fury"] = false,
-    ["ancient power"] = false,
+    ["ancientpower"] = false,
     ["saga"] = false,
     ["scriptweaver"] = false
   }
 
+  if card.getName() ~= "Runic Axe Upgrade Sheet" and card.getName() ~= "Runic Axe Upgrade Sheet (Taboo)" then
+    printToAll("Expected Runic Axe Upgrade Sheet, got " .. card.getName())
+    return aTable
+  end
+
+  local decoded = JSON.decode(card.script_state)
   pcall(function()
-    log(JSON.decode(card.script_state).selections[1]["xp"])
-    log(JSON.decode(card.script_state).selections[2]["xp"])
-    log(JSON.decode(card.script_state).selections[3]["xp"])
-    log('blabla')
-    aTable["heirloom"] = JSON.decode(card.script_state).selections[1]["xp"] == 1
-    aTable["glory"] = JSON.decode(card.script_state).selections[2]["xp"] == 1
-    aTable["elders"] = JSON.decode(card.script_state).selections[3]["xp"] == 1
-    aTable["hunt"] = JSON.decode(card.script_state).selections[4]["xp"] == 1
-    aTable["fury"] = JSON.decode(card.script_state).selections[5]["xp"] == 1
-    aTable["ancient power"] = JSON.decode(card.script_state).selections[6]["xp"] == 3
-    aTable["saga"] = JSON.decode(card.script_state).selections[7]["xp"] == 3
-    aTable["scriptweaver"] = JSON.decode(card.script_state).selections[8]["xp"] == 4
+    if decoded.selections[1] then aTable["heirloom"] = decoded.selections[1] and decoded.selections[1]["xp"] == 1 end
+    if decoded.selections[2] then aTable["glory"] = decoded.selections[2] and decoded.selections[2]["xp"] == 1 end
+    if decoded.selections[3] then aTable["elders"] = decoded.selections[3] and decoded.selections[3]["xp"] == 1 end
+    if decoded.selections[4] then aTable["hunt"] = decoded.selections[4] and decoded.selections[4]["xp"] == 1 end
+    if decoded.selections[5] then aTable["fury"] = decoded.selections[5] and decoded.selections[5]["xp"] == 1 end
+    if decoded.selections[6] then aTable["ancient power"] = decoded.selections[6] and decoded.selections[6]["xp"] == 3 end
+    if decoded.selections[7] then aTable["saga"] = decoded.selections[7] and decoded.selections[7]["xp"] == 3 end
+    if decoded.selections[8] then aTable["scriptweaver"] = decoded.selections[8] and decoded.selections[8]["xp"] == 4 end
   end)
 
-  pcall(function()
-    if Card1 and Card1.getName() == "Runic Axe (Taboo)" then
-      aTable["hunt"] = JSON.decode(card.script_state).selections[4]["xp"] == 2
-    end
-  end)
+  if Card2.getName() == "Runic Axe Upgrade Sheet (Taboo)" then
+    pcall(function()
+      if decoded.selections[4] then
+        aTable["hunt"] = decoded.selections[2] and
+            decoded.selections[4]["xp"] == 2
+      end
+    end)
+  end
 
   return aTable
 end
 
---- =========================
---- PRINTING INFO
---- =========================
-
---- Does nothing
 function boringCommunication()
   if not Card1 then
     printToAll("No card to stamp detected. Please place a card at the left position.")
@@ -302,33 +288,36 @@ function boringCommunication()
   else
     printToAll("Detected card to stamp: " .. Card2.getName())
   end
-  
+
   if Card1 and Card1.getName() == "Grizzled" and not Card3 then
     printToAll("You can place an investigator to customize Grizzled image,  if you want.")
   end
 end
+
+--- =========================
+--- PRINT
+--- =========================
 
 function printGrizzledInfo(fields, nemesisField, alwaysPrepField)
   for _, element in ipairs(fields) do
     printToAll('-    Grizzled has the trait: ' .. element)
   end
   if nemesisField then
-    log("-     Nemesis")
+    printToAll("-     Nemesis")
   end
   if alwaysPrepField then
-    log("-     Always Prepared")
+    printToAll("-     Always Prepared")
   end
 end
 
 function printRunicInfo(fields)
   for key, value in pairs(fields) do
     if value then
-      log("-     " .. key)
+      printToAll("-     " .. key)
     end
   end
 end
 
----@return boolean
 function checkProcess()
   local continue = true
   if not Card1 then
@@ -348,11 +337,10 @@ function checkProcess()
   return continue
 end
 
--- =========================
--- SPAWN CARDS
--- =========================
+--- =========================
+--- SPAWN CARD
+--- =========================
 
----@param data table
 ---@param invName string|nil
 ---@param upgradeFields table
 ---@param nemesisField boolean
@@ -380,19 +368,8 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, alwaysPrepFiel
     sound = false,
     snap_to_grid = false
   }
-  --- ==================================
-  --- Spawn the card
-  --- ==================================
 
   local newCard = spawnObject(spawnParams)
-
-  if DEBUG_MODE then
-    log("SpawnedGr:Spawned card with params: " .. JSON.encode(spawnParams))
-  end
-
-  --- ==================================
-  --- Apply more data to the card
-  --- ==================================
 
   newCard.setCustomObject({
     face = URL,
@@ -409,10 +386,6 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, alwaysPrepFiel
     newCard.addTag(tag)
   end
 
-  --- ==================================
-  --- Apply meta script, onLoad will handle the rest
-  --- ==================================
-
 
   assert(upgradeFields, "This should exist. april 26")
 
@@ -421,14 +394,15 @@ function spawnGrizzledFromData(data, upgradeFields, nemesisField, alwaysPrepFiel
   return newCard
 end
 
+--- Spawn a Runic Axe with the appropriate image and script
 ---@param data table
 ---@param invName string|nil
----@param fields table
+---@param fieldsBool boolean[]
 ---@param params table
-function spawnRunicFromData(data, fields, invName, params)
+function spawnRunicFromData(data, fieldsBool, invName, params)
   if not data or not data.custom then
     error("Invalid card data", 2)
-  elseif not fields or type(fields) ~= "table" then
+  elseif not fieldsBool or type(fieldsBool) ~= "table" then
     error("Invalid fields data, expected a table", 2)
   elseif type(invName) ~= "string" and invName ~= nil then
     error("Invalid name, expected a string or nil", 2)
@@ -437,26 +411,25 @@ function spawnRunicFromData(data, fields, invName, params)
   local destination = self.positionToWorld(params.position)
 
   local URL = nil -- INCOMPLETE
-  if fields["glory"] and fields["hunt"] then
+  if fieldsBool["glory"] and fieldsBool["hunt"] then
     URL = RUNIC_UPGRADES_URL["gloryhunt"]
-  elseif fields["elders"] and fields["hunt"] then
+  elseif fieldsBool["elders"] and fieldsBool["hunt"] then
     URL = RUNIC_UPGRADES_URL["huntelders"]
-  elseif fields["glory"] then
-    log(data.name .. " has glory")
+  elseif fieldsBool["glory"] then
     URL = RUNIC_UPGRADES_URL["glory"]
-  elseif fields["heirloom"] then
+  elseif fieldsBool["heirloom"] then
     URL = RUNIC_UPGRADES_URL["heirloom"]
-  elseif fields["elders"] then
+  elseif fieldsBool["elders"] then
     URL = RUNIC_UPGRADES_URL["elders"]
-  elseif fields["hunt"] then
+  elseif fieldsBool["hunt"] then
     URL = RUNIC_UPGRADES_URL["hunt"]
-  elseif fields["fury"] then
+  elseif fieldsBool["fury"] then
     URL = RUNIC_UPGRADES_URL["fury"]
-  elseif fields["ancient power"] then
+  elseif fieldsBool["ancient power"] then
     URL = RUNIC_UPGRADES_URL["ancient power"]
-  elseif fields["saga"] then
+  elseif fieldsBool["saga"] then
     URL = RUNIC_UPGRADES_URL["saga"]
-  elseif fields["scriptweaver"] then
+  elseif fieldsBool["scriptweaver"] then
     URL = RUNIC_UPGRADES_URL["scriptweaver"]
   else
     URL = RUNIC_UPGRADES_URL["default"]
@@ -470,19 +443,8 @@ function spawnRunicFromData(data, fields, invName, params)
     sound = false,
     snap_to_grid = false
   }
-  --- ==================================
-  --- Spawn the card
-  --- ==================================
-
+  
   local newCard = spawnObject(spawnParams)
-
-  if DEBUG_MODE then
-    log("SpawnedRunic::Spawned card with params: " .. JSON.encode(spawnParams))
-  end
-
-  --- ==================================
-  --- Apply more data to the card
-  --- ==================================
 
   newCard.setCustomObject({
     face = URL,
@@ -499,17 +461,20 @@ function spawnRunicFromData(data, fields, invName, params)
     newCard.addTag(tag)
   end
 
+  setRunicScriptWise(newCard, fieldsBool)
+  newCard.reload()
+
   return newCard
 end
 
---- This function sets the Lua script of the card based on the provided fields and nemesis status. It constructs a Lua script that generates a UI panel on the card with the specified traits and an optional nemesis box.
+--- =========================
+--- SET SCRIPT
+--- =========================
+
 ---@param card tts__Object
----@param fieldsOuter table
----@param nemesisOuter boolean
----@return nil
-function setGrizzledScriptWise(card, fieldsOuter, nemesisOuter, alwaysPrepField)
-  -- 1. Outer Constants/Calculations
-  local num = #fieldsOuter
+---@param ingameTraits table A list of traits like Monster, Hazard, Terror
+function setGrizzledScriptWise(card, ingameTraits, nemesisOuter, alwaysPrepField)
+  local num = #ingameTraits
   local posX = -5
   local posY = 69
   local posZ = -43
@@ -522,23 +487,23 @@ function setGrizzledScriptWise(card, fieldsOuter, nemesisOuter, alwaysPrepField)
   local rotation = "0 0 180"
   local font = "Arno"
   local fSize = 15
-  if #fieldsOuter >= 4 then
+  if #ingameTraits >= 4 then
     fSize = 12
   end
 
-  local fieldsLua = '{"' .. table.concat(fieldsOuter, '", "') .. '"}'
+  local fieldsLua = '{"' .. table.concat(ingameTraits, '", "') .. '"}'
 
-  local additonalXml = ""
-  local additonalXml2 = ""
+  local additionalXml = ""
+  local additionalXml2 = ""
   if nemesisOuter then
-    additonalXml = [[-- Add nemesis box
+    additionalXml = [[-- Add nemesis box
   xml = xml .. '<Panel width="]] ..
         width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. (posY - 20) .. [[ ]] .. posZ .. [[">'
   xml = xml .. '  <Text text="Nemesis" fontSize="18" color="#4466ffdd" rectAlignment="MiddleCenter" />'
   xml = xml .. '</Panel>']]
   end
   if alwaysPrepField then
-    additonalXml2 = [[-- Add nemesis box
+    additionalXml2 = [[-- Add nemesis box
     xml = xml .. '<Panel width="]] ..
         width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. (posY - 40) .. [[ ]] .. posZ .. [[">'
     xml = xml .. '  <Text text="Always prepared" fontSize="18" color="#44ff66dd" rectAlignment="MiddleCenter" />'
@@ -578,7 +543,6 @@ function setGrizzledScriptWise(card, fieldsOuter, nemesisOuter, alwaysPrepField)
   end
 
 
-
   local cardScript = [[
 -- Generated Script
 
@@ -610,50 +574,67 @@ function generateCardXml()
   -- Panel
   ]] .. panelXml .. [[
 
-  ]] .. additonalXml .. [[
+  ]] .. additionalXml .. [[
 
-  ]] .. additonalXml2 .. [[
+  ]] .. additionalXml2 .. [[
 
   xml = xml .. '</Panel>'
   return xml
 end
 ]]
 
-  -- 3. Apply to Card
   card.setLuaScript(cardScript)
-  card.reload()
 end
 
+---@param card tts__Object
+---@param params table A table with boolean fields: saga, scriptweaver, ancientpower
 function setRunicScriptWise(card, params)
-  local posX = -5
-  local posY = 69
-  local posZ = -43
+  local posX = 0
+  local posY = 68
+  local posZ = -45
   local width = 180
   local height = 24
-  if num == 4 then
-    height = 30
+  local fSize = 14
+
+  local additionalXml = ""
+  if params.ancientpower then
+    additionalXml = additionalXml ..
+        '<<Panel rotation="0 0 180" width="' ..
+        width .. '" height="' .. height .. '" position="' .. posX .. ' ' .. (posY-20) ..
+        ' ' .. posZ .. '">' ..
+        '<Text text="Ancient (up to 3)" fontSize="14" color="#000000" rectAlignment="MiddleCenter" />' ..
+        '</Panel>'
   end
-  local scale = "1 1 1"
-  local rotation = "0 0 180"
-  local font = "Arno"
-  local fSize = 15
+  if params.saga then
+    additionalXml = additionalXml ..
+        '<Panel rotation="0 0 180" width="' ..
+        width .. '" height="' .. height .. '" position="' .. posX .. ' ' .. (posY) ..
+        ' ' .. posZ .. '">'..
+        '<Text text="Saga (replenish 2)" fontSize="14" color="#000000" rectAlignment="MiddleCenter" />' ..
+        '</Panel>'
+  end
+  if params.scriptweaver then
+    additionalXml = additionalXml ..
+        '<Panel rotation="0 0 180" width="' ..
+        width .. '" height="' .. height .. '" position="' .. posX .. ' ' .. (posY+20) ..
+        ' ' .. posZ .. '">' ..
+        '<Text text="Scriptweaver (imbue 2)" fontSize="14" color="#000000" rectAlignment="MiddleCenter" />' ..
+        '</Panel>'
+  end
+  
 
   local cardScript = [[
-      function onLoad()
-          self.UI.setXml(]] .. "[[" .. [[
-              <Defaults>
-                  <Text font="Arno" fontSize="15" color="#FFFFFF" />
-              </Defaults>
-              <Panel position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [["
-                     width="]] .. width .. [["
-                     height="]] .. height .. [["
-                     rotation="0 0 180">
-                  <Text text="Sample Text" />
-              </Panel>
-          ]] .. "]]" .. [[)
-      end
+  -- Generated Script
+
+local globalFontSize = ]] .. fSize .. [[
+
+local staticXml = ']] .. additionalXml .. [['
+
+function onLoad()
+  -- Wait a frame to ensure UI is ready
+  Wait.frames(function() self.UI.setXml(staticXml) end, 1)
+end
   ]]
 
   card.setLuaScript(cardScript)
-  card.reload()
 end
