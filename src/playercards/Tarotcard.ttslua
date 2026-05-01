@@ -5,8 +5,8 @@ end
 
 function rotatePreview(playerColor)
   Player[playerColor].clearSelectedObjects()
-  local angle = self.alt_view_angle
-  angle.y = (angle.y == 0) and 180 or 0
+  local angle         = self.alt_view_angle
+  angle.y             = (angle.y == 0) and 180 or 0
   self.alt_view_angle = angle
 end
 
