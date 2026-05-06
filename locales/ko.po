@@ -32,6 +32,14 @@ msgstr ""
 "이 설정 화면과 같이 UI 요소에 대한\n"
 "언어를 설정합니다."
 
+# Option: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert"
+msgstr "Set difficulty to Hard/Expert"
+
+# Tooltip: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert_tooltip"
+msgstr "Set the scenario reference card\nto Hard/Expert by default."
+
 # Option: splash scenario name on setup
 msgid "OP_showTitleSplash"
 msgstr "게임 준비에서의 시나리오 제목 보기"

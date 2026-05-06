@@ -32,6 +32,14 @@ msgstr ""
 "Устанавливает язык для элементов интерфейса,\n"
 "например, для этой панели настроек."
 
+# Option: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert"
+msgstr "Set difficulty to Hard/Expert"
+
+# Tooltip: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert_tooltip"
+msgstr "Set the scenario reference card\nto Hard/Expert by default."
+
 # Option: splash scenario name on setup
 msgid "OP_showTitleSplash"
 msgstr "Показывать название сценария при старте"

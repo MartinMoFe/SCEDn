@@ -44,6 +44,7 @@ FALLBACK_MIRRORS = {
 OPTION_PRESETS           = {
   Chr1Z = {
     changePlayAreaImage  = true,
+    defaultHardExpert    = true,
     highlightMinicards   = true,
     showAttachmentHelper = true,
     showDisplacementTool = true,
@@ -59,6 +60,7 @@ OPTION_PRESETS           = {
     showAttachmentHelper = true,
     showHandHelper       = true,
     showSearchAssistant  = true,
+    showTokenSplash      = true,
     skipTour             = true,
     tokenArrangerOdds    = "Cumulative"
   },

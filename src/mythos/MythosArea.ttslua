@@ -216,6 +216,12 @@ function getDataFromReferenceCard(card, cardName, md)
   if currentScenario ~= newScenarioName then
     currentScenario = newScenarioName
     fireScenarioChangedEvent(md)
+
+    -- flip scenario card to Hard/Expert
+    if GlobalApi.getOptionPanelState()['defaultHardExpert'] then
+      local rot = card.getRotation()
+      card.setRotation(rot:setAt("z", 180))
+    end
   end
 
   if not md["tokens"] then
@@ -225,9 +231,11 @@ function getDataFromReferenceCard(card, cardName, md)
   end
 
   -- detect orientation of scenario card (for difficulty)
-  useFrontData = not card.is_face_down
-  tokenData = md["tokens"][(useFrontData and "front" or "back")]
-  fireTokenDataChangedEvent()
+  Wait.frames(function()
+    useFrontData = not card.is_face_down
+    tokenData = md["tokens"][(useFrontData and "front" or "back")]
+    fireTokenDataChangedEvent()
+  end, 5)
 end
 
 -- TTS event handler. Handles scenario name event triggering
@@ -290,6 +298,16 @@ function fireScenarioChangedEvent(md)
       end
     end
   end
+
+  -- shuffle encounter deck if there is no player in the Black seat ("debug mode")
+  if not Player["Black"].seated then
+    local objects = getEncounterDeckObjects()
+    if objects.draw then
+      objects.draw.shuffle()
+      printToAll("Encounter deck was shuffled.")
+    end
+  end
+
 
   -- reset the token spawning for locations
   TokenSpawnTrackerApi.resetAllLocations()

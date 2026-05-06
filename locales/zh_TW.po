@@ -32,6 +32,14 @@ msgstr ""
 "將使用者介面的語言\n"
 "設定為如該選項面板所示。"
 
+# Option: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert"
+msgstr "Set difficulty to Hard/Expert"
+
+# Tooltip: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert_tooltip"
+msgstr "Set the scenario reference card\nto Hard/Expert by default."
+
 # Option: splash scenario name on setup
 msgid "OP_showTitleSplash"
 msgstr "在設置步驟展示場景標題"

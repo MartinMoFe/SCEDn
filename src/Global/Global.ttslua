@@ -409,7 +409,7 @@ function drawBorderAroundCard(params)
   -- the internal model for those is somehow different than custom cards :)
   local data   = card.getData()
 
-  if data.Name == "CardCustom" or not isSingleCard(card) then
+  if data.Name == "CardCustom" or not isSingleCard(card) or string.match(data.GMNotes, "TtsZoopGuid") then
     xSize = xSize * 1.09
   else
     xSize = xSize / 1.035
@@ -4220,6 +4220,7 @@ function onClick_defaultSettings()
   optionPanel = {
     uiLanguage                = "en",
     changePlayAreaImage       = false,
+    defaultHardExpert         = false,
     enableCardHelpers         = true,
     enableCounterLogging      = true,
     highlightMinicards        = false,

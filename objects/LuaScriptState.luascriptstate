@@ -3,6 +3,7 @@
   "actionTrackerVisibility": [],
   "blurseVisibility": [],
   "chaosTokensGUID": [],
+  "defaultHardExpert": false,
   "handVisibility": [],
   "optionPanel": {
     "changePlayAreaImage": false,

@@ -32,6 +32,14 @@ msgstr ""
 "Legt die Sprache für UI-Elemente,\n"
 "wie dieses Optionsmenü fest."
 
+# Option: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert"
+msgstr "Schwierigkeit: Hart/Experte"
+
+# Tooltip: set default difficulty to Hard/Expert
+msgid "OP_defaultHardExpert_tooltip"
+msgstr "Dreht die Szenario-Referenzkarte standardmäßig\nauf die Hart/Experte-Seite."
+
 # Option: splash scenario name on setup
 msgid "OP_showTitleSplash"
 msgstr "Szenariotitel beim Aufbau anzeigen"

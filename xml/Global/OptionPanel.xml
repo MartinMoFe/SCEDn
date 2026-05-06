@@ -157,6 +157,22 @@
           </Row>
 
           <!-- Option: splash scenario name on setup -->
+          <Row id="OP_defaultHardExpert_tooltip"
+            class="option-text"
+            tooltip="Set the scenario reference card&#xA;to Hard/Expert by default.">
+            <Cell class="option-text">
+              <Panel class="singleColumn-wrapper">
+                <Text id="OP_defaultHardExpert"
+                  class="option-header">Set difficulty to Hard/Expert</Text>
+              </Panel>
+            </Cell>
+            <Cell class="option-button">
+              <Button class="optionToggle"
+                id="defaultHardExpert"/>
+            </Cell>
+          </Row>
+
+          <!-- Option: splash scenario name on setup -->
           <Row id="OP_showTitleSplash_tooltip"
             class="option-text"
             tooltip="Fade in the name of the scenario for 2 seconds&#xA;when placing down a scenario.">
