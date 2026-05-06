@@ -15,10 +15,22 @@ function getObjectByName(name)
   return nil
 end
 
-removedBagTokens = false
-thingiesOn = false
+-- *****************************
+-- GENERAL
+-- *****************************
 
-function onLoad()
+function onLoad(savedData)
+  
+  if savedData and savedData ~= "" then
+    local loadedData = JSON.decode(savedData)
+    removedBagTokens = loadedData.removedBagTokens
+    thingiesOn = loadedData.thingiesOn
+  else
+    removedBagTokens = false
+    thingiesOn = false
+    printToAll("Starter onLoad without data.")
+  end
+  
   Wait.time(function()
     self.createButton({ 
       label = "Run Initial Setup",
@@ -30,8 +42,21 @@ function onLoad()
       font_size = 200,
       color = { 0.5, 0.5, 0.5 }
     })
+    printToAll("Starter button created.")
   end, 3)
+
 end
+
+function onSave()
+  return JSON.encode({
+    removedBagTokens        = removedBagTokens,
+    thingiesOn       = thingiesOn
+  })
+end
+
+-- *****************************
+-- ACTIVATED
+-- *****************************
 
 function runSetup()
   -- Safely handle the chest (set-aside bag)
@@ -89,17 +114,19 @@ function runSetup()
     emptyBag(bag)
     printToAll("Bag empty.", "Green")
   else
-    printToAll("Bag was NOT empty.", "Green")
+    printToAll("Skipped removedBagTokens part.")
   end
 
   if not thingiesOn then
     pcall(function()
+      thingiesOn = true
       Global.call("onClick_toggleOptionWrapper", { id = "showAttachmentHelper" })
       Global.call("onClick_toggleOptionWrapper", { id = "showSearchAssistant" })
       Global.call("onClick_toggleOptionWrapper", { id = "showDisplacementTool" })
-      thingiesOn = true
       printToAll("Added thingies.", "Green")
     end)
+  else
+    printToAll("Skipped thingiesOn part.")
   end
 
   printToAll("Initialisation complete.", "Orange")

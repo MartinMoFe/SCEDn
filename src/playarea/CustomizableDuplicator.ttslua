@@ -260,7 +260,7 @@ function getRunicAxeUpgrades(card)
     if decoded.selections[3] then aTable["elders"] = decoded.selections[3] and decoded.selections[3]["xp"] == 1 end
     if decoded.selections[4] then aTable["hunt"] = decoded.selections[4] and decoded.selections[4]["xp"] == 1 end
     if decoded.selections[5] then aTable["fury"] = decoded.selections[5] and decoded.selections[5]["xp"] == 1 end
-    if decoded.selections[6] then aTable["ancient power"] = decoded.selections[6] and decoded.selections[6]["xp"] == 3 end
+    if decoded.selections[6] then aTable["ancientpower"] = decoded.selections[6] and decoded.selections[6]["xp"] == 3 end
     if decoded.selections[7] then aTable["saga"] = decoded.selections[7] and decoded.selections[7]["xp"] == 3 end
     if decoded.selections[8] then aTable["scriptweaver"] = decoded.selections[8] and decoded.selections[8]["xp"] == 4 end
   end)
@@ -425,8 +425,8 @@ function spawnRunicFromData(data, fieldsBool, invName, params)
     URL = RUNIC_UPGRADES_URL["hunt"]
   elseif fieldsBool["fury"] then
     URL = RUNIC_UPGRADES_URL["fury"]
-  elseif fieldsBool["ancient power"] then
-    URL = RUNIC_UPGRADES_URL["ancient power"]
+  elseif fieldsBool["ancientpower"] then
+    URL = RUNIC_UPGRADES_URL["ancientpower"]
   elseif fieldsBool["saga"] then
     URL = RUNIC_UPGRADES_URL["saga"]
   elseif fieldsBool["scriptweaver"] then
@@ -590,35 +590,40 @@ end
 ---@param params table A table with boolean fields: saga, scriptweaver, ancientpower
 function setRunicScriptWise(card, params)
   local posX = 0
-  local posY = 68
-  local posZ = -45
-  local width = 180
-  local height = 24
-  local fSize = 14
+  local posZ = -43
+  local width = 760
+  local height = 100
 
   local additionalXml = ""
-  if params.ancientpower then
-    additionalXml = additionalXml ..
-        '<<Panel rotation="0 0 180" width="' ..
-        width .. '" height="' .. height .. '" position="' .. posX .. ' ' .. (posY-20) ..
-        ' ' .. posZ .. '">' ..
-        '<Text text="Ancient (up to 3)" fontSize="14" color="#000000" rectAlignment="MiddleCenter" />' ..
-        '</Panel>'
-  end
+  local initXml = '<Panel rotation="0 0 180" scale = "0.25 0.25 1" width="'
+  local initXml2 = width .. '" height="' .. height .. '" position="' .. posX .. ' '
+  local initXml3 = 'fontSize="36" rectAlignment="MiddleCenter" />'
+
   if params.saga then
     additionalXml = additionalXml ..
-        '<Panel rotation="0 0 180" width="' ..
-        width .. '" height="' .. height .. '" position="' .. posX .. ' ' .. (posY) ..
+        initXml ..
+        width .. '" height="' .. height .. '" position="' .. -70 .. ' ' .. 30 ..
         ' ' .. posZ .. '">'..
-        '<Text text="Saga (replenish 2)" fontSize="14" color="#000000" rectAlignment="MiddleCenter" />' ..
+        '<Text text="Saga&#10;(replenish 2)" ' .. ' color="#000000" ' ..
+        initXml3 ..
         '</Panel>'
   end
   if params.scriptweaver then
     additionalXml = additionalXml ..
-        '<Panel rotation="0 0 180" width="' ..
-        width .. '" height="' .. height .. '" position="' .. posX .. ' ' .. (posY+20) ..
+        initXml ..
+        initXml2 .. 130 ..
         ' ' .. posZ .. '">' ..
-        '<Text text="Scriptweaver (imbue 2)" fontSize="14" color="#000000" rectAlignment="MiddleCenter" />' ..
+        '<Text text="Scriptweaver (You may imbue 2 per charge)" ' .. ' color="#ffffff" ' ..
+        initXml3 ..
+        '</Panel>'
+  end
+  if params.ancientpower then
+    additionalXml = additionalXml ..
+        initXml ..
+        initXml2 .. 150 ..
+        ' ' .. posZ .. '">' ..
+        '<Text text="Ancient Power (may imbue up to 3)" ' .. ' color="#ffffff" '  ..
+        initXml3 ..
         '</Panel>'
   end
   
@@ -626,7 +631,7 @@ function setRunicScriptWise(card, params)
   local cardScript = [[
   -- Generated Script
 
-local globalFontSize = ]] .. fSize .. [[
+local globalFontSize = 10
 
 local staticXml = ']] .. additionalXml .. [['
 

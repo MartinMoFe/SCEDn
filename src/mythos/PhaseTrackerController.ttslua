@@ -75,7 +75,7 @@ end
 
 function displayInfo(phaseArg)
   local stringS = nil
-  local timeSpan = 0.25
+  local timeSpan = 0.10
   local obj1 = getObjectFromGUID("87e529")
   local obj2 = getObjectFromGUID("87e530")
 
@@ -89,9 +89,10 @@ function displayInfo(phaseArg)
     stringS = { '3.9', '4.1' }
   end
 
+  if not obj1 or not obj2 then return end
 
-  if obj1 then obj1.call("respondToChange", stringS[1]) end
-  if obj2 then obj2.call("respondToChange", stringS[1]) end
+  obj1.call("respondToChange", stringS[1])
+  obj2.call("respondToChange", stringS[1])
 
   if phaseArg == 1 then
     printToAll("")
@@ -99,11 +100,13 @@ function displayInfo(phaseArg)
   end
   broadcastToAll(PHASE_NAMES[phaseArg])
 
+  Wait.time(function() obj1.call("respondToChange", stringS[2]) end, timeSpan*1.1)
+  Wait.time(function() obj2.call("respondToChange", stringS[2]) end, timeSpan * 1.1)
+
   if phaseArg == 3 then
-    Wait.time(function() if obj1 then obj1.call("respondToChange", "3.3") end end, timeSpan)
-    Wait.time(function() if obj1 then obj1.call("respondToChange", "3.7") end end, timeSpan*1.5)
+    Wait.time(function() obj2.call("respondToChange", "3.3") end, timeSpan * 2)
+    Wait.time(function() obj2.call("respondToChange", "3.7") end, timeSpan * 2)
   end
 
-  Wait.time(function() if obj1 then obj1.call("respondToChange", stringS[2]) end end, timeSpan*2)
-  Wait.time(function() if obj2 then obj2.call("respondToChange", stringS[2]) end end, timeSpan*2)
+
 end

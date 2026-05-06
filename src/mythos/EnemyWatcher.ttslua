@@ -115,10 +115,6 @@ function respondToChange(aString)
     showHealthSanityInfo({ colorPrint = INV_GREEN })
   elseif newPhase == "3.1" then
     showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
-  elseif newPhase == '3.3' then
-    showEnemyMovement()
-  elseif newPhase == '3.7' then
-    showEnemyAttack()
   end
   
 end
@@ -127,10 +123,11 @@ end
 function showEnemyInfo(colorPrint, colorHighlight)
   local enemiesInPlayArea = enemies or {}
   local num = #enemiesInPlayArea
+  local numString = "[ffaaaa]"..tostring(num).."[-]"
   if num > 1 then
-    printToAll('There are ' .. tostring(num) .. ' enemies in the map.', colorPrint)
+    printToAll('There are ' .. numString .. ' enemies in the map.', colorPrint)
   elseif num == 1 then
-    printToAll('There is ' .. tostring(num) .. ' enemy in the map.', colorPrint)
+    printToAll('There is ' .. numString .. ' enemy in the map.', colorPrint)
   end
   highlightObjects(enemiesInPlayArea, colorHighlight, 10)
 
@@ -144,17 +141,7 @@ function showEnemyInfo(colorPrint, colorHighlight)
   highlightObjects(enemiesInThreatArea, colorHighlight, 10)
 end
 
-function showEnemyMovement()
-  printToAll("Hunter and patrol (ready and unengaged) enemies move", LIGHT_BLUE)
-  printToAll("There are [ffaaaa]X[-] enemies with hunter", LIGHT_BLUE)
-  printToAll("There are [ffaaaa]X[-] enemies with patrol", LIGHT_BLUE)
-end
 
-function showEnemyAttack()
-  printToAll("Engaged enemies attack", LIGHT_BLUE)
-  printToAll("There are [ffaaaa]X[-] massive enemies", LIGHT_BLUE)
-  printToAll("There are [ffaaaa]X[-] engaged enemies", LIGHT_BLUE)
-end
 
 function showHealthSanityInfo(params)
   if params == nil then
@@ -573,6 +560,7 @@ function highlightObjects(objects, color, duration)
 end
 
 function highlightObjectsCall(params)
+  log('entroo')
   local objects = params.objects
   local color = params.color
   local duration = params.duration

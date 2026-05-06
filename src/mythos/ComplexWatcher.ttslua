@@ -54,6 +54,9 @@ LocationFaceupMessage   = {
   ["11545"] = { ["2.9"] = 'Forced - After you end your turn at Blasted Ruins: Increase its flood level.' },
   ["11572"] = { ["2.9"] = "Forced - When your turn ends, if you are at this location: Test  (1). If you fail, you must either move to a connecting location or Mother attacks you." },
   ["12155"] = { ["2.9"] = 'Forced - When the investigation phase ends: ...' },
+  ["12187"] = { ["2.9"] = 'Forced - When you end your turn at this location:...' },
+  ["12186"] = { ["2.9"] = '(R) When you end your turn at this location:...' },
+  ["12185"] = { ["2.9"] = 'Forced - When you end your turn at this location:...' },
 }
 LocationFacedownMessage = {
   ["04251"] = { ["4.9"] = 'Forced - At the end of the round, if there are fewer than 4 clues on Great Library: Add clues to Great Library until there are 4 clues on it.' },
@@ -87,24 +90,23 @@ EnemyMessage            = {
     'Forced - After Tindalos Alpha attacks you: Shuffle a non-story asset you control into your deck, moving all damage and horror from that asset to your investigator. Discard Tindalos Alpha.',
     ["3.9"] = 'Forced - At the end of the enemy phase: Discard Tindalos Alpha.'
   },
-  ["12122"] = { ["3.9"] = 'Forced - After Hellhound attacks you during the enemy phase:...' },
-  ["12189"] = { ["4.9"] = 'Forced - When the round ends: Place...' },
+  ["12122"]  = { ["3.9"] = 'Forced - After Hellhound attacks you during the enemy phase:...' },
+  ["12189"]  = { ["4.9"] = 'Forced - When the round ends: Place...' },
 }
 MythosMessage           = {
+  ["11508"] = { ["4.9"] = "Objective - When the round ends, if there is at least 1 Elite enemy in the victory display, advance." },
+  ["11557"] = { ["3.9"] = "Forced - When the enemy phase ends:...", ["4.9"] = 'Objective - When the round ends, if there is a combined...' },
   ["11558"] = { ["4.9"] = 'When the round ends, reveal tokens...' },
+  ["11591"] = { ["4.9"] = "Objective - When the round ends, if an investigator controls the Tidal Tablet story asset, advance." },
   ["11640"] = { ["4.9"] = 'When the round ends, reveal tokens...' },
   ["11683"] = { ["1.9"] = 'When doom is placed...' },
   ["11684"] = { ["4.9"] = 'When the round ends, investigators at...' },
+  ["11689"] = { ["4.9"] = 'Objective - When the round ends, if there are 3 Cthulhu enemies in the victory display, advance.', ["3.9"] = "Forced - When the enemy phase ends: Increase the flood level of Cthulhu's location and draw the top card of the Cthulhu deck." },
   ["11690"] = { ["4.9"] = "Objective - When the round ends, if there are 3 Cthulhu enemies in the victory display, advance." },
   ["11691a"] = { ["4.9"] = 'When the round ends...' },
-  ["11508"] = { ["4.9"] = "Objective - When the round ends, if there is at least 1 Elite enemy in the victory display, advance." },
-  ["11557"] = { ["4.9"] = "Objective - When the round ends, if there is a combined total of 5 or more Cultist cards in the victory display and/or under this act, you must advance." },
-  ["11591"] = { ["4.9"] = "Objective - When the round ends, if an investigator controls the Tidal Tablet story asset, advance." },
-  ["11689"] = {
-    ["4.9"] = 'Objective - When the round ends, if there are 3 Cthulhu enemies in the victory display, advance.',
-    ["3.9"] =
-    "Forced - When the enemy phase ends: Increase the flood level of Cthulhu's location and draw the top card of the Cthulhu deck."
-  }
+  ["12108"] = { ["1.9"] = "Forced - After doom is placed on the agenda:..." },
+  ["12109"] = { ["4.9"] = "Objective - At the end of the round, investigators may spend..." },
+  ["12111"] = { ["4.9"] = "Objective - At the end of the round, investigators at Orne Library..." },
 }
 
 
@@ -114,7 +116,7 @@ MythosMessage           = {
 
 -- List of massive enemies
 
-MassiveEnemies              = {
+MASSIVE_ENEMIES             = {
   ['01157'] = true,
   ['02058'] = true,
   ['02216'] = true,
@@ -132,11 +134,13 @@ MassiveEnemies              = {
   ['11674'] = true,
   ['11725'] = true,
   ['11573'] = true,
+  ['12179'] = true,
 }
-MassiveEnemiesFlipped       = { -- This metadata says enemy
+MASSIVE_ENEMIES_FLIPPED       = { -- This metadata says enemy
   ['04209'] = true,             -- The winged serpent is massive only when flipped
   ['53046'] = true,             -- The winged serpent from Return
   ['71045'] = true,             -- Blooless Man
+  ['12179'] = true,             -- Elokoss
 }
 AgendaMassiveEnemiesFlipped = {
   ['11537a'] = true, -- The leviathan is only massive when flipped
@@ -147,7 +151,7 @@ AgendaMassiveEnemiesFlipped = {
 
 -- List of hunter enemies
 
-HunterEnemies               = {
+hunterEnemies               = {
   ['01116'] = true,
   ['01157'] = true,
   ['01159'] = true,
@@ -188,6 +192,13 @@ HunterEnemies               = {
   ['50022'] = true,
   ['53018'] = true,
   ['53078'] = true,
+  ['12114'] = true,
+  ['12122'] = true,
+  ['12138'] = true,
+  ['12162'] = true,
+  ['12166'] = true,
+  ['12180'] = true,
+  ['12164'] = true
 }
 HunterEnemiesFlipped        = {
   ['04209'] = true,
@@ -204,7 +215,7 @@ AgendaHunterEnemiesFlipped  = {
 
 -- List of aloof enemies
 
-AloofEnemies                = {
+ALOOF_ENEMIES               = {
   ['02090'] = true,
   ['03081'] = true,
   ['53058'] = true,
@@ -224,6 +235,20 @@ AloofEnemies                = {
   ['11575'] = true,
   ['11549'] = true,
   ['71045'] = true, -- Blooless Man
+  ['12099'] = true,
+  ['12139'] = true,
+  ['12143'] = true,
+  ['12144'] = true,
+  ['12166'] = true,
+  ['12188'] = true,
+}
+
+PATROL_ENEMIES              = {
+  ["11701"] = true,
+  ["11551"] = true,
+  ["11670"] = true,
+  ["11721"] = true,
+  ["11537a"] = true
 }
 
 
@@ -264,6 +289,7 @@ LocationsBlockedBack = {
 -- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
 
 local BLUE_TREACHERY = { r = 0.300, g = 0.700, b = 0.800 }
+local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
 
 function onLoad(savedData)
   self.interactable = true
@@ -297,6 +323,10 @@ function respondToChange(aString)
     placeEnemyDecalsWisely()
   elseif newPhase == "2.9" then
     placeEnemyDecalsWisely()
+  elseif newPhase == "3.3" then
+    showEnemyMovement()
+  elseif newPhase == "3.7" then
+    showEnemyAttack()
   end
 
   showAllCardsInfo(lastPhase)
@@ -319,7 +349,7 @@ function showAllCardsInfo(phaseString)
   elseif phaseString == "2.9" then
     colorPrint = slightGreen
   elseif phaseString == "3.1" then
-    colorPrint = Color.Blue
+    colorPrint = BLUE_ENEMY
   elseif phaseString == "3.9" then
     colorPrint = Color.Blue
   elseif phaseString == "4.1" then
@@ -424,6 +454,87 @@ function showAllLocationInfo(params)
   end
 end
 
+-- 333333333333333333
+--  GET
+-- 333333333333333333
+
+function getHunterEnemiesInMap()
+  local enemies = EnemyWatcherApi.getEnemiesInPlayArea()
+  local hunters = {}
+  for _, enemy in ipairs(enemies) do
+    local rawNotes = enemy.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    if hunterEnemies[id] then
+      table.insert(hunters, enemy)
+    end
+  end
+
+  return hunters
+end
+
+function getPatrolEnemiesInMap()
+  local enemies = EnemyWatcherApi.getEnemiesInPlayArea()
+  local aloofs = {}
+  for _, enemy in ipairs(enemies) do
+    local rawNotes = enemy.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    if PATROL_ENEMIES[id] then
+      table.insert(aloofs, enemy)
+    end
+  end
+  return aloofs
+end
+
+function getMassiveEnemiesInMap()
+  local enemies = EnemyWatcherApi.getEnemiesInPlayArea()
+  local massives = {}
+  for _, enemy in ipairs(enemies) do
+    local rawNotes = enemy.getGMNotes() or "{}"
+    local md = JSON.decode(rawNotes) or {}
+    local id = md['id'] or ''
+    if MASSIVE_ENEMIES[id] then
+      table.insert(massives, enemy)
+    end
+  end
+  return massives
+end
+
+function showEnemyMovement()
+  local hunters = getHunterEnemiesInMap()
+  local numHunter = #hunters
+  local patrols = getPatrolEnemiesInMap()
+  local numPatrol = #patrols
+  local numColor = "[ffaaaa]" .. tostring(numHunter) .. "[-]"
+  log(numHunter)
+  log(numPatrol)
+  if numHunter>0 or numPatrol >0 then
+    printToAll("Hunter and patrol (ready and unengaged) enemies move.", LIGHT_BLUE)
+  end
+
+  if numHunter > 0 then
+    printToAll("There are " .. numColor .. " enemies with hunter.", LIGHT_BLUE)
+  elseif numPatrol == 1 then
+    printToAll("There is " .. numColor .. " enemy with hunter.", LIGHT_BLUE)
+  end
+  local numColor = "[ffaaaa]" .. tostring(numPatrol) .. "[-]"
+  if numPatrol > 2 then
+    printToAll("There are" .. numColor .. " enemies with patrol.", LIGHT_BLUE)
+  elseif numPatrol == 1 then
+    printToAll("There is " .. numColor .. " enemy with patrol.", LIGHT_BLUE)
+  end
+end
+
+function showEnemyAttack()
+  local massive = getMassiveEnemiesInMap()
+  local numMassive = #massive
+  local numColor = "[ffaaaa]" .. tostring(numMassive) .. "[-]"
+  if numMassive > 0 then
+    printToAll("There are " .. numColor .. " massive enemies in the map.")
+  end
+end
+
 -- Place Decals
 
 function placeEnemyDecalsWisely()
@@ -452,11 +563,11 @@ function placeEnemyDecalsWisely()
     local id = md['id'] or ''
 
     -- Check and apply decals
-    if MassiveEnemies[id] then
+    if MASSIVE_ENEMIES[id] then
       DecalPlacerApi.placeDecal(enemy, 'massiveEnemy')
     end
 
-    if MassiveEnemiesFlipped[id] then
+    if MASSIVE_ENEMIES_FLIPPED[id] then
       DecalPlacerApi.placeDecal(enemy, 'massiveEnemyFlipped')
     end
 
@@ -464,7 +575,7 @@ function placeEnemyDecalsWisely()
       DecalPlacerApi.placeDecal(enemy, 'massiveEnemyFlipped')
     end
 
-    if HunterEnemies[id] then
+    if hunterEnemies[id] then
       DecalPlacerApi.placeDecal(enemy, 'hunterEnemy')
     end
 
@@ -476,15 +587,15 @@ function placeEnemyDecalsWisely()
       DecalPlacerApi.placeDecal(enemy, 'hunterEnemyFlipped')
     end
 
-    if AloofEnemies[id] then
+    if ALOOF_ENEMIES[id] then
       DecalPlacerApi.placeDecal(enemy, 'aloofEnemy')
     end
 
     if id == '' or id == nil then
       log("Enemy " .. i .. " has no ID in GM notes")
-    elseif not (MassiveEnemies[id] or MassiveEnemiesFlipped[id] or AgendaMassiveEnemiesFlipped[id] or
-          HunterEnemies[id] or HunterEnemiesFlipped[id] or AgendaHunterEnemiesFlipped[id] or
-          AloofEnemies[id]) then
+    elseif not (MASSIVE_ENEMIES[id] or MASSIVE_ENEMIES_FLIPPED[id] or AgendaMassiveEnemiesFlipped[id] or
+          hunterEnemies[id] or HunterEnemiesFlipped[id] or AgendaHunterEnemiesFlipped[id] or
+          ALOOF_ENEMIES[id]) then
     end
   end
 end
