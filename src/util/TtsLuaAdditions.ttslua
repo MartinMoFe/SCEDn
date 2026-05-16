@@ -1,8 +1,18 @@
--- Add division by number to Vector class
+-- Returns a new vector where every component is 1/n
+function Vector:reciprocal()
+  assert(self.x ~= 0 and self.y ~= 0 and self.z ~= 0, "Vector:reciprocal() - Division by zero!")
+  return Vector(1 / self.x, 1 / self.y, 1 / self.z)
+end
+
+-- Add division to Vector class
 ---@param vec tts__Vector
 ---@param val number
 function Vector.__div(vec, val)
-  return vec:copy():scale(1 / val)
+  if type(val) == 'number' then
+    return vec:copy():scale(1 / val)
+  elseif type(val) == 'table' then
+    return vec:copy():scale(val:reciprocal())
+  end
 end
 
 -- Add division by number to Color class (does not change alpha)
