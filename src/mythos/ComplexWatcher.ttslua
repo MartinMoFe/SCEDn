@@ -2,7 +2,7 @@ local DecalPlacerApi  = require("mythos/DecalPlacerApi")
 local EnemyWatcherApi = require("mythos/EnemyWatcherApi")
 
 
-DEBUG = false
+DEBUG = true
 
 -- We are reusing the funtions inside monster-watcher
 
@@ -633,20 +633,11 @@ end
 --- @param phaseNumber number   Phase index used to select the message
 --- @return string|nil
 function getMythosMessage(obj, phaseNumber)
-  local rawNotes = "{}"
   local md = {}
   local id = ""
 
-  if type(obj) == "userdata" then
-    rawNotes = obj.getGMNotes() or "{}"
-    md = JSON.decode(rawNotes) or {}
-    id = md.id or ""
-  elseif type(obj) == "table" then
-    md = obj or {}
-    id = md.id or ""
-  else
-    error("Unsupported card type for ID extraction", 2)
-  end
+  md = getMd(obj)
+  id = md.id
 
   if DEBUG  then
     printToAll("Mythos message debug")
@@ -700,4 +691,21 @@ function getLocationMessage(obj, phaseNumber, isFaceUp)
   if messages then
     return messages[phaseNumber] or nil
   end
+end
+
+---@param obj tts__Object|table
+---@return table
+function getMd(obj)
+  local rawNotes = "{}"
+  md = {}
+  if type(obj) == "userdata" then
+    rawNotes = obj.getGMNotes() or "{}"
+    md = JSON.decode(rawNotes) or {}
+  elseif type(obj) == "table" then
+    rawNotes = obj.gm_notes or ""
+    md = JSON.decode(rawNotes)
+  else
+    error("Unsupported card type for MD extraction", 2)
+  end
+  return md
 end
