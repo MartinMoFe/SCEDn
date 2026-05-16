@@ -2,7 +2,6 @@ local GUIDReferenceApi         = require("core/GUIDReferenceApi")
 local PlayermatApi             = require("playermat/PlayermatApi")
 local SearchLib                = require("util/SearchLib")
 local Zones                    = require("playermat/Zones")
-local GlobalApi                = require("Global/GlobalApi")
 
 --- Cards that are enemies only only when face-down
 local FaceDownEnemies          = { -- Some enemies Enemies in the metadata, but when the face up is not
@@ -23,18 +22,17 @@ local AgendaActFacedownEnemies = { -- Some enemies are Agenda or Act cards in th
 }
 
 
----------------------------
---- CONSTANTS
-------------------------------
+-- ----------------------------
+-- CONSTANTS
+-- ----------------------------
 
-local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
-local LIGHT_BLUE = { r = 0.467, g = 0.867, b = 0.931 }
+local ENEMY_BLUE = { r = 0.267, g = 0.467, b = 0.631 }
 local INV_GREEN = { r = 0.531, g = 0.848, b = 0.598 }
 
 
--- █▀▀ █▀▀█ █▀▀▄ █▀▀
--- █── █──█ █──█ █▀▀
--- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
+-- ----------------------------
+-- BUILT-IN
+-- ----------------------------
 
 function onLoad(savedData)
   -- The list of objects is stored as a list of GUIDs,
@@ -96,10 +94,14 @@ function onSave()
   return JSON.encode(data)
 end
 
-function respondToChange(aString)
-  assert(type(aString)=="string", "Error type")
+-- ----------------------------
+-- CODE
+-- ----------------------------
+
+---@param newPhase string
+function respondToChange(newPhase)
+  assert(type(newPhase)=="string", "Error type")
   -- This function is called from outside
-  newPhase = aString
 
   if newPhase == lastPhase then
     return
@@ -113,8 +115,9 @@ function respondToChange(aString)
   elseif newPhase == "2.1" then
     showResourceHandInfo({ colorPrint = INV_GREEN })
     showHealthSanityInfo({ colorPrint = INV_GREEN })
+    duplicateFakeMinis()
   elseif newPhase == "3.1" then
-    showEnemyInfo(BLUE_ENEMY, BLUE_ENEMY)
+    showEnemyInfo(ENEMY_BLUE, ENEMY_BLUE)
   end
   
 end
@@ -133,15 +136,14 @@ function showEnemyInfo(colorPrint, colorHighlight)
 
   local enemiesInThreatArea = enemiesT
   num = #enemiesInThreatArea
+  numString = "[ffaaaa]" .. tostring(num) .. "[-]"
   if num > 1 then
     printToAll('There are ' .. tostring(num) .. ' enemies engaged.', colorPrint)
   elseif num == 1 then
     printToAll('There is ' .. tostring(num) .. ' enemy engaged.', colorPrint)
   end
-  highlightObjects(enemiesInThreatArea, colorHighlight, 10)
+  highlightObjects(enemiesInThreatArea, colorHighlight, 5)
 end
-
-
 
 function showHealthSanityInfo(params)
   if params == nil then
@@ -416,7 +418,7 @@ function duplicateFakeMinis()
     local s = obj.getScale()
     local newScale = {
       x = s.x * 0.8,
-      y = s.y * 0.012,
+      y = s.y * 0.008,
       z = s.z * 0.8,
     }
 

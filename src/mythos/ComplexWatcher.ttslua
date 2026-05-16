@@ -1,6 +1,9 @@
 local DecalPlacerApi  = require("mythos/DecalPlacerApi")
 local EnemyWatcherApi = require("mythos/EnemyWatcherApi")
 
+
+DEBUG = false
+
 -- We are reusing the funtions inside monster-watcher
 
 
@@ -57,6 +60,7 @@ LocationFaceupMessage   = {
   ["12187"] = { ["2.9"] = 'Forced - When you end your turn at this location:...' },
   ["12186"] = { ["2.9"] = '(R) When you end your turn at this location:...' },
   ["12185"] = { ["2.9"] = 'Forced - When you end your turn at this location:...' },
+  ["12174"] = { ["2.9"] = 'Forced - When the investigation phase ends: Discard each ready...' },
 }
 LocationFacedownMessage = {
   ["04251"] = { ["4.9"] = 'Forced - At the end of the round, if there are fewer than 4 clues on Great Library: Add clues to Great Library until there are 4 clues on it.' },
@@ -107,14 +111,13 @@ MythosMessage           = {
   ["12108"] = { ["1.9"] = "Forced - After doom is placed on the agenda:..." },
   ["12109"] = { ["4.9"] = "Objective - At the end of the round, investigators may spend..." },
   ["12111"] = { ["4.9"] = "Objective - At the end of the round, investigators at Orne Library..." },
+  ["12173"] = { ["4.9"] = "Forced - When the round ends: Each Cultist enemy moves once toward Underground Cistern." }
 }
 
-
+-- ===========================================================
 -- ENEMY ATTRIBUTES
--- This EffectWatcher is also the responsible to know what enemies are aloof, hunter or massive
--- This info is used, by now, to place decals on them
+-- ===========================================================
 
--- List of massive enemies
 
 MASSIVE_ENEMIES             = {
   ['01157'] = true,
@@ -251,12 +254,9 @@ PATROL_ENEMIES              = {
   ["11537a"] = true
 }
 
-
--- █░░ █▀█ █▀▀ ▄▀█ ▀█▀ █ █▀█ █▄░█
--- █▄▄ █▄█ █▄▄ █▀█ ░█░ █ █▄█ █░▀█
+-- ===========================================================
 -- LOCATION ATTRIBUTES
--- This EffectWatcher is also the responsible to know what enemies are locations are blocked
--- This info is used, by now, to place decals on them
+-- ===========================================================
 
 LocationsBlockedBack = {
   ['01115'] = true,
@@ -283,12 +283,10 @@ LocationsBlockedBack = {
   ["11593"] = true,
 }
 
+-- ===========================================================
+-- BUILT-IN
+-- ===========================================================
 
--- █▀▀ █▀▀█ █▀▀▄ █▀▀
--- █── █──█ █──█ █▀▀
--- ▀▀▀ ▀▀▀▀ ▀▀▀─ ▀▀▀
-
-local BLUE_TREACHERY = { r = 0.300, g = 0.700, b = 0.800 }
 local BLUE_ENEMY = { r = 0.267, g = 0.667, b = 0.731 }
 
 function onLoad(savedData)
@@ -306,6 +304,10 @@ function onLoad(savedData)
   -- Add context menu option
   self.addContextMenuItem("Toggle Enemy Decal", toggleEnemyDecal)
 end
+
+-- ----------------------------
+-- CODE
+-- ----------------------------
 
 ---@param aString string
 function respondToChange(aString)
@@ -507,22 +509,20 @@ function showEnemyMovement()
   local patrols = getPatrolEnemiesInMap()
   local numPatrol = #patrols
   local numColor = "[ffaaaa]" .. tostring(numHunter) .. "[-]"
-  log(numHunter)
-  log(numPatrol)
   if numHunter>0 or numPatrol >0 then
-    printToAll("Hunter and patrol (ready and unengaged) enemies move.", LIGHT_BLUE)
+    printToAll("Hunter and patrol (ready and unengaged) enemies move.", BLUE_ENEMY)
   end
 
   if numHunter > 0 then
-    printToAll("There are " .. numColor .. " enemies with hunter.", LIGHT_BLUE)
+    printToAll("There are " .. numColor .. " enemies with hunter.", BLUE_ENEMY)
   elseif numPatrol == 1 then
-    printToAll("There is " .. numColor .. " enemy with hunter.", LIGHT_BLUE)
+    printToAll("There is " .. numColor .. " enemy with hunter.", BLUE_ENEMY)
   end
   local numColor = "[ffaaaa]" .. tostring(numPatrol) .. "[-]"
   if numPatrol > 2 then
-    printToAll("There are" .. numColor .. " enemies with patrol.", LIGHT_BLUE)
+    printToAll("There are" .. numColor .. " enemies with patrol.", BLUE_ENEMY)
   elseif numPatrol == 1 then
-    printToAll("There is " .. numColor .. " enemy with patrol.", LIGHT_BLUE)
+    printToAll("There is " .. numColor .. " enemy with patrol.", BLUE_ENEMY)
   end
 end
 
@@ -646,6 +646,11 @@ function getMythosMessage(obj, phaseNumber)
     id = md.id or ""
   else
     error("Unsupported card type for ID extraction", 2)
+  end
+
+  if DEBUG  then
+    printToAll("Mythos message debug")
+    printToAll(id)
   end
 
   local messages = MythosMessage[id] or nil

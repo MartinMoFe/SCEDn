@@ -472,118 +472,153 @@ end
 --- =========================
 
 ---@param card tts__Object
----@param ingameTraits table A list of traits like Monster, Hazard, Terror
-function setGrizzledScriptWise(card, ingameTraits, nemesisOuter, alwaysPrepField)
-  local num = #ingameTraits
-  local posX = -5
-  local posY = 69
+---@param alwaysPrepField boolean If true, adds Always Prepared label
+function setGrizzledScriptWiseOld(card, ingameTraits, nemesisOuter, alwaysPrepField)
   local posZ = -43
-  local width = 180
-  local height = 24
-  if num == 4 then
-    height = 30
-  end
-  local scale = "1 1 1"
-  local rotation = "0 0 180"
-  local font = "Arno"
-  local fSize = 15
-  if #ingameTraits >= 4 then
-    fSize = 12
-  end
-
-  local fieldsLua = '{"' .. table.concat(ingameTraits, '", "') .. '"}'
-
-  local additionalXml = ""
-  local additionalXml2 = ""
-  if nemesisOuter then
-    additionalXml = [[-- Add nemesis box
-  xml = xml .. '<Panel width="]] ..
-        width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. (posY - 20) .. [[ ]] .. posZ .. [[">'
-  xml = xml .. '  <Text text="Nemesis" fontSize="18" color="#4466ffdd" rectAlignment="MiddleCenter" />'
-  xml = xml .. '</Panel>']]
-  end
-  if alwaysPrepField then
-    additionalXml2 = [[-- Add nemesis box
-    xml = xml .. '<Panel width="]] ..
-        width .. [[" height="]] .. height .. [[" position="]] .. posX .. [[ ]] .. (posY - 40) .. [[ ]] .. posZ .. [[">'
-    xml = xml .. '  <Text text="Always prepared" fontSize="18" color="#44ff66dd" rectAlignment="MiddleCenter" />'
-    xml = xml .. '</Panel>']]
-  end
-
+  local posY = 70
+  local width = 760
+  local height = 100
+  local num = #ingameTraits
+  local fSize = 48
+  
+  -- Font and Cell Logic
   if num == 2 then
-    panelXml = [[
-  xml = xml .. '<HorizontalLayout spacing="1">'
-  xml = xml .. getCell(fields[1])
-  xml = xml .. getCell(fields[2])
-  xml = xml .. '</HorizontalLayout>'
-    ]]
+    fSize = 48
+    cellWidth = width / 2
+    cellHeight = height
   elseif num == 3 then
-    panelXml = [[
-  xml = xml .. '<HorizontalLayout spacing="1">'
-  xml = xml .. getCell(fields[1])
-  xml = xml .. getCell(fields[2])
-  xml = xml .. getCell(fields[3])
-  xml = xml .. '</HorizontalLayout>'
-      ]]
-  elseif num == 4 then
-    panelXml = [[
-  xml = xml .. '<VerticalLayout spacing="0" childForceExpandHeight="true">'
-  xml = xml .. '<HorizontalLayout spacing="1">'
-  xml = xml .. getCell(fields[1])
-  xml = xml .. getCell(fields[2])
-  xml = xml .. '</HorizontalLayout>'
-  xml = xml .. '<HorizontalLayout spacing="1">'
-  xml = xml .. getCell(fields[3])
-  xml = xml .. getCell(fields[4])
-  xml = xml .. '</HorizontalLayout>'
-  xml = xml .. '</VerticalLayout>'
-    ]]
+    fSize = 32
+    cellWidth = width / 3
+    cellHeight = height
   else
-    error("Unexpected number of fields: " .. num, 2)
+    fSize = 24
+    cellWidth = width / 2
+    cellHeight = height / 2
   end
 
+  local function createCell(trait)
+    if not trait or trait == "" then return "" end
+    return '<Text color="#000000" fontSize="'.. fSize ..'" text="' .. trait .. '" />'
+  end
 
-  local cardScript = [[
--- Generated Script
+  -- Generate Trait Content
+  local xmlContent = ""
+  local containerType = ""
+  if num == 4 then
+    containerType = "GridLayout"
+    xmlContent = createCell(ingameTraits[1]) .. createCell(ingameTraits[2]) .. "\n" .. createCell(ingameTraits[3]) .. createCell(ingameTraits[4])
+  else
+    containerType = "HorizontalLayout"
+    local cells = {}
+    for _, trait in ipairs(ingameTraits) do table.insert(cells, createCell(trait)) end
+    xmlContent = table.concat(cells, "\n")
+  end
 
-local fields = ]] .. fieldsLua .. [[
+  -- NEW: Meta-coding for Nemesis and Always Prep
+  local extraPanels = ""
+  if nemesisOuter then
+    extraPanels = extraPanels .. '\n    <Panel position="0 -130 '..posZ..'" rotation="0 0 180" width="760" height="50"><Text color="#0000FF" fontSize="40" text="Nemesis" /></Panel>'
+  end
+  
+  if alwaysPrepField then
+    extraPanels = extraPanels .. '\n    <Panel position="0 -115 '..posZ..'" rotation="0 0 180" width="760" height="50"><Text color="#0000FF" fontSize="40" text="Always Prepared" /></Panel>'
+  end
 
-local globalFontSize = ]] .. fSize .. [[
+  -- Build the final XML Block including the extras
+  local xmlBlock = [[<Panel position="-5 ]]..posY.." "..posZ.. [[" rotation="0 0 180" width="760" height="100">
+        <]] .. containerType .. [[ spacing="1" cellSize="]] .. cellWidth .. " " .. cellHeight .. [[" scale="0.25 0.25 1">
+            ]] .. xmlContent .. [[
+        </]] .. containerType .. [[>
+    </Panel>]] .. extraPanels
 
+  -- Final Script Generation
+  local finalGeneratedCode = [[
+xmlStatic = [=[
+]] .. xmlBlock .. [[
+]=]
 
 function onLoad()
-  -- Wait a frame to ensure UI is ready
-  Wait.frames(function() self.UI.setXml(generateCardXml()) end, 1)
+    Wait.frames(function()
+        self.UI.setXml(xmlStatic)
+    end, 1)
+end]]
+
+  card.setLuaScript(finalGeneratedCode)
 end
 
-function getCell(txt)
-  local xml = '<Panel>'
-  xml = xml .. '<Text text="'..txt..'" fontSize="'..globalFontSize..'" '
-  xml = xml .. 'font="]] .. font .. [[" '
-  xml = xml .. 'color="#000000" rectAlignment="MiddleCenter" bestFit="true" bestFitMinSize="4" '
-  xml = xml .. 'position="0 0 0" bestFitMaxSize="'..globalFontSize..'"/>'
-  xml = xml .. '</Panel>'
-  return xml
-end
+---@param card tts__Object
+---@param ingameTraits table A list of traits like Monster, Hazard, Terror
+---@param nemesisOuter boolean
+---@param alwaysPrepField boolean
+function setGrizzledScriptWise(card, ingameTraits, nemesisOuter, alwaysPrepField)
+  local posZ = -43
+  local posY = 72
+  local width = 760
+  local height = 100
+  local num = #ingameTraits
 
-function generateCardXml()
-  local xml = '<Panel id="DebugBox" width="]] .. width .. [[" height="]] .. height .. [[" '
-  xml = xml .. 'position="]] .. posX .. [[ ]] .. posY .. [[ ]] .. posZ .. [[" '
-  xml = xml .. 'rotation="]] .. rotation .. [[" scale="]] .. scale .. [[" color="#add8e622">'
+  -- Logic for cell dimensions and font size
+  local fSize = 52
+  local cellWidth, cellHeight
 
-  -- Panel
-  ]] .. panelXml .. [[
+  if num == 2 then
+    fSize = 48
+    cellWidth, cellHeight = width / 2, height
+  elseif num == 3 then
+    fSize = 36
+    cellWidth, cellHeight = width / 3, height
+  elseif num == 4 then
+    fSize = 28
+    cellWidth, cellHeight = width / 2, height / 2
+  end
 
-  ]] .. additionalXml .. [[
+  local function createCell(trait)
+    if not trait or trait == "" then return "" end
+    return '<Text color="#000000" fontSize="' .. fSize .. '" text="' .. trait .. '" />'
+  end
 
-  ]] .. additionalXml2 .. [[
+  -- Trait Layout Logic
+  local xmlContent = ""
+  if num == 4 then
+    xmlContent = [[
+      <VerticalLayout>
+        <HorizontalLayout>]] .. createCell(ingameTraits[1]) .. createCell(ingameTraits[2]) .. [[</HorizontalLayout>
+        <HorizontalLayout>]] .. createCell(ingameTraits[3]) .. createCell(ingameTraits[4]) .. [[</HorizontalLayout>
+      </VerticalLayout>]]
+  else
+    local cells = {}
+    for _, trait in ipairs(ingameTraits) do table.insert(cells, createCell(trait)) end
+    xmlContent = '<HorizontalLayout spacing="1">' .. table.concat(cells, "") .. '</HorizontalLayout>'
+  end
 
-  xml = xml .. '</Panel>'
-  return xml
-end
-]]
+  local extraPanels = ""
+  if nemesisOuter then
+    extraPanels = extraPanels ..
+    '\n    <Panel position="0 -115 ' ..
+    posZ ..
+    '" rotation="0 0 180" width="760" height="100" scale="0.25 0.25 1"><Text color="#0000FF" fontSize="55" text="Nemesis" /></Panel>'
+  end
 
-  card.setLuaScript(cardScript)
+  if alwaysPrepField then
+    extraPanels = extraPanels ..
+    '\n    <Panel position="0 -100 ' ..
+    posZ ..
+    '" rotation="0 0 180" width="760" height="100" scale="0.25 0.25 1"><Text color="#0000FF" fontSize="55" text="Always Prepared" /></Panel>'
+  end
+
+  local xmlBlock = [[<Panel position="-5 ]] ..
+  posY .. " " .. posZ .. [[" rotation="0 0 180" width="760" height="100" scale="0.25 0.25 1">
+        ]] .. xmlContent .. [[
+    </Panel>]] .. extraPanels
+
+  local finalGeneratedCode = "xmlStatic = [=[" .. xmlBlock .. "]=]\n\n" .. [[
+function onLoad()
+    Wait.frames(function()
+        self.UI.setXml(xmlStatic)
+    end, 1)
+end]]
+
+  card.setLuaScript(finalGeneratedCode)
 end
 
 ---@param card tts__Object
